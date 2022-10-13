@@ -44,12 +44,20 @@ type Page interface {
 	UpdatePage(id string, user domain.Page) (domain.Page, error)
 }
 
+type Component interface {
+	GetComponent(id string) (domain.Component, error)
+	FindComponent(params domain.RequestParams) (domain.Response[domain.Component], error)
+	CreateComponent(userId string, component domain.Component) (*domain.Component, error)
+	DeleteComponent(id string) (domain.Component, error)
+	UpdateComponent(id string, user domain.Component) (domain.Component, error)
+}
 
 type Services struct {
 	Authorization
 	Shop
 	User
 	Page
+	Component
 }
 
 type ConfigServices struct {
@@ -68,5 +76,6 @@ func NewServices(cfgService *ConfigServices) *Services {
 		Shop: NewShopService(cfgService.Repositories.Shop),
 		User: NewUserService(cfgService.Repositories.User),
 		Page: NewPageService(cfgService.Repositories.Page),
+		Component: NewComponentService(cfgService.Repositories.Component),
 	}
 }

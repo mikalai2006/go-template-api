@@ -19,6 +19,11 @@ const (
 	tblAuth = "auth"
 	tblPage = "pages"
 
+	tblComponent = "components"
+	tblComponentData = "component_datas"
+	tblComponentGroup = "component_groups"
+	tblComponentSchema = "component_schemas"
+	tblComponentSchemaData = "component_schemadatas"
 
 	MongoQueryTimeout = 10 * time.Second
 )

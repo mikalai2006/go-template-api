@@ -30,6 +30,14 @@ type Page interface {
 	UpdatePage(id string, page domain.Page) (domain.Page, error)
 }
 
+type Component interface {
+	GetComponent(id string) (domain.Component, error)
+	FindComponent(params domain.RequestParams) (domain.Response[domain.Component], error)
+	CreateComponent(userId string, component domain.Component) (*domain.Component, error)
+	DeleteComponent(id string) (domain.Component, error)
+	UpdateComponent(id string, component domain.Component) (domain.Component, error)
+}
+
 type User interface {
 	GetUser(id string) (domain.User, error)
 	FindUser(params domain.RequestParams) (domain.Response[domain.User], error)
@@ -43,6 +51,7 @@ type Repositories struct {
 	Shop
 	User
 	Page
+	Component
 }
 
 func NewRepositories(mongodb *mongo.Database) *Repositories {
@@ -51,5 +60,6 @@ func NewRepositories(mongodb *mongo.Database) *Repositories {
 		Shop: NewShopMongo(mongodb),
 		User: NewUserMongo(mongodb),
 		Page: NewPageMongo(mongodb),
+		Component: NewComponentMongo(mongodb),
 	}
 }

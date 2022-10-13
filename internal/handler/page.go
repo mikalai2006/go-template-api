@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -12,11 +13,11 @@ import (
 func (h *Handler) RegisterPage(router *gin.RouterGroup) {
 		page := router.Group("/page")
 		{
-			page.POST("/", middleware.SetUserIdentity, h.CreatePage)
+			page.POST("/", middleware.SetUserIdentity, h.createPage)
 			page.DELETE("/:id", middleware.SetUserIdentity, h.deletePage)
 			page.PATCH("/:id", middleware.SetUserIdentity, h.updatePage)
-			page.GET("/:id", h.GetPage)
-			page.GET("/find", h.FindPage)
+			page.GET("/:id", h.getPage)
+			page.GET("/find", h.findPage)
 		}
 }
 
@@ -32,16 +33,16 @@ func (h *Handler) RegisterPage(router *gin.RouterGroup) {
 // @Failure 500 {object} domain.ErrorResponse
 // @Failure default {object} domain.ErrorResponse
 // @Router /api/page/{id} [get]
-func (h *Handler) GetPage(c *gin.Context) {
+func (h *Handler) getPage(c *gin.Context) {
 	id := c.Param("id")
 
-	user, err := h.services.Page.GetPage(id)
+	document, err := h.services.Page.GetPage(id)
 	if err != nil {
 		c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
 
-	c.JSON(http.StatusOK, user)
+	c.JSON(http.StatusOK, document)
 }
 
 
@@ -63,23 +64,23 @@ type InputPage struct {
 // @Failure 500 {object} domain.ErrorResponse
 // @Failure default {object} domain.ErrorResponse
 // @Router /api/page/find [get]
-func (h *Handler) FindPage(c *gin.Context) {
+func (h *Handler) findPage(c *gin.Context) {
 	params, err := utils.GetParamsFromRequest(c, domain.Page{})
 	if err != nil {
 		c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
 
-	users, err := h.services.Page.FindPage(params)
+	documents, err := h.services.Page.FindPage(params)
 	if err != nil {
 		c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
 
-	c.JSON(http.StatusOK, users)
+	c.JSON(http.StatusOK, documents)
 }
 
-func (h *Handler) CreatePage(c *gin.Context) {
+func (h *Handler) createPage(c *gin.Context) {
 	userId, err := middleware.GetUserId(c)
 	if err != nil {
 		c.AbortWithError(http.StatusUnauthorized, err)
@@ -92,14 +93,14 @@ func (h *Handler) CreatePage(c *gin.Context) {
 		return
 	}
 
-	user, err := h.services.Page.CreatePage(userId, input)
+	document, err := h.services.Page.CreatePage(userId, input)
 	if err != nil {
 		c.AbortWithError(http.StatusBadRequest, err)
 		// utils.NewErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	c.JSON(http.StatusOK, user)
+	c.JSON(http.StatusOK, document)
 }
 
 // @Summary Delete page
@@ -118,22 +119,26 @@ func (h *Handler) CreatePage(c *gin.Context) {
 func (h *Handler) deletePage(c *gin.Context) {
 
 	id := c.Param("id")
-
-	var input domain.Page
-	if err := c.BindJSON(&input); err != nil {
-		c.AbortWithError(http.StatusBadRequest, err)
+	if id == "" {
+		c.AbortWithError(http.StatusBadRequest, errors.New("for remove need id"))
 
 		return
 	}
+	// var input domain.Page
+	// if err := c.BindJSON(&input); err != nil {
+	// 	c.AbortWithError(http.StatusBadRequest, err)
 
-	user, err := h.services.User.DeleteUser(id) // , input
+	// 	return
+	// }
+
+	document, err := h.services.Page.DeletePage(id) // , input
 	if err != nil {
 		c.AbortWithError(http.StatusBadRequest, err)
 
 		return
 	}
 
-	c.JSON(http.StatusOK, user)
+	c.JSON(http.StatusOK, document)
 }
 
 
@@ -162,12 +167,12 @@ func (h *Handler) updatePage(c *gin.Context)  {
 		return
 	}
 
-	user, err := h.services.Page.UpdatePage(id, input)
+	document, err := h.services.Page.UpdatePage(id, input)
 	if err != nil {
 		c.AbortWithError(http.StatusBadRequest, err)
 
 		return
 	}
 
-	c.JSON(http.StatusOK, user)
+	c.JSON(http.StatusOK, document)
 }
