@@ -2,6 +2,10 @@ basePath: /
 definitions:
   domain.Auth:
     properties:
+      created_at:
+        type: string
+      email:
+        type: string
       id:
         description: swagger:ignore
         type: string
@@ -11,23 +15,34 @@ definitions:
         type: string
       session:
         $ref: '#/definitions/domain.Session'
+      updated_at:
+        type: string
       verification:
         $ref: '#/definitions/domain.Verification'
     required:
     - login
     - password
     type: object
-  domain.Response:
+  domain.ErrorResponse:
     properties:
-      data:
-        items: {}
-        type: array
-      limit:
+      code:
         type: integer
-      skip:
-        type: integer
-      total:
-        type: integer
+      message:
+        type: string
+    type: object
+  domain.RefreshInput:
+    properties:
+      token:
+        type: string
+    required:
+    - token
+    type: object
+  domain.ResponseTokens:
+    properties:
+      access_token:
+        type: string
+      refresh_token:
+        type: string
     type: object
   domain.Session:
     properties:
@@ -95,16 +110,11 @@ definitions:
       verified:
         type: boolean
     type: object
-  handler.errorResponse:
-    properties:
-      message:
-        type: string
-    type: object
 host: localhost:8000
 info:
   contact: {}
-  description: API Server for Handmade App
-  title: Handmade API
+  description: API Server for Template App
+  title: Template API
   version: "1.0"
 paths:
   /api/shops:
@@ -141,24 +151,24 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/domain.Response'
+              $ref: '#/definitions/domain.Shop'
             type: array
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/handler.errorResponse'
+            $ref: '#/definitions/domain.ErrorResponse'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/handler.errorResponse'
+            $ref: '#/definitions/domain.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/handler.errorResponse'
+            $ref: '#/definitions/domain.ErrorResponse'
         default:
           description: ""
           schema:
-            $ref: '#/definitions/handler.errorResponse'
+            $ref: '#/definitions/domain.ErrorResponse'
       security:
       - ApiKeyAuth: []
       summary: Find shops by params
@@ -221,24 +231,24 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/domain.Response'
+              $ref: '#/definitions/domain.User'
             type: array
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/handler.errorResponse'
+            $ref: '#/definitions/domain.ErrorResponse'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/handler.errorResponse'
+            $ref: '#/definitions/domain.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/handler.errorResponse'
+            $ref: '#/definitions/domain.ErrorResponse'
         default:
           description: ""
           schema:
-            $ref: '#/definitions/handler.errorResponse'
+            $ref: '#/definitions/domain.ErrorResponse'
       security:
       - ApiKeyAuth: []
       summary: Find few users
@@ -262,24 +272,24 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/domain.Response'
+              $ref: '#/definitions/domain.User'
             type: array
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/handler.errorResponse'
+            $ref: '#/definitions/domain.ErrorResponse'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/handler.errorResponse'
+            $ref: '#/definitions/domain.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/handler.errorResponse'
+            $ref: '#/definitions/domain.ErrorResponse'
         default:
           description: ""
           schema:
-            $ref: '#/definitions/handler.errorResponse'
+            $ref: '#/definitions/domain.ErrorResponse'
       security:
       - ApiKeyAuth: []
       summary: Delete user
@@ -305,19 +315,19 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/handler.errorResponse'
+            $ref: '#/definitions/domain.ErrorResponse'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/handler.errorResponse'
+            $ref: '#/definitions/domain.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/handler.errorResponse'
+            $ref: '#/definitions/domain.ErrorResponse'
         default:
           description: ""
           schema:
-            $ref: '#/definitions/handler.errorResponse'
+            $ref: '#/definitions/domain.ErrorResponse'
       summary: Get user by Id
       tags:
       - user
@@ -344,24 +354,24 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/domain.Response'
+              $ref: '#/definitions/domain.User'
             type: array
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/handler.errorResponse'
+            $ref: '#/definitions/domain.ErrorResponse'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/handler.errorResponse'
+            $ref: '#/definitions/domain.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/handler.errorResponse'
+            $ref: '#/definitions/domain.ErrorResponse'
         default:
           description: ""
           schema:
-            $ref: '#/definitions/handler.errorResponse'
+            $ref: '#/definitions/domain.ErrorResponse'
       security:
       - ApiKeyAuth: []
       summary: Update user
@@ -390,19 +400,19 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/handler.errorResponse'
+            $ref: '#/definitions/domain.ErrorResponse'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/handler.errorResponse'
+            $ref: '#/definitions/domain.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/handler.errorResponse'
+            $ref: '#/definitions/domain.ErrorResponse'
         default:
           description: ""
           schema:
-            $ref: '#/definitions/handler.errorResponse'
+            $ref: '#/definitions/domain.ErrorResponse'
       summary: SignIn
       tags:
       - auth
@@ -429,22 +439,60 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/handler.errorResponse'
+            $ref: '#/definitions/domain.ErrorResponse'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/handler.errorResponse'
+            $ref: '#/definitions/domain.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/handler.errorResponse'
+            $ref: '#/definitions/domain.ErrorResponse'
         default:
           description: ""
           schema:
-            $ref: '#/definitions/handler.errorResponse'
+            $ref: '#/definitions/domain.ErrorResponse'
       summary: SignUp
       tags:
       - auth
+  /users/auth/refresh:
+    post:
+      consumes:
+      - application/json
+      description: user refresh tokens
+      parameters:
+      - description: sign up info
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/domain.RefreshInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.ResponseTokens'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        default:
+          description: ""
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+      summary: User Refresh Tokens
+      tags:
+      - users-auth
 securityDefinitions:
   ApiKeyAuth:
     in: header

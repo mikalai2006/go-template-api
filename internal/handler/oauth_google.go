@@ -10,7 +10,7 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	"github.com/mikalai2006/handmade/internal/domain"
+	"github.com/mikalai2006/go-template-api/internal/domain"
 )
 
 

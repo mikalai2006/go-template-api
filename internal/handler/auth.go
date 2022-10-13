@@ -6,8 +6,8 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/mikalai2006/handmade/internal/domain"
-	"github.com/mikalai2006/handmade/internal/middleware"
+	"github.com/mikalai2006/go-template-api/internal/domain"
+	"github.com/mikalai2006/go-template-api/internal/middleware"
 )
 
 func (h *Handler) registerAuth(router *gin.RouterGroup) {
@@ -27,9 +27,9 @@ func (h *Handler) registerAuth(router *gin.RouterGroup) {
 // @Produce json
 // @Param input body domain.Auth true "account info"
 // @Success 200 {integer} 1
-// @Failure 400,404 {object} errorResponse
-// @Failure 500 {object} errorResponse
-// @Failure default {object} errorResponse
+// @Failure 400,404 {object} domain.ErrorResponse
+// @Failure 500 {object} domain.ErrorResponse
+// @Failure default {object} domain.ErrorResponse
 // @Router /auth/sign-up [post]
 func (h *Handler) SignUp(c *gin.Context) {
 	var input  domain.SignInInput
@@ -60,9 +60,9 @@ func (h *Handler) SignUp(c *gin.Context) {
 // @Produce json
 // @Param input body domain.SignInInput true "credentials"
 // @Success 200 {integer} 1
-// @Failure 400,404 {object} errorResponse
-// @Failure 500 {object} errorResponse
-// @Failure default {object} errorResponse
+// @Failure 400,404 {object} domain.ErrorResponse
+// @Failure 500 {object} domain.ErrorResponse
+// @Failure default {object} domain.ErrorResponse
 // @Router /auth/sign-in [post]
 func (h *Handler) SignIn(c *gin.Context) {
 	// jwt_cookie, _ := c.Cookie("jwt-handmade")
@@ -110,11 +110,11 @@ func (h *Handler) SignIn(c *gin.Context) {
 // @Description user refresh tokens
 // @Accept  json
 // @Produce  json
-// @Param input body refreshInput true "sign up info"
-// @Success 200 {object} tokenResponse
-// @Failure 400,404 {object} response
-// @Failure 500 {object} response
-// @Failure default {object} response
+// @Param input body domain.RefreshInput true "sign up info"
+// @Success 200 {object} domain.ResponseTokens
+// @Failure 400,404 {object} domain.ErrorResponse
+// @Failure 500 {object} domain.ErrorResponse
+// @Failure default {object} domain.ErrorResponse
 // @Router /users/auth/refresh [post]
 func (h *Handler) tokenRefresh(c *gin.Context) {
 	jwt_cookie, _ := c.Cookie("jwt-handmade")

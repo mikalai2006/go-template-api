@@ -1,4 +1,4 @@
-module github.com/mikalai2006/handmade
+module github.com/mikalai2006/go-template-api
 
 go 1.19
 

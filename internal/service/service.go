@@ -3,11 +3,11 @@ package service
 import (
 	"time"
 
-	"github.com/mikalai2006/handmade/internal/domain"
-	"github.com/mikalai2006/handmade/internal/repository"
-	"github.com/mikalai2006/handmade/internal/utils"
-	"github.com/mikalai2006/handmade/pkg/auths"
-	"github.com/mikalai2006/handmade/pkg/hasher"
+	"github.com/mikalai2006/go-template-api/internal/domain"
+	"github.com/mikalai2006/go-template-api/internal/repository"
+	"github.com/mikalai2006/go-template-api/internal/utils"
+	"github.com/mikalai2006/go-template-api/pkg/auths"
+	"github.com/mikalai2006/go-template-api/pkg/hasher"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 

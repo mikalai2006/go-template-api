@@ -4,8 +4,8 @@ import (
 	"context"
 	"time"
 
-	"github.com/mikalai2006/handmade/internal/domain"
-	"github.com/mikalai2006/handmade/internal/utils"
+	"github.com/mikalai2006/go-template-api/internal/domain"
+	"github.com/mikalai2006/go-template-api/internal/utils"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"

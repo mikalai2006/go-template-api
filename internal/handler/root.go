@@ -6,10 +6,10 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/mikalai2006/handmade/docs"
-	"github.com/mikalai2006/handmade/internal/config"
-	"github.com/mikalai2006/handmade/internal/middleware"
-	"github.com/mikalai2006/handmade/internal/service"
+	"github.com/mikalai2006/go-template-api/docs"
+	"github.com/mikalai2006/go-template-api/internal/config"
+	"github.com/mikalai2006/go-template-api/internal/middleware"
+	"github.com/mikalai2006/go-template-api/internal/service"
 	swaggerFiles "github.com/swaggo/files"     // swagger embed files
 	ginSwagger "github.com/swaggo/gin-swagger" // gin-swagger middleware
 )

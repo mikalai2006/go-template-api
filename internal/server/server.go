@@ -4,7 +4,7 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/mikalai2006/handmade/internal/config"
+	"github.com/mikalai2006/go-template-api/internal/config"
 )
 
 type Server struct {

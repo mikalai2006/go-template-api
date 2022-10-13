@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	"github.com/mikalai2006/handmade/pkg/auths"
+	"github.com/mikalai2006/go-template-api/pkg/auths"
 )
 
 const (

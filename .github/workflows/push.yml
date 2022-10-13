@@ -1,4 +1,4 @@
-name: golang-handmade-pipeline
+name: go-template-api-test
 on: push
 jobs:
   test:
@@ -76,7 +76,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
         with:
-          images: mikalai2006/handmade-api
+          images: mikalai2006/go-template-api
 
       - name: PrepareReg Names
         id: read-docker-image-identifiers

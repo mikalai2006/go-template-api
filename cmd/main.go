@@ -10,21 +10,21 @@ import (
 	"time"
 
 	_ "github.com/lib/pq"
-	"github.com/mikalai2006/handmade/internal/config"
-	"github.com/mikalai2006/handmade/internal/handler"
-	"github.com/mikalai2006/handmade/internal/repository"
-	"github.com/mikalai2006/handmade/internal/server"
-	"github.com/mikalai2006/handmade/internal/service"
-	"github.com/mikalai2006/handmade/internal/utils"
-	"github.com/mikalai2006/handmade/pkg/auths"
-	"github.com/mikalai2006/handmade/pkg/hasher"
-	"github.com/mikalai2006/handmade/pkg/logger"
+	"github.com/mikalai2006/go-template-api/internal/config"
+	"github.com/mikalai2006/go-template-api/internal/handler"
+	"github.com/mikalai2006/go-template-api/internal/repository"
+	"github.com/mikalai2006/go-template-api/internal/server"
+	"github.com/mikalai2006/go-template-api/internal/service"
+	"github.com/mikalai2006/go-template-api/internal/utils"
+	"github.com/mikalai2006/go-template-api/pkg/auths"
+	"github.com/mikalai2006/go-template-api/pkg/hasher"
+	"github.com/mikalai2006/go-template-api/pkg/logger"
 	"github.com/sirupsen/logrus"
 )
 
-// @title Handmade API
+// @title Template API
 // @version 1.0
-// @description API Server for Handmade App
+// @description API Server for Template App
 
 // @host localhost:8000
 // @BasePath /

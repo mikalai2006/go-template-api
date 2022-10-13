@@ -1,8 +1,8 @@
 package service
 
 import (
-	"github.com/mikalai2006/handmade/internal/domain"
-	"github.com/mikalai2006/handmade/internal/repository"
+	"github.com/mikalai2006/go-template-api/internal/domain"
+	"github.com/mikalai2006/go-template-api/internal/repository"
 )
 
 type UserService struct {

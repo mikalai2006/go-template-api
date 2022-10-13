@@ -1,5 +1,5 @@
 db:
-  dbname: "handmade"
+  dbname: "api_db"
   sslmode: "disable"
 mongodb:
   dbname: "api_db"

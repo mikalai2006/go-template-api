@@ -4,9 +4,9 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/mikalai2006/handmade/internal/domain"
-	"github.com/mikalai2006/handmade/internal/middleware"
-	"github.com/mikalai2006/handmade/internal/utils"
+	"github.com/mikalai2006/go-template-api/internal/domain"
+	"github.com/mikalai2006/go-template-api/internal/middleware"
+	"github.com/mikalai2006/go-template-api/internal/utils"
 )
 
 
@@ -49,9 +49,9 @@ func (h *Handler) CreateShop(c *gin.Context) {
 // @Accept  json
 // @Produce  json
 // @Success 200 {object} []domain.Shop
-// @Failure 400,404 {object} errorResponse
-// @Failure 500 {object} errorResponse
-// @Failure default {object} errorResponse
+// @Failure 400,404 {object} domain.ErrorResponse
+// @Failure 500 {object} domain.ErrorResponse
+// @Failure default {object} domain.ErrorResponse
 // @Router /api/shops [get]
 func (h *Handler) GetAllShops(c *gin.Context) {
 	params, err := utils.GetParamsFromRequest(c, domain.Shop{})
@@ -84,10 +84,10 @@ type inputs struct {
 // @Accept  json
 // @Produce  json
 // @Param input query inputs true "params for search shops"
-// @Success 200 {object} []domain.Response
-// @Failure 400,404 {object} errorResponse
-// @Failure 500 {object} errorResponse
-// @Failure default {object} errorResponse
+// @Success 200 {object} []domain.Shop
+// @Failure 400,404 {object} domain.ErrorResponse
+// @Failure 500 {object} domain.ErrorResponse
+// @Failure default {object} domain.ErrorResponse
 // @Router /api/shops [get]
 func (h *Handler) Find(c *gin.Context) {
 	params, err := utils.GetParamsFromRequest(c, domain.Shop{})

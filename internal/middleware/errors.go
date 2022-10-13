@@ -2,12 +2,10 @@ package middleware
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/mikalai2006/go-template-api/internal/domain"
 )
 
-type errorResponse struct {
-	Code    int    `json:"code"`
-	Message string `json:"message"`
-}
+
 
 func JSONAppErrorReporter() gin.HandlerFunc {
 	return HadleError(gin.ErrorTypeAny)
@@ -28,7 +26,7 @@ func HadleError(errorType gin.ErrorType) gin.HandlerFunc {
 		}
 
 		if err != nil {
-			c.JSON(-1, errorResponse{
+			c.JSON(-1, domain.ErrorResponse{
 				Code: c.Writer.Status(),
 				Message: err.Error(),
 			})
