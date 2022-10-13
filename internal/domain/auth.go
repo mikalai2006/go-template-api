@@ -29,7 +29,7 @@ type Verification struct {
 }
 type SignInInput struct {
 	Login string `json:"login" bson:"login"`
-	Email string `json:"-" bson:"-"`
+	Email string `json:"email" bson:"email"`
 	Password string `json:"password" bson:"password"`
 	Strategy string `json:"strategy" bson:"strategy"`
 	VkId string `json:"-"`

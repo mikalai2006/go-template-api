@@ -38,16 +38,16 @@ func (r *AuthMongo) CreateAuth(user domain.Auth) (primitive.ObjectID, error) {
 
 func chooseProvider(auth domain.SignInInput) (bson.D) {
 	if auth.Strategy == "local" {
-		var filter []interface{}
+		var filter bson.A
 		if auth.Email != "" {
 			// add email filter
-			filter = append(filter, bson.E{Key:"login", Value: auth.Email})
-			filter = append(filter, bson.E{Key:"email", Value: auth.Email})
+			filter = append(filter, bson.M{"login": auth.Email})
+			filter = append(filter, bson.M{"email": auth.Email})
 		}
 		if auth.Login != "" {
 			// add email filter
-			filter = append(filter, bson.E{Key:"login", Value: auth.Login})
-			filter = append(filter, bson.E{Key:"email", Value: auth.Login})
+			filter = append(filter, bson.M{"login": auth.Login})
+			filter = append(filter, bson.M{"email": auth.Login})
 		}
 		return bson.D{
 			{Key: "$or", Value: filter },
@@ -90,9 +90,6 @@ func (r *AuthMongo) GetAuth(auth domain.Auth) (domain.Auth, error) {
 	// fmt.Println("")
 	// fmt.Printf("GetAuth: query=%s", query)
 	err := r.db.Collection(tblAuth).FindOne(ctx, query).Decode(&user)
-	// if err != nil {
-	// 	return domain.Auth{}, err
-	// }
 
 	return user, err
 }
@@ -103,10 +100,8 @@ func (r *AuthMongo) GetByCredentials(auth domain.SignInInput) (domain.Auth, erro
 	ctx, cancel := context.WithTimeout(context.Background(), MongoQueryTimeout)
 	defer cancel()
 
-	// query := bson.M{"login": auth.Login, "password": auth.Password}
 	filter := chooseProvider(auth)
-	// fmt.Println("---")
-	// fmt.Println(filter)
+
 	err := r.db.Collection(tblAuth).FindOne(ctx, filter).Decode(&user)
 
 	return user, err

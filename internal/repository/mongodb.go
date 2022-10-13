@@ -17,6 +17,9 @@ const (
 	tblShops = "shops"
 	tblUsers = "users"
 	tblAuth = "auth"
+	tblPage = "pages"
+
+
 	MongoQueryTimeout = 10 * time.Second
 )
 

@@ -22,6 +22,14 @@ type Shop interface {
 	CreateShop(userId string, shop domain.Shop) (*domain.Shop, error)
 }
 
+type Page interface {
+	FindPage(params domain.RequestParams) (domain.Response[domain.Page], error)
+	GetPage(id string) (domain.Page, error)
+	CreatePage(userId string, page domain.Page) (*domain.Page, error)
+	DeletePage(id string) (domain.Page, error)
+	UpdatePage(id string, page domain.Page) (domain.Page, error)
+}
+
 type User interface {
 	GetUser(id string) (domain.User, error)
 	FindUser(params domain.RequestParams) (domain.Response[domain.User], error)
@@ -34,6 +42,7 @@ type Repositories struct {
 	Authorization
 	Shop
 	User
+	Page
 }
 
 func NewRepositories(mongodb *mongo.Database) *Repositories {
@@ -41,5 +50,6 @@ func NewRepositories(mongodb *mongo.Database) *Repositories {
 		Authorization: NewAuthMongo(mongodb),
 		Shop: NewShopMongo(mongodb),
 		User: NewUserMongo(mongodb),
+		Page: NewPageMongo(mongodb),
 	}
 }

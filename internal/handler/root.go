@@ -53,6 +53,7 @@ func (h *Handler) InitRoutes(cfg config.Config) *gin.Engine {
 	api := router.Group("/api")
 	h.registerShop(api)
 	h.RegisterUser(api)
+	h.RegisterPage(api)
 
 	oauth := router.Group("/oauth")
 	h.registerVkOAuth(oauth)

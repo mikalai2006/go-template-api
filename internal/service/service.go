@@ -36,11 +36,20 @@ type User interface {
 	UpdateUser(id string, user domain.User) (domain.User, error)
 }
 
+type Page interface {
+	GetPage(id string) (domain.Page, error)
+	FindPage(params domain.RequestParams) (domain.Response[domain.Page], error)
+	CreatePage(userId string, page domain.Page) (*domain.Page, error)
+	DeletePage(id string) (domain.Page, error)
+	UpdatePage(id string, user domain.Page) (domain.Page, error)
+}
+
 
 type Services struct {
 	Authorization
 	Shop
 	User
+	Page
 }
 
 type ConfigServices struct {
@@ -58,5 +67,6 @@ func NewServices(cfgService *ConfigServices) *Services {
 		Authorization: NewAuthService(cfgService.Repositories.Authorization, cfgService.Hasher, cfgService.TokenManager, cfgService.RefreshTokenTTL, cfgService.AccessTokenTTL, cfgService.OtpGenerator, cfgService.VerificationCodeLength),
 		Shop: NewShopService(cfgService.Repositories.Shop),
 		User: NewUserService(cfgService.Repositories.User),
+		Page: NewPageService(cfgService.Repositories.Page),
 	}
 }
