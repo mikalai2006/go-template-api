@@ -26,7 +26,7 @@ jobs:
       - name: Build the stack
         run: docker-compose up -d
       - name: Run Unit Tests
-        run: go test ./test/... -v
+        run: make tests
   push_to_registry:
     name: Create and push Docker image to Docker Hub
     runs-on: ubuntu-latest

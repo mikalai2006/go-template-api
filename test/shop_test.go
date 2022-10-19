@@ -68,10 +68,6 @@ func (s *TestSuite) TestCreateShopNotAuthUser() {
 
 func (s *TestSuite) TestFindShopWithLimit() {
 	router := gin.New()
-	// router.Use(
-	// 	gin.Recovery(),
-	// 	gin.Logger(),
-	// )
 	s.handler.Init(router.Group("/api"))
 	r := s.Require()
 

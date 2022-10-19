@@ -12,7 +12,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/mikalai2006/go-template-api/internal/domain"
 	"github.com/mikalai2006/go-template-api/internal/repository"
-	"github.com/mikalai2006/go-template-api/pkg/logger"
 )
 
 var testLanuageData = domain.Language{
@@ -36,9 +35,6 @@ func (s *TestSuite) TestCreateLangNotAuth() {
 	req.Close = true
 	req.Header.Set("Content-type", "application/json")
 	req.Header.Set("Authorization", "Bearer")
-	if err != nil {
-		logger.Errorf("Error test %s", err)
-	}
 	s.NoError(err)
 
 	w := httptest.NewRecorder()
@@ -52,9 +48,6 @@ func (s *TestSuite) TestCreateLangNotAuth() {
 	req.Close = true
 	req.Header.Set("Content-type", "application/json")
 	req.Header.Set("Authorization", "Bearer ")
-	if err != nil {
-		logger.Errorf("Error test %s", err)
-	}
 	s.NoError(err)
 
 	w = httptest.NewRecorder()
@@ -84,9 +77,6 @@ func (s *TestSuite) TestCreateLangAuth() {
 	req.Close = true
 	req.Header.Set("Content-type", "application/json")
 	req.Header.Set("Authorization", "Bearer "+auth.AccessToken)
-	if err != nil {
-		logger.Errorf("Error test %s", err)
-	}
 	s.NoError(err)
 
 	w := httptest.NewRecorder()
@@ -121,9 +111,6 @@ func (s *TestSuite) TestFindLangByLimitOne() {
 	q.Add("$limit", fmt.Sprintf("%d", limit))
 	req.URL.RawQuery = q.Encode()
 	req.Close = true
-	if err != nil {
-		logger.Errorf("Error test %s", err)
-	}
 	s.NoError(err)
 
 	w := httptest.NewRecorder()
@@ -153,9 +140,6 @@ func (s *TestSuite) TestFindLangByLimitBig() {
 	q.Add("$limit", fmt.Sprintf("%d", limit))
 	req.URL.RawQuery = q.Encode()
 	req.Close = true
-	if err != nil {
-		logger.Errorf("Error test %s", err)
-	}
 	s.NoError(err)
 
 	w := httptest.NewRecorder()
@@ -186,9 +170,6 @@ func (s *TestSuite) TestFindLangBySkip() {
 	q.Add("$skip", fmt.Sprintf("%d", skip))
 	req.URL.RawQuery = q.Encode()
 	req.Close = true
-	if err != nil {
-		logger.Errorf("Error test %s", err)
-	}
 	s.NoError(err)
 
 	w := httptest.NewRecorder()
@@ -227,9 +208,6 @@ func (s *TestSuite) TestFindLangBySort() {
 	req.Close = true
 	req.Header.Set("Content-type", "application/json")
 	req.Header.Set("Authorization", "Bearer "+auth.AccessToken)
-	if err != nil {
-		logger.Errorf("Error test %s", err)
-	}
 	s.NoError(err)
 
 	w := httptest.NewRecorder()
@@ -249,9 +227,6 @@ func (s *TestSuite) TestFindLangBySort() {
 	q.Add("$sort[sort_order]", fmt.Sprintf("%v", sort))
 	req.URL.RawQuery = q.Encode()
 	req.Close = true
-	if err != nil {
-		logger.Errorf("Error test %s", err)
-	}
 	s.NoError(err)
 
 	w = httptest.NewRecorder()
@@ -288,9 +263,6 @@ func (s *TestSuite) TestDeleteLang() {
 	req.Close = true
 	req.Header.Set("Content-type", "application/json")
 	req.Header.Set("Authorization", "Bearer "+auth.AccessToken)
-	if err != nil {
-		logger.Errorf("Error test %s", err)
-	}
 	s.NoError(err)
 
 	w := httptest.NewRecorder()
@@ -311,9 +283,6 @@ func (s *TestSuite) TestDeleteLang() {
 	req.Header.Set("Content-type", "application/json")
 	req.Header.Set("Authorization", "Bearer "+auth.AccessToken)
 	req.Close = true
-	if err != nil {
-		logger.Errorf("Error test %s", err)
-	}
 	s.NoError(err)
 
 	w = httptest.NewRecorder()
@@ -329,9 +298,7 @@ func (s *TestSuite) TestDeleteLang() {
 	req.Header.Set("Content-type", "application/json")
 	req.Header.Set("Authorization", "Bearer "+auth.AccessToken)
 	req.Close = true
-	if err != nil {
-		logger.Errorf("Error test %s", err)
-	}
+
 	s.NoError(err)
 
 	w = httptest.NewRecorder()
