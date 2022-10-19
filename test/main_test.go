@@ -1,4 +1,4 @@
-package test_test
+package main_test
 
 import (
 	"bytes"
@@ -84,21 +84,6 @@ func (s *TestSuite) SetupSuite() {
 
 	s.db = client.Database(cfg.Mongo.DBTest)
 
-	s.initDeps(cfg)
-	s.initDeps(cfg)
-
-	// if er := s.populateDB(); err != nil {
-	// 	s.FailNow("Failed to populate DB", er)
-	// }
-}
-
-func (s *TestSuite) TearDownSuite() {
-	if er := s.db.Client().Disconnect(context.Background()); er != nil {
-		s.FailNow("Failed disconnect DB", er)
-	}
-}
-
-func (s *TestSuite) initDeps(cfg *config.Config) {
 	// Init domain deps
 	repos := repository.NewRepositories(s.db, s.i18n)
 	hasherP := hasher.NewSHA1Hasher(cfg.Auth.Salt)
@@ -129,35 +114,11 @@ func (s *TestSuite) initDeps(cfg *config.Config) {
 	s.tokenManager = tokenManager
 }
 
-// func (s *TestSuite) populateDB() error {
-// 	_, err := s.db.Collection("shop").InsertOne(context.Background(), domain.Shop{
-// 		Title:       "Test",
-// 		Description: "Test",
-// 		Seo:         "test",
-// 		CreatedAt:   time.Now(),
-// 	})
-// 	if err != nil {
-// 		return err
-// 	}
-
-// 	_, err = s.db.Collection("auth").InsertMany(context.Background(), []interface{}{
-// 		domain.Auth{
-// 			Login:    "login",
-// 			Email:    "",
-// 			Strategy: "local",
-// 		},
-// 		domain.Auth{
-// 			Login:    "login2",
-// 			Email:    "email2",
-// 			Strategy: "local",
-// 		},
-// 	})
-// 	if err != nil {
-// 		return err
-// 	}
-
-// 	return nil
-// }
+func (s *TestSuite) TearDownSuite() {
+	if er := s.db.Client().Disconnect(context.Background()); er != nil {
+		s.FailNow("Failed disconnect DB", er)
+	}
+}
 
 func (s *TestSuite) Make() {
 
@@ -190,11 +151,6 @@ func (s *TestSuite) Auth(router *gin.Engine) (domain.ResponseTokens, error) {
 	var bodies map[string]interface{}
 	err = json.NewDecoder(response.Body).Decode(&bodies)
 	s.NoError(err)
-
-	// id := ""
-	// if val, ok := bodies["id"]; ok {
-	// 	id = val.(string)
-	// }
 
 	req, err = http.NewRequest(http.MethodPost, "/api/v1/auth/sign-in", bytes.NewReader(dataJSON))
 	req.Header.Set("Content-type", "application/json")
