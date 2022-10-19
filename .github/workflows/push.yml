@@ -35,14 +35,15 @@ jobs:
           MONGODB_PASSWORD: ${{ secrets.MONGODB_PASSWORD }}
         run: |
           docker run --rm -d
-          -p ${{ env.MONGODB_PORT }}:${{ env.MONGODB_PORT }}
-          -e MONGODB_DATABASE=api_test
-          -e PUID=1000
-          -e PGID=1000
-          -e AUTH=yes
-          -e MONGO_INITDB_ROOT_USERNAME=${{ env.MONGODB_USER }}
-          -e MONGO_INITDB_ROOT_PASSWORD=${{ env.MONGODB_PASSWORD }}
-          --name mongodb
+            -p ${{ env.MONGODB_PORT }}:${{ env.MONGODB_PORT }}
+            -e MONGODB_DATABASE=api_test
+            -e PUID=1000
+            -e PGID=1000
+            -e AUTH=yes
+            -e MONGO_INITDB_ROOT_USERNAME=${{ env.MONGODB_USER }}
+            -e MONGO_INITDB_ROOT_PASSWORD=${{ env.MONGODB_PASSWORD }}
+            --name mongodb
+            mongo:latest
       # - name: Build the stack
       #   run: docker-compose up -d
       - name: Run unit tests
