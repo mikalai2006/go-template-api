@@ -342,7 +342,6 @@ func (s *TestSuite) TestDeleteLang() {
 
 	var re domain.Language
 	err = json.NewDecoder(response.Body).Decode(&re)
-	fmt.Println(fmt.Sprintf("error %v", re))
 	s.NoError(err)
 
 	//r.Equal(re.ID.Hex(), twoItem.ID.Hex())
