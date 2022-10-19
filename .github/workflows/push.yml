@@ -23,13 +23,12 @@ jobs:
           echo SALT=${{ secrets.SALT }} >> .env
           echo SIGNING_KEY=${{ secrets.SIGNING_KEY }} >> .env
           cat .env
-      - name: Build the stack
-        run: docker-compose up -d
       - name: Checkout code
         uses: actions/setup-go@v3
         with:
           go-version: "^1.19.1"
-      - run: go version
+      - name: Build the stack
+        run: docker-compose up -d
       - name: Run unit tests
         run: go test --short ./...
       - name: Run Integration tests
