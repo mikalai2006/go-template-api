@@ -9,22 +9,8 @@ import (
 )
 
 var (
-	vkAuthUri = "https://oauth.vk.com/authorize"
-	vkRedirectUri = "http://localhost:8000/oauth/vk/me"
-	VkTokenUri = "https://oauth.vk.com/access_token"
-	VkUserinfoUri = "https://api.vk.com/method/users.get"
-	vkScopes = []string{"account"}
-
-	googleAuthUri = "https://accounts.google.com/o/oauth2/auth"
-	googleTokenUri = "https://accounts.google.com/o/oauth2/token"
-	googleUserinfoUri = "https://www.googleapis.com/oauth2/v3/userinfo"
-	googleRedirectUri = "http://localhost:8000/oauth/google/me"
-	googleScopes = []string{"https://www.googleapis.com/auth/userinfo.email", "https://www.googleapis.com/auth/userinfo.profile"}
-
 	EnvLocal = "local"
 	Prod     = "prod"
-
-	defaultVerificationCodeLength = 10
 )
 
 type (
@@ -33,7 +19,8 @@ type (
 		Mongo       MongoConfig
 		HTTP        HTTPConfig
 		Auth        AuthConfig
-		Oauth OauthConfig
+		Oauth       OauthConfig
+		I18n        I18nConfig
 		// FileStorage FileStorageConfig
 		// Email       EmailConfig
 		// Payment     PaymentConfig
@@ -44,37 +31,38 @@ type (
 	}
 
 	MongoConfig struct {
-		Host      string
+		Host     string
 		User     string
 		Password string
 		Port     string
-		Dbname string `mapstructure:"dbname"`
-		SslMode bool `mapstructure:"sslmode"`
+		Dbname   string `mapstructure:"dbname"`
+		SslMode  bool   `mapstructure:"sslmode"`
+		DBTest   string
 	}
 
 	OauthConfig struct {
 		TimeExpireCookie int
 
-		VkAuthUri string
-		VkTokenUri string
-		VkUserinfoUri string
-		VkClientId string
+		VkAuthURI      string
+		VkTokenURI     string
+		VkUserinfoURI  string
+		VkClientID     string
 		VkClientSecret string
-		VkRedirectUri string
-		VkScopes []string
+		VkRedirectURI  string
+		VkScopes       []string
 
-		GoogleAuthUri string
-		GoogleTokenUri string
-		GoogleUserinfoUri string
-		GoogleRedirectUri string
-		GoogleClientId string
+		GoogleAuthURI      string
+		GoogleTokenURI     string
+		GoogleUserinfoURI  string
+		GoogleRedirectURI  string
+		GoogleClientID     string
 		GoogleClientSecret string
-		GoogleScopes []string
+		GoogleScopes       []string
 	}
 
 	AuthConfig struct {
-		Salt string
-		SigningKey string
+		Salt            string
+		SigningKey      string
 		AccessTokenTTL  time.Duration `mapstructure:"accessTokenTTL"`
 		RefreshTokenTTL time.Duration `mapstructure:"refreshTokenTTL"`
 
@@ -88,15 +76,19 @@ type (
 		WriteTimeout       time.Duration `mapstructure:"writeTimeout"`
 		MaxHeaderMegabytes int           `mapstructure:"maxHeaderBytes"`
 	}
+
+	I18nConfig struct {
+		Prefix  string
+		Default string
+	}
 )
 
-func Init(configsDir string) (*Config, error) {
-
+func Init(configsDir, envPath string) (*Config, error) {
 	var cfg Config
 	setDefaultConfigs(&cfg)
 
 	// read env configs
-	if err :=godotenv.Load(); err != nil {
+	if err := godotenv.Load(envPath); err != nil {
 		return nil, err
 	}
 
@@ -138,6 +130,9 @@ func unmarshal(cfg *Config) error {
 	if err := viper.UnmarshalKey("auth", &cfg.Auth); err != nil {
 		return err
 	}
+	if err := viper.UnmarshalKey("i18n", &cfg.I18n); err != nil {
+		return err
+	}
 
 	return viper.UnmarshalKey("oauth", &cfg.Oauth)
 }
@@ -156,27 +151,26 @@ func setFromEnv(cfg *Config) {
 
 	cfg.Environment = os.Getenv("APP_ENV")
 
-	cfg.Oauth.VkClientId = os.Getenv("VK_CLIENT_ID")
+	cfg.Oauth.VkClientID = os.Getenv("VK_CLIENT_ID")
 	cfg.Oauth.VkClientSecret = os.Getenv("VK_CLIENT_SECRET")
 
-	cfg.Oauth.GoogleClientId = os.Getenv("GOOGLE_CLIENT_ID")
+	cfg.Oauth.GoogleClientID = os.Getenv("GOOGLE_CLIENT_ID")
 	cfg.Oauth.GoogleClientSecret = os.Getenv("GOOGLE_CLIENT_SECRET")
-
 }
 
-func setDefaultConfigs(cfg *Config)  {
-	cfg.Oauth.VkAuthUri = vkAuthUri
-	cfg.Oauth.VkRedirectUri = vkRedirectUri
-	cfg.Oauth.VkScopes = vkScopes
-	cfg.Oauth.VkTokenUri = VkTokenUri
-	cfg.Oauth.VkUserinfoUri =VkUserinfoUri
-
-	cfg.Oauth.GoogleAuthUri = googleAuthUri
-	cfg.Oauth.GoogleRedirectUri = googleRedirectUri
-	cfg.Oauth.GoogleTokenUri = googleTokenUri
-	cfg.Oauth.GoogleUserinfoUri = googleUserinfoUri
-	cfg.Oauth.GoogleScopes = googleScopes
-
-	cfg.Auth.VerificationCodeLength = defaultVerificationCodeLength
-
+func setDefaultConfigs(cfg *Config) {
+	cfg.Oauth.VkAuthURI = "https://oauth.vk.com/authorize"
+	cfg.Oauth.VkRedirectURI = "http://localhost:8000/api/v1/oauth/vk/me"
+	cfg.Oauth.VkScopes = []string{"account"}
+	cfg.Oauth.VkTokenURI = "https://oauth.vk.com/access_token"
+	cfg.Oauth.VkUserinfoURI = "https://api.vk.com/method/users.get"
+	cfg.Oauth.GoogleAuthURI = "https://accounts.google.com/o/oauth2/auth"
+	cfg.Oauth.GoogleRedirectURI = "http://localhost:8000/api/v1/oauth/google/me"
+	cfg.Oauth.GoogleTokenURI = "https://accounts.google.com/o/oauth2/token"
+	cfg.Oauth.GoogleUserinfoURI = "https://www.googleapis.com/oauth2/v3/userinfo"
+	cfg.Oauth.GoogleScopes = []string{
+		"https://www.googleapis.com/auth/userinfo.email",
+		"https://www.googleapis.com/auth/userinfo.profile",
+	}
+	cfg.Auth.VerificationCodeLength = 10
 }

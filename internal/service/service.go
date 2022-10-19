@@ -3,79 +3,103 @@ package service
 import (
 	"time"
 
+	"github.com/mikalai2006/go-template-api/internal/config"
 	"github.com/mikalai2006/go-template-api/internal/domain"
 	"github.com/mikalai2006/go-template-api/internal/repository"
 	"github.com/mikalai2006/go-template-api/internal/utils"
 	"github.com/mikalai2006/go-template-api/pkg/auths"
 	"github.com/mikalai2006/go-template-api/pkg/hasher"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-
 type Authorization interface {
-	CreateAuth(auth domain.SignInInput) (primitive.ObjectID, error)
-	SignIn(input domain.SignInInput) (domain.ResponseTokens, error)
-	ExistAuth(auth domain.SignInInput) (domain.Auth, error)
-	CreateSession(auth domain.Auth) (domain.ResponseTokens, error)
-	VerificationCode(userId string, code string) error
+	CreateAuth(auth *domain.SignInInput) (string, error)
+	SignIn(input *domain.SignInInput) (domain.ResponseTokens, error)
+	ExistAuth(auth *domain.SignInInput) (domain.Auth, error)
+	CreateSession(auth *domain.Auth) (domain.ResponseTokens, error)
+	VerificationCode(userID string, code string) error
 	RefreshTokens(refreshToken string) (domain.ResponseTokens, error)
 }
 
 type Shop interface {
-	Find(params domain.RequestParams) (domain.Response[domain.Shop], error)
+	FindShop(params domain.RequestParams) (domain.Response[domain.Shop], error)
 
 	GetAllShops(params domain.RequestParams) (domain.Response[domain.Shop], error)
-	CreateShop(userId string, shop domain.Shop) (*domain.Shop, error)
+	CreateShop(userID string, shop *domain.Shop) (*domain.Shop, error)
 }
 
 type User interface {
 	GetUser(id string) (domain.User, error)
 	FindUser(params domain.RequestParams) (domain.Response[domain.User], error)
-	CreateUser(userId string, user domain.User) (*domain.User, error)
+	CreateUser(userID string, user *domain.User) (*domain.User, error)
 	DeleteUser(id string) (domain.User, error)
-	UpdateUser(id string, user domain.User) (domain.User, error)
+	UpdateUser(id string, user *domain.User) (domain.User, error)
+	Iam(userID string) (domain.User, error)
 }
 
 type Page interface {
+	GetPageForRouters() (domain.Response[domain.PageRoutes], error)
 	GetPage(id string) (domain.Page, error)
+	GetFullPage(params domain.RequestParams) (domain.Response[domain.Page], error)
 	FindPage(params domain.RequestParams) (domain.Response[domain.Page], error)
-	CreatePage(userId string, page domain.Page) (*domain.Page, error)
+	CreatePage(userID string, page *domain.Page) (*domain.Page, error)
 	DeletePage(id string) (domain.Page, error)
-	UpdatePage(id string, user domain.Page) (domain.Page, error)
+	UpdatePage(id string, data interface{}) (domain.Page, error)
 }
 
 type Component interface {
 	GetComponent(id string) (domain.Component, error)
 	FindComponent(params domain.RequestParams) (domain.Response[domain.Component], error)
-	CreateComponent(userId string, component domain.Component) (*domain.Component, error)
+	CreateComponent(userID string, component *domain.ComponentCreate) (*domain.Component, error)
 	DeleteComponent(id string) (domain.Component, error)
-	UpdateComponent(id string, user domain.Component) (domain.Component, error)
+	UpdateComponent(id string, data interface{}) (domain.Component, error)
+	FindByPopulate(params domain.RequestParams) (domain.Response[domain.Component], error)
+
+	FindLibrarys(params domain.RequestParams) (domain.Response[domain.Library], error)
+}
+
+type Apps interface {
+	CreateLanguage(userID string, data *domain.LanguageInput) (domain.Language, error)
+	GetLanguage(id string) (domain.Language, error)
+	FindLanguage(params domain.RequestParams) (domain.Response[domain.Language], error)
+	UpdateLanguage(id string, data interface{}) (domain.Language, error)
+	DeleteLanguage(id string) (domain.Language, error)
 }
 
 type Services struct {
 	Authorization
+	Apps
+	Component
+	Page
 	Shop
 	User
-	Page
-	Component
 }
 
 type ConfigServices struct {
-	Repositories *repository.Repositories
-	Hasher hasher.PasswordHasher
-	TokenManager auths.TokenManager
-	OtpGenerator utils.Generator
-	AccessTokenTTL time.Duration
-	RefreshTokenTTL time.Duration
+	Repositories           *repository.Repositories
+	Hasher                 hasher.PasswordHasher
+	TokenManager           auths.TokenManager
+	OtpGenerator           utils.Generator
+	AccessTokenTTL         time.Duration
+	RefreshTokenTTL        time.Duration
 	VerificationCodeLength int
+	I18n                   config.I18nConfig
 }
 
 func NewServices(cfgService *ConfigServices) *Services {
 	return &Services{
-		Authorization: NewAuthService(cfgService.Repositories.Authorization, cfgService.Hasher, cfgService.TokenManager, cfgService.RefreshTokenTTL, cfgService.AccessTokenTTL, cfgService.OtpGenerator, cfgService.VerificationCodeLength),
-		Shop: NewShopService(cfgService.Repositories.Shop),
-		User: NewUserService(cfgService.Repositories.User),
-		Page: NewPageService(cfgService.Repositories.Page),
-		Component: NewComponentService(cfgService.Repositories.Component),
+		Authorization: NewAuthService(
+			cfgService.Repositories.Authorization,
+			cfgService.Hasher,
+			cfgService.TokenManager,
+			cfgService.RefreshTokenTTL,
+			cfgService.AccessTokenTTL,
+			cfgService.OtpGenerator,
+			cfgService.VerificationCodeLength,
+		),
+		Shop:      NewShopService(cfgService.Repositories.Shop),
+		User:      NewUserService(cfgService.Repositories.User),
+		Page:      NewPageService(cfgService.Repositories.Page, cfgService.I18n),
+		Component: NewComponentService(cfgService.Repositories.Component, cfgService.I18n),
+		Apps:      NewAppsService(cfgService.Repositories, cfgService.I18n),
 	}
 }

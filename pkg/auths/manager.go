@@ -3,15 +3,16 @@ package auths
 import (
 	"errors"
 	"fmt"
-	"math/rand"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
+	"github.com/google/uuid"
+	"github.com/mikalai2006/go-template-api/internal/domain"
 )
 
 type TokenManager interface {
-	NewJWT(userId string, ttl time.Duration) (string, error)
-	Parse(accessToken string) (string, error)
+	NewJWT(claims domain.DataForClaims, ttl time.Duration) (string, error)
+	Parse(accessToken string) (*AuthClaims, error)
 	NewRefreshToken() (string, error)
 }
 
@@ -27,44 +28,51 @@ func NewManager(signingKey string) (*Manager, error) {
 	return &Manager{signingKey: signingKey}, nil
 }
 
-func (m *Manager) NewJWT(userId string, ttl time.Duration) (string, error) {
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.StandardClaims{
-		ExpiresAt: time.Now().Add(ttl).Unix(),
-		Subject: userId,
-	})
-
-	return token.SignedString([]byte(m.signingKey))
+type AuthClaims struct {
+	Roles []string `json:"roles"`
+	jwt.StandardClaims
 }
 
-func (m *Manager) Parse(accessToken string) (string, error) {
-	token, err := jwt.Parse(accessToken, func(token *jwt.Token) (i interface{}, err error)  {
-		if _,ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("unexcepted signing method: %v", token.Header["alg"])
-		}
-		return []byte(m.signingKey), nil
-	})
+func (m *Manager) NewJWT(claims domain.DataForClaims, ttl time.Duration) (string, error) {
+	claimsData := AuthClaims{
+		Roles: claims.Roles,
+		StandardClaims: jwt.StandardClaims{
+			ExpiresAt: time.Now().Add(ttl).Unix(),
+			Subject:   claims.UserID,
+		},
+	}
 
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claimsData)
+
+	signedToken, err := token.SignedString([]byte(m.signingKey))
 	if err != nil {
 		return "", err
 	}
 
-	claims,ok := token.Claims.(jwt.MapClaims)
-	if !ok {
-		return "", fmt.Errorf("error get user claims from token")
-	}
+	return signedToken, nil
+}
 
-	return claims["sub"].(string), nil
+func (m *Manager) Parse(accessToken string) (*AuthClaims, error) {
+	token, err := jwt.ParseWithClaims(
+		accessToken,
+		&AuthClaims{},
+		func(token *jwt.Token) (interface{}, error) {
+			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+				return nil, fmt.Errorf("unexcepted signing method: %v", token.Header["alg"])
+			}
+			return []byte(m.signingKey), nil
+		},
+	)
+
+	if claims, ok := token.Claims.(*AuthClaims); ok && token.Valid {
+		return claims, nil
+	} else {
+		return nil, err
+	}
 }
 
 func (m *Manager) NewRefreshToken() (string, error) {
-	b := make([]byte, 32)
+	r := uuid.New()
 
-	s := rand.NewSource(time.Now().Unix())
-	r := rand.New(s)
-
-	if _,err := r.Read(b); err != nil {
-		return "",err
-	}
-
-	return fmt.Sprintf("%x", b), nil
+	return r.String(), nil
 }

@@ -3,10 +3,11 @@ package repository
 import (
 	"context"
 	"fmt"
+	"net"
 	"time"
 
 	"github.com/mikalai2006/go-template-api/internal/domain"
-	"github.com/sirupsen/logrus"
+	"github.com/mikalai2006/go-template-api/pkg/logger"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -16,50 +17,53 @@ import (
 const (
 	tblShops = "shops"
 	tblUsers = "users"
-	tblAuth = "auth"
-	tblPage = "pages"
+	TblAuth  = "auth"
+	tblPage  = "pages"
 
-	tblComponent = "components"
-	tblComponentData = "component_datas"
-	tblComponentGroup = "component_groups"
-	tblComponentSchema = "component_schemas"
+	tblComponent           = "components"
+	tblComponentData       = "component_datas"
+	tblComponentGroup      = "component_groups"
+	tblComponentSchema     = "component_schemas"
 	tblComponentSchemaData = "component_schemadatas"
+
+	tblLibrary = "librarys"
+	tblFields  = "fields"
+
+	TblLanguage = "langs"
 
 	MongoQueryTimeout = 10 * time.Second
 )
 
-
 type ConfigMongoDB struct {
-	Host string
-	Port string
+	Host     string
+	Port     string
 	Username string
 	Password string
-	DBName string
-	SSL bool
+	DBName   string
+	SSL      bool
 }
 
+const timeDeadline = 30
 
-
-func NewMongoDB(cfg ConfigMongoDB) (*mongo.Client, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 30 * time.Second)
+func NewMongoDB(cfg *ConfigMongoDB) (*mongo.Client, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), timeDeadline*time.Second)
 	defer cancel()
 
-	uri := fmt.Sprintf("mongodb://%s:%s@%s:%s/%s?authSource=admin&readPreference=primary&directConnection=true&ssl=%t",
-	cfg.Username, cfg.Password, cfg.Host, cfg.Port, cfg.DBName, cfg.SSL)
-	logrus.Println(uri)
+	host := net.JoinHostPort(cfg.Host, cfg.Port)
+	uri := fmt.Sprintf("mongodb://%s:%s@%s/%s?authSource=admin&readPreference=primary&directConnection=true&ssl=%t",
+		cfg.Username, cfg.Password, host, cfg.DBName, cfg.SSL)
+	logger.Info(uri)
 	client, err := mongo.Connect(ctx, options.Client().ApplyURI(uri))
-		if err != nil {
-			return nil, err
-		}
+	if err != nil {
+		return nil, err
+	}
 
-		if err := client.Ping(ctx, readpref.Primary()); err != nil {
-			return nil, err
-		}
-
+	if er := client.Ping(ctx, readpref.Primary()); er != nil {
+		return nil, er
+	}
 
 	return client, nil
 }
-
 
 func CreatePipeline(params domain.RequestParams) (mongo.Pipeline, error) {
 	pipe := mongo.Pipeline{}
@@ -83,6 +87,36 @@ func CreatePipeline(params domain.RequestParams) (mongo.Pipeline, error) {
 	// 		"_id":    "$title",
 	// 		"count": bson.M{"$sum": 1},
 	// }}})
+
+	// // pipe = append(pipe, bson.D{{"$unwind", bson.D{{"path", "$groups"}, {"preserveNullAndEmptyArrays", true}}}})
+	// pipe = append(pipe, bson.D{{"$lookup", bson.M{
+	// 	"from":         "component_schemas",
+	// 	"as":           "schema",
+	// 	"localField":   "_id",
+	// 	"foreignField": "componentId",
+	// }}})
+	// pipe = append(pipe, bson.D{{"$unwind", bson.D{{"path", "$schema"}, {"preserveNullAndEmptyArrays", false}}}})
+	// pipe = append(pipe, bson.D{{"$lookup", bson.M{
+	// 	"from":         "librarys",
+	// 	"as":           "schema.library",
+	// 	"localField":   "schema._id",
+	// 	"foreignField": "libraryId",
+	// }}})
+	// pipe = append(pipe, bson.D{{"$group", bson.M{
+	// 	"_id":    "$_id",
+	// 	"name":   bson.M{"$first": "$name"},
+	// 	"schema": bson.M{"$push": "$schema"},
+	// }}})
+	// pipe = append(pipe, bson.D{{"$unwind", bson.D{{"path", "$schema"}, {"preserveNullAndEmptyArrays", true}}}})
+
+	// pipe = append(pipe, bson.D{{"$project", bson.M{
+	// 	"schema.schema_data": bson.M{"$arrayElemAt": []interface{}{"$schema.schema_data", 1}},
+	// }}})
+
+	// Take first element from the populated array (there is only one)
+	// aggProject = bson.M{"$project": bson.M{
+	//   "parent": bson.M{"$arrayElemAt": []interface{}{"$parent", 0}},
+	// }}
 
 	return pipe, nil
 }

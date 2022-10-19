@@ -1,4 +1,4 @@
-package handler
+package v1
 
 import (
 	"net/http"
@@ -7,17 +7,16 @@ import (
 	"github.com/mikalai2006/go-template-api/internal/domain"
 	"github.com/mikalai2006/go-template-api/internal/middleware"
 	"github.com/mikalai2006/go-template-api/internal/utils"
+	"github.com/mikalai2006/go-template-api/pkg/app"
 )
 
-func (h *Handler) RegisterUser(router *gin.RouterGroup) {
-		user := router.Group("/user")
-		{
-			user.POST("/", middleware.SetUserIdentity, h.CreateUser)
-			user.DELETE("/:id", middleware.SetUserIdentity, h.DeleteUser)
-			user.PATCH("/:id", middleware.SetUserIdentity, h.UpdateUser)
-			user.GET("/:id", h.GetUser)
-			user.GET("/find", h.FindUser)
-		}
+func (h *HandlerV1) RegisterUser(router *gin.RouterGroup) {
+	user := router.Group("/user")
+	user.POST("/", middleware.SetUserIdentity, h.CreateUser)
+	user.DELETE("/:id", middleware.SetUserIdentity, h.DeleteUser)
+	user.PATCH("/:id", middleware.SetUserIdentity, h.UpdateUser)
+	user.GET("/:id", h.GetUser)
+	user.GET("/find", h.FindUser)
 }
 
 // @Summary Get user by Id
@@ -31,24 +30,25 @@ func (h *Handler) RegisterUser(router *gin.RouterGroup) {
 // @Failure 400,404 {object} domain.ErrorResponse
 // @Failure 500 {object} domain.ErrorResponse
 // @Failure default {object} domain.ErrorResponse
-// @Router /api/user/{id} [get]
-func (h *Handler) GetUser(c *gin.Context) {
+// @Router /api/user/{id} [get].
+func (h *HandlerV1) GetUser(c *gin.Context) {
+	appG := app.Gin{C: c}
+
 	id := c.Param("id")
 
 	user, err := h.services.User.GetUser(id)
 	if err != nil {
-		c.AbortWithError(http.StatusBadRequest, err)
+		appG.Response(http.StatusBadRequest, err, nil)
 		return
 	}
 
 	c.JSON(http.StatusOK, user)
 }
 
-
-type InputUser struct {
-	domain.RequestParams
-	domain.User
-}
+// type InputUser struct {
+// 	domain.RequestParams
+// 	domain.User
+// }
 
 // @Summary Find few users
 // @Security ApiKeyAuth
@@ -57,45 +57,48 @@ type InputUser struct {
 // @ModuleID user
 // @Accept  json
 // @Produce  json
-// @Param input query InputUser true "params for search users"
+// @Param input query domain.UserInput true "params for search users"
 // @Success 200 {object} []domain.User
 // @Failure 400,404 {object} domain.ErrorResponse
 // @Failure 500 {object} domain.ErrorResponse
 // @Failure default {object} domain.ErrorResponse
-// @Router /api/user [get]
-func (h *Handler) FindUser(c *gin.Context) {
+// @Router /api/user [get].
+func (h *HandlerV1) FindUser(c *gin.Context) {
+	appG := app.Gin{C: c}
+
 	params, err := utils.GetParamsFromRequest(c, domain.User{})
 	if err != nil {
-		c.AbortWithError(http.StatusBadRequest, err)
+		appG.Response(http.StatusBadRequest, err, nil)
 		return
 	}
 
 	users, err := h.services.User.FindUser(params)
 	if err != nil {
-		c.AbortWithError(http.StatusBadRequest, err)
+		appG.Response(http.StatusBadRequest, err, nil)
 		return
 	}
 
 	c.JSON(http.StatusOK, users)
 }
 
-func (h *Handler) CreateUser(c *gin.Context) {
-	userId, err := middleware.GetUserId(c)
+func (h *HandlerV1) CreateUser(c *gin.Context) {
+	appG := app.Gin{C: c}
+
+	userID, err := middleware.GetUserID(c)
 	if err != nil {
-		c.AbortWithError(http.StatusUnauthorized, err)
+		appG.Response(http.StatusUnauthorized, err, nil)
 		return
 	}
 
-	var input domain.User
-	if err := c.BindJSON(&input); err != nil {
-		c.AbortWithError(http.StatusBadRequest, err)
+	var input *domain.User
+	if er := c.BindJSON(&input); er != nil {
+		appG.Response(http.StatusBadRequest, er, nil)
 		return
 	}
 
-	user, err := h.services.User.CreateUser(userId, input)
-	if err != nil {
-		c.AbortWithError(http.StatusBadRequest, err)
-		// utils.NewErrorResponse(c, http.StatusInternalServerError, err.Error())
+	user, er := h.services.User.CreateUser(userID, input)
+	if er != nil {
+		appG.Response(http.StatusBadRequest, er, nil)
 		return
 	}
 
@@ -114,8 +117,9 @@ func (h *Handler) CreateUser(c *gin.Context) {
 // @Failure 400,404 {object} domain.ErrorResponse
 // @Failure 500 {object} domain.ErrorResponse
 // @Failure default {object} domain.ErrorResponse
-// @Router /api/user/{id} [delete]
-func (h *Handler) DeleteUser(c *gin.Context) {
+// @Router /api/user/{id} [delete].
+func (h *HandlerV1) DeleteUser(c *gin.Context) {
+	appG := app.Gin{C: c}
 
 	id := c.Param("id")
 
@@ -128,15 +132,12 @@ func (h *Handler) DeleteUser(c *gin.Context) {
 
 	user, err := h.services.User.DeleteUser(id) // , input
 	if err != nil {
-		// tils.NewErrorResponse(c, http.StatusInternalServerError, err.Error())
-		c.AbortWithError(http.StatusBadRequest, err)
-
+		appG.Response(http.StatusBadRequest, err, nil)
 		return
 	}
 
 	c.JSON(http.StatusOK, user)
 }
-
 
 // @Summary Update user
 // @Security ApiKeyAuth
@@ -151,22 +152,21 @@ func (h *Handler) DeleteUser(c *gin.Context) {
 // @Failure 400,404 {object} domain.ErrorResponse
 // @Failure 500 {object} domain.ErrorResponse
 // @Failure default {object} domain.ErrorResponse
-// @Router /api/user/{id} [put]
-func (h *Handler) UpdateUser(c *gin.Context)  {
+// @Router /api/user/{id} [put].
+func (h *HandlerV1) UpdateUser(c *gin.Context) {
+	appG := app.Gin{C: c}
 
 	id := c.Param("id")
 
-	var input domain.User
+	var input *domain.User
 	if err := c.ShouldBindJSON(&input); err != nil {
-		c.AbortWithError(http.StatusBadRequest, err) // .SetMeta(gin.H{"hello": "World"})
-
+		appG.Response(http.StatusBadRequest, err, nil)
 		return
 	}
 
 	user, err := h.services.User.UpdateUser(id, input)
 	if err != nil {
-		c.AbortWithError(http.StatusBadRequest, err)
-
+		appG.Response(http.StatusBadRequest, err, nil)
 		return
 	}
 

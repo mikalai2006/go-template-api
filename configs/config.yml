@@ -3,9 +3,13 @@ db:
   sslmode: "disable"
 mongodb:
   dbname: "api_db"
+  dbtest: "api_test"
   sslmode: false
 auth:
   accessTokenTTL: 120m
   refreshTokenTTL: 43200m #30 days
 oauth:
   timeExpireCookie: 900
+i18n:
+  prefix: __i18n__
+  default: en

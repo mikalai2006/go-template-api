@@ -8,19 +8,20 @@ import (
 
 type Auth struct {
 	// swagger:ignore
-	Id       primitive.ObjectID `json:"id" bson:"_id,omitempty"`
-	Login    string    `json:"login" binding:"required"`
-	Email 		string `json:"email"`
-	Password string    `json:"password" binding:"required"`
-	Strategy string    `json:"-"`
-	VkId     string `json:"-"`
-	GoogleId string    `json:"-" bson:"google_id"`
-	GithubId string    `json:"-"`
-	AppleId  string    `json:"-"`
-	Verification     Verification         `json:"verification" bson:"verification"`
-	Session          Session              `json:"session" bson:"session,omitempty"`
-	CreatedAt time.Time   `json:"created_at"`
-	UpdatedAt time.Time   `json:"updated_at"`
+	ID           primitive.ObjectID `json:"id" bson:"_id,omitempty"`
+	Login        string             `json:"login" binding:"required"`
+	Email        string             `json:"email"`
+	Password     string             `json:"password" binding:"required"`
+	Strategy     string             `json:"strategy"`
+	VkID         string             `json:"vk_id"`
+	GoogleID     string             `json:"google_id" bson:"google_id"`
+	GithubID     string             `json:"github_id"`
+	AppleID      string             `json:"apple_id"`
+	Verification Verification       `json:"verification" bson:"verification"`
+	Session      Session            `json:"session" bson:"session"`
+	Roles        []string           `json:"roles" bson:"roles"`
+	CreatedAt    time.Time          `json:"created_at"`
+	UpdatedAt    time.Time          `json:"updated_at"`
 }
 
 type Verification struct {
@@ -28,10 +29,15 @@ type Verification struct {
 	Verified bool   `json:"verified" bson:"verified"`
 }
 type SignInInput struct {
-	Login string `json:"login" bson:"login"`
-	Email string `json:"email" bson:"email"`
+	Login    string `json:"login" bson:"login"`
+	Email    string `json:"email" bson:"email"`
 	Password string `json:"password" bson:"password"`
 	Strategy string `json:"strategy" bson:"strategy"`
-	VkId string `json:"-"`
-	GoogleId string `json:"-"`
+	VkID     string `json:"-"`
+	GoogleID string `json:"-"`
+}
+
+type DataForClaims struct {
+	Roles  []string `json:"roles"`
+	UserID string   `json:"user_id"`
 }

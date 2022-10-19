@@ -18,7 +18,10 @@ export TEST_DB_NAME=test
 export TEST_CONTAINER_NAME=test_db
 
 tests:
-	go test -v ./test/...
+	GIN_MODE=release go test -v ./test/... -coverpkg=./... -cover -coverprofile=coverage.out -failfast -count=1
+
+cover:
+	go tool cover -html=coverage.out
 
 lint:
 	golangci-lint run

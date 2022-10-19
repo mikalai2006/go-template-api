@@ -38,19 +38,19 @@ func main() {
 	logrus.SetFormatter(new(logrus.JSONFormatter))
 
 	// read config file
-	cfg, err := config.Init("configs")
+	cfg, err := config.Init("configs", ".env")
 	if err != nil {
 		logger.Error(err)
 		return
 	}
 
 	// initialize mongoDB
-	mongoClient, err := repository.NewMongoDB(repository.ConfigMongoDB{
-		Host: cfg.Mongo.Host,
-		Port: cfg.Mongo.Port,
-		DBName: cfg.Mongo.Dbname,
+	mongoClient, err := repository.NewMongoDB(&repository.ConfigMongoDB{
+		Host:     cfg.Mongo.Host,
+		Port:     cfg.Mongo.Port,
+		DBName:   cfg.Mongo.Dbname,
 		Username: cfg.Mongo.User,
-		SSL: cfg.Mongo.SslMode,
+		SSL:      cfg.Mongo.SslMode,
 		Password: cfg.Mongo.Password,
 	})
 
@@ -60,12 +60,12 @@ func main() {
 
 	mongoDB := mongoClient.Database(cfg.Mongo.Dbname)
 
-	if (cfg.Environment != "prod") {
+	if cfg.Environment != "prod" {
 		logger.Info(mongoDB)
 	}
 
 	// initialize hasher
-	hasher := hasher.NewSHA1Hasher(cfg.Auth.Salt)
+	hasherP := hasher.NewSHA1Hasher(cfg.Auth.Salt)
 
 	// initialize token manager
 	tokenManager, err := auths.NewManager(cfg.Auth.SigningKey)
@@ -78,24 +78,25 @@ func main() {
 	// intiale opt
 	otpGenerator := utils.NewGOTPGenerator()
 
-	repositories := repository.NewRepositories(mongoDB)
+	repositories := repository.NewRepositories(mongoDB, cfg.I18n)
 	services := service.NewServices(&service.ConfigServices{
-		Repositories: repositories,
-		Hasher: hasher,
-		TokenManager: tokenManager,
-		OtpGenerator: otpGenerator,
-		AccessTokenTTL: cfg.Auth.AccessTokenTTL,
-		RefreshTokenTTL: cfg.Auth.RefreshTokenTTL,
+		Repositories:           repositories,
+		Hasher:                 hasherP,
+		TokenManager:           tokenManager,
+		OtpGenerator:           otpGenerator,
+		AccessTokenTTL:         cfg.Auth.AccessTokenTTL,
+		RefreshTokenTTL:        cfg.Auth.RefreshTokenTTL,
 		VerificationCodeLength: cfg.Auth.VerificationCodeLength,
+		I18n:                   cfg.I18n,
 	})
-	handlers := handler.NewHandler(services, cfg.Oauth)
+	handlers := handler.NewHandler(services, &cfg.Oauth, &cfg.I18n)
 
 	// initialize server
-	srv := server.NewServer(cfg, handlers.InitRoutes(*cfg))
+	srv := server.NewServer(cfg, handlers.InitRoutes(cfg))
 
-	go func ()  {
-		if err := srv.Run(); !errors.Is(err, http.ErrServerClosed) {
-			logger.Errorf("Error starting server: %s", err.Error())
+	go func() {
+		if er := srv.Run(); !errors.Is(er, http.ErrServerClosed) {
+			logger.Errorf("Error starting server: %s", er.Error())
 		}
 	}()
 
@@ -103,7 +104,7 @@ func main() {
 
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGTERM, syscall.SIGINT)
-	<- quit
+	<-quit
 
 	logger.Info("API service shutdown")
 	const timeout = 5 * time.Second
@@ -111,11 +112,11 @@ func main() {
 	ctx, shutdown := context.WithTimeout(context.Background(), timeout)
 	defer shutdown()
 
-	if err := srv.Stop(ctx); err != nil {
-		logger.Errorf("failed to stop server: %v", err)
+	if er := srv.Stop(ctx); er != nil {
+		logger.Errorf("failed to stop server: %v", er)
 	}
 
-	if err := mongoClient.Disconnect(context.Background()); err != nil {
-		logger.Error(err.Error())
+	if er := mongoClient.Disconnect(context.Background()); er != nil {
+		logger.Error(er.Error())
 	}
 }

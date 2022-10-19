@@ -16,13 +16,11 @@ const (
 	collectionName string = "shops"
 )
 
-
 func NewShopMongo(db *mongo.Database) *ShopMongo {
-	return &ShopMongo{db:db}
+	return &ShopMongo{db: db}
 }
 
-
-func (r *ShopMongo) Find(params domain.RequestParams) (domain.Response[domain.Shop], error) {
+func (r *ShopMongo) FindShop(params domain.RequestParams) (domain.Response[domain.Shop], error) {
 	ctx, cancel := context.WithTimeout(context.Background(), MongoQueryTimeout)
 	defer cancel()
 
@@ -39,26 +37,26 @@ func (r *ShopMongo) Find(params domain.RequestParams) (domain.Response[domain.Sh
 	}
 	defer cursor.Close(ctx)
 
-	if err := cursor.All(ctx, &results); err != nil {
-		return response, err
+	if er := cursor.All(ctx, &results); er != nil {
+		return response, er
 	}
 
-	var resultSlice []domain.Shop = make([]domain.Shop, len(results))
+	resultSlice := make([]domain.Shop, len(results))
 	// for i, d := range results {
 	// 	resultSlice[i] = d
 	// }
 	copy(resultSlice, results)
 
-	count,err := r.db.Collection(collectionName).CountDocuments(ctx, bson.M{})
+	count, err := r.db.Collection(collectionName).CountDocuments(ctx, bson.M{})
 	if err != nil {
 		return response, err
 	}
 
 	response = domain.Response[domain.Shop]{
-		Total: count,
-		Skip: int(params.Options.Skip),
+		Total: int(count),
+		Skip:  int(params.Options.Skip),
 		Limit: int(params.Options.Limit),
-		Data: resultSlice,
+		Data:  resultSlice,
 	}
 	return response, nil
 }
@@ -80,31 +78,31 @@ func (r *ShopMongo) GetAllShops(params domain.RequestParams) (domain.Response[do
 	}
 	defer cursor.Close(ctx)
 
-	if err := cursor.All(ctx, &results); err != nil {
-		return response, err
+	if er := cursor.All(ctx, &results); er != nil {
+		return response, er
 	}
 
-	var resultSlice []domain.Shop = make([]domain.Shop, len(results))
+	resultSlice := make([]domain.Shop, len(results))
 	// for i, d := range results {
 	// 	resultSlice[i] = d
 	// }
 	copy(resultSlice, results)
 
-	count,err := r.db.Collection(collectionName).CountDocuments(ctx, bson.M{})
+	count, err := r.db.Collection(collectionName).CountDocuments(ctx, bson.M{})
 	if err != nil {
 		return response, err
 	}
 
 	response = domain.Response[domain.Shop]{
-		Total: count,
-		Skip: int(params.Options.Skip),
+		Total: int(count),
+		Skip:  int(params.Options.Skip),
 		Limit: int(params.Options.Limit),
-		Data: resultSlice,
+		Data:  resultSlice,
 	}
 	return response, nil
 }
 
-func (r *ShopMongo) CreateShop(userId string, shop domain.Shop) (*domain.Shop, error) {
+func (r *ShopMongo) CreateShop(userID string, shop *domain.Shop) (*domain.Shop, error) {
 	var result *domain.Shop
 
 	collection := r.db.Collection(collectionName)
@@ -113,10 +111,10 @@ func (r *ShopMongo) CreateShop(userId string, shop domain.Shop) (*domain.Shop, e
 	defer cancel()
 
 	newShop := domain.Shop{
-		Title: shop.Title,
+		Title:       shop.Title,
 		Description: shop.Description,
-		Seo: "",
-		UserId: userId,
+		Seo:         "",
+		UserID:      userID,
 	}
 
 	res, err := collection.InsertOne(ctx, newShop)

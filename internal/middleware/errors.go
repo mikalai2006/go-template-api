@@ -5,14 +5,12 @@ import (
 	"github.com/mikalai2006/go-template-api/internal/domain"
 )
 
-
-
 func JSONAppErrorReporter() gin.HandlerFunc {
 	return HadleError(gin.ErrorTypeAny)
 }
 
 func HadleError(errorType gin.ErrorType) gin.HandlerFunc {
-	return func (c *gin.Context)  {
+	return func(c *gin.Context) {
 		c.Next()
 
 		// Skip if no errors
@@ -22,15 +20,13 @@ func HadleError(errorType gin.ErrorType) gin.HandlerFunc {
 		// public errors
 		err := c.Errors.Last()
 		if err == nil {
-				return
+			return
 		}
 
-		if err != nil {
-			c.JSON(-1, domain.ErrorResponse{
-				Code: c.Writer.Status(),
-				Message: err.Error(),
-			})
-			c.Abort()
-		}
+		c.JSON(-1, domain.ErrorResponse{
+			Code:    c.Writer.Status(),
+			Message: err.Error(),
+		})
+		c.Abort()
 	}
 }

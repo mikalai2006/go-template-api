@@ -9,18 +9,18 @@ type ShopService struct {
 	repo repository.Shop
 }
 
-func NewShopService(repo repository.Shop) *ShopService  {
+func NewShopService(repo repository.Shop) *ShopService {
 	return &ShopService{repo: repo}
 }
 
-func (s *ShopService) Find(params domain.RequestParams) (domain.Response[domain.Shop], error) {
-	return s.repo.Find(params)
+func (s *ShopService) FindShop(params domain.RequestParams) (domain.Response[domain.Shop], error) {
+	return s.repo.FindShop(params)
 }
 
 func (s *ShopService) GetAllShops(params domain.RequestParams) (domain.Response[domain.Shop], error) {
 	return s.repo.GetAllShops(params)
 }
 
-func (s *ShopService) CreateShop(userId string, shop domain.Shop) (*domain.Shop, error)  {
-	return s.repo.CreateShop(userId, shop)
+func (s *ShopService) CreateShop(userID string, shop *domain.Shop) (*domain.Shop, error) {
+	return s.repo.CreateShop(userID, shop)
 }

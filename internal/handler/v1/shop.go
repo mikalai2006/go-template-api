@@ -1,4 +1,4 @@
-package handler
+package v1
 
 import (
 	"net/http"
@@ -7,34 +7,33 @@ import (
 	"github.com/mikalai2006/go-template-api/internal/domain"
 	"github.com/mikalai2006/go-template-api/internal/middleware"
 	"github.com/mikalai2006/go-template-api/internal/utils"
+	"github.com/mikalai2006/go-template-api/pkg/app"
 )
 
-
-func (h *Handler) registerShop(router *gin.RouterGroup) {
-		shops := router.Group("/shops")
-		{
-			shops.GET("/",  h.Find)
-			shops.POST("/", middleware.SetUserIdentity, h.CreateShop)
-		}
+func (h *HandlerV1) registerShop(router *gin.RouterGroup) {
+	shops := router.Group("/shops")
+	shops.GET("/", h.FindShop)
+	shops.POST("/", middleware.SetUserIdentity, h.CreateShop)
 }
 
-
-func (h *Handler) CreateShop(c *gin.Context) {
-	userId, err := middleware.GetUserId(c)
+func (h *HandlerV1) CreateShop(c *gin.Context) {
+	appG := app.Gin{C: c}
+	userID, err := middleware.GetUserID(c)
 	if err != nil {
-		c.AbortWithError(http.StatusUnauthorized, err)
+		// c.AbortWithError(http.StatusUnauthorized, err)
+		appG.Response(http.StatusUnauthorized, err, gin.H{"hello": "world"})
 		return
 	}
 
-	var input domain.Shop
-	if err := c.BindJSON(&input); err != nil {
-		c.AbortWithError(http.StatusBadRequest, err)
+	var input *domain.Shop
+	if er := c.BindJSON(&input); er != nil {
+		appG.Response(http.StatusBadRequest, er, nil)
 		return
 	}
 
-	shop, err := h.services.Shop.CreateShop(userId, input)
+	shop, err := h.services.Shop.CreateShop(userID, input)
 	if err != nil {
-		c.AbortWithError(http.StatusBadRequest, err)
+		appG.Response(http.StatusBadRequest, err, nil)
 		return
 	}
 
@@ -52,28 +51,23 @@ func (h *Handler) CreateShop(c *gin.Context) {
 // @Failure 400,404 {object} domain.ErrorResponse
 // @Failure 500 {object} domain.ErrorResponse
 // @Failure default {object} domain.ErrorResponse
-// @Router /api/shops [get]
-func (h *Handler) GetAllShops(c *gin.Context) {
+// @Router /api/shops [get].
+func (h *HandlerV1) GetAllShops(c *gin.Context) {
+	appG := app.Gin{C: c}
+
 	params, err := utils.GetParamsFromRequest(c, domain.Shop{})
 	if err != nil {
-		c.AbortWithError(http.StatusBadRequest, err)
-
+		appG.Response(http.StatusBadRequest, err, nil)
 		return
 	}
 
 	shops, err := h.services.Shop.GetAllShops(params)
 	if err != nil {
-		c.AbortWithError(http.StatusBadRequest, err)
-
+		appG.Response(http.StatusBadRequest, err, nil)
 		return
 	}
 
 	c.JSON(http.StatusOK, shops)
-}
-
-type inputs struct {
-	domain.RequestParams
-	domain.Shop
 }
 
 // @Summary Find shops by params
@@ -83,39 +77,38 @@ type inputs struct {
 // @ModuleID shops
 // @Accept  json
 // @Produce  json
-// @Param input query inputs true "params for search shops"
+// @Param input query ShopInput true "params for search shops"
 // @Success 200 {object} []domain.Shop
 // @Failure 400,404 {object} domain.ErrorResponse
 // @Failure 500 {object} domain.ErrorResponse
 // @Failure default {object} domain.ErrorResponse
-// @Router /api/shops [get]
-func (h *Handler) Find(c *gin.Context) {
+// @Router /api/shops [get].
+func (h *HandlerV1) FindShop(c *gin.Context) {
+	appG := app.Gin{C: c}
+
 	params, err := utils.GetParamsFromRequest(c, domain.Shop{})
 	if err != nil {
-		c.AbortWithError(http.StatusBadRequest, err)
-
+		appG.Response(http.StatusBadRequest, err, nil)
 		return
 	}
 
-	shops, err := h.services.Shop.Find(params)
+	shops, err := h.services.Shop.FindShop(params)
 	if err != nil {
-		c.AbortWithError(http.StatusBadRequest, err)
-
+		appG.Response(http.StatusBadRequest, err, nil)
 		return
 	}
 
 	c.JSON(http.StatusOK, shops)
 }
 
-
-func (h *Handler) GetShopById(c *gin.Context) {
-
-}
-
-func (h *Handler) UpdateShop(c *gin.Context) {
+func (h *HandlerV1) GetShopByID(c *gin.Context) {
 
 }
 
-func (h *Handler) DeleteShop(c *gin.Context) {
+func (h *HandlerV1) UpdateShop(c *gin.Context) {
+
+}
+
+func (h *HandlerV1) DeleteShop(c *gin.Context) {
 
 }

@@ -7,30 +7,38 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"github.com/mikalai2006/go-template-api/pkg/app"
 	"github.com/mikalai2006/go-template-api/pkg/auths"
 )
 
 const (
 	authorizationHeader = "Authorization"
-	userCtx = "userId"
+	userCtx             = "userId"
+	userRoles           = "roles"
 )
 
 func SetUserIdentity(c *gin.Context) {
+	appG := app.Gin{C: c}
+
 	header := c.GetHeader(authorizationHeader)
 
 	if header == "" {
-		c.AbortWithError(http.StatusUnauthorized, errors.New("empty auth header"))
+		// c.AbortWithStatusJSON(http.StatusUnauthorized, errors.New("empty auth header"))
+		appG.Response(http.StatusUnauthorized, errors.New("empty auth header"), nil)
 		return
 	}
 
 	headerParts := strings.Split(header, " ")
-	if len(headerParts) != 2 {
-		c.AbortWithError(http.StatusUnauthorized, errors.New("invalid auth header"))
+	countParts := 2
+	if len(headerParts) != countParts {
+		// c.AbortWithError(http.StatusUnauthorized, errors.New("invalid auth header"))
+		appG.Response(http.StatusUnauthorized, errors.New("invalid auth header"), nil)
 		return
 	}
 
-	if len(headerParts[1]) == 0 {
-		c.AbortWithError(http.StatusUnauthorized, errors.New("invalid auth header"))
+	if headerParts[1] == "" {
+		// c.AbortWithError(http.StatusUnauthorized, errors.New("invalid auth header"))
+		appG.Response(http.StatusUnauthorized, errors.New("invalid auth header"), nil)
 		return
 	}
 
@@ -42,16 +50,19 @@ func SetUserIdentity(c *gin.Context) {
 	// }
 	tokenManager, err := auths.NewManager(os.Getenv("SIGNING_KEY"))
 	if err != nil {
-		c.AbortWithError(http.StatusUnauthorized, err)
+		// c.AbortWithError(http.StatusUnauthorized, err)
+		appG.Response(http.StatusUnauthorized, err, nil)
 		return
 	}
 
-	id, err := tokenManager.Parse(headerParts[1])
+	claims, err := tokenManager.Parse(headerParts[1])
 	if err != nil {
-		c.AbortWithError(http.StatusUnauthorized, err)
+		// c.AbortWithError(http.StatusUnauthorized, err)
+		appG.Response(http.StatusUnauthorized, err, nil)
 		return
 	}
-	c.Set(userCtx, id)
+	c.Set(userCtx, claims.Subject)
+	c.Set(userRoles, claims.Roles)
 	// session := sessions.Default(c)
 	// user := session.Get(userkey)
 	// if user == nil {
@@ -64,7 +75,7 @@ func SetUserIdentity(c *gin.Context) {
 	// c.Next()
 }
 
-func GetUserId(c *gin.Context) (string, error)  {
+func GetUserID(c *gin.Context) (string, error) {
 	id, ok := c.Get(userCtx)
 	if !ok {
 		return "", errors.New("user not found")
@@ -76,4 +87,12 @@ func GetUserId(c *gin.Context) (string, error)  {
 	}
 
 	return idInt, nil
+}
+
+func GetRoles(c *gin.Context) ([]string, error) {
+	roles, ok := c.Get(userRoles)
+	if !ok {
+		return nil, errors.New("roles not found")
+	}
+	return roles.([]string), nil
 }
