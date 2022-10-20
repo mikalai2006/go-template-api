@@ -66,7 +66,7 @@ func (h *HandlerV1) GetUser(c *gin.Context) {
 func (h *HandlerV1) FindUser(c *gin.Context) {
 	appG := app.Gin{C: c}
 
-	params, err := utils.GetParamsFromRequest(c, domain.User{})
+	params, err := utils.GetParamsFromRequest(c, domain.UserInput{})
 	if err != nil {
 		appG.Response(http.StatusBadRequest, err, nil)
 		return

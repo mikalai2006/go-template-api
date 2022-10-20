@@ -2,6 +2,7 @@ package v1
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -60,7 +61,7 @@ func (h *HandlerV1) getLanguage(c *gin.Context) {
 func (h *HandlerV1) findLanguage(c *gin.Context) {
 	appG := app.Gin{C: c}
 
-	params, err := utils.GetParamsFromRequest(c, domain.Page{})
+	params, err := utils.GetParamsFromRequest(c, domain.LanguageInput{})
 	if err != nil {
 		appG.Response(http.StatusBadRequest, err, nil)
 		return
@@ -86,6 +87,7 @@ func (h *HandlerV1) updateLanguage(c *gin.Context) {
 		appG.Response(http.StatusBadRequest, err, nil)
 		return
 	}
+	fmt.Println(data)
 
 	document, err := h.services.Apps.UpdateLanguage(id, &data)
 	if err != nil {

@@ -233,7 +233,7 @@ func (h *HandlerV1) updateComponent(c *gin.Context) {
 func (h *HandlerV1) findLibrary(c *gin.Context) {
 	appG := app.Gin{C: c}
 
-	params, err := utils.GetParamsFromRequest(c, domain.Component{})
+	params, err := utils.GetParamsFromRequest(c, domain.LibraryInput{})
 	if err != nil {
 		// c.AbortWithError(http.StatusBadRequest, err)
 		appG.Response(http.StatusBadRequest, err, nil)

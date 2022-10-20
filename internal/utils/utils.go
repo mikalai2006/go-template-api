@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"fmt"
 	"reflect"
 	"strconv"
 
@@ -37,7 +38,7 @@ func GetParamsFromRequest[V any](c *gin.Context, filterStruct V) (domain.Request
 
 	filterValues := c.Request.URL.Query()
 	dataFilter := bson.M{}
-	var tagValue, primitiveValue string
+	var tagValue, primitiveValue, tagJsonValue string
 	elementsFilter := reflect.ValueOf(filter)
 	for i := 0; i < elementsFilter.NumField(); i++ {
 		typeField := elementsFilter.Type().Field(i)
@@ -45,8 +46,11 @@ func GetParamsFromRequest[V any](c *gin.Context, filterStruct V) (domain.Request
 
 		tagValue = tag.Get("bson")
 		primitiveValue = tag.Get("primitive")
+		tagJsonValue = tag.Get("json")
+		primitiveValue = tag.Get("primitive")
+		fmt.Println(tagValue, tagJsonValue)
 
-		if len(filterValues[tagValue]) != 0 {
+		if len(filterValues[tagJsonValue]) != 0 {
 			switch elementsFilter.Field(i).Kind() {
 			case reflect.String:
 				value := elementsFilter.Field(i).String()
@@ -56,12 +60,12 @@ func GetParamsFromRequest[V any](c *gin.Context, filterStruct V) (domain.Request
 				value := elementsFilter.Field(i).Bool()
 				dataFilter[tagValue] = value
 
-			case reflect.Int:
+			case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 				value := elementsFilter.Field(i).Int()
 				dataFilter[tagValue] = value
 
 			default:
-				// fmt.Println("default ", tagValue, primitiveValue)
+				fmt.Println("default ", tagValue, elementsFilter.Field(i).Type(), primitiveValue)
 				if primitiveValue == "true" {
 					// fmt.Println("===== add ", tagValue)
 					id, _ := primitive.ObjectIDFromHex(filterValues[tagValue][0])
@@ -106,9 +110,9 @@ func GetParamsFromRequest[V any](c *gin.Context, filterStruct V) (domain.Request
 	if opts.Limit == 0 || opts.Limit > 50 {
 		opts.Limit = 10
 	}
-
 	params.Filter = dataFilter
 	params.Options = opts
 
+	fmt.Println(params)
 	return params, nil
 }

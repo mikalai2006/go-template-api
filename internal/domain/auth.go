@@ -20,8 +20,8 @@ type Auth struct {
 	Verification Verification       `json:"verification" bson:"verification"`
 	Session      Session            `json:"session" bson:"session"`
 	Roles        []string           `json:"roles" bson:"roles"`
-	CreatedAt    time.Time          `json:"created_at"`
-	UpdatedAt    time.Time          `json:"updated_at"`
+	CreatedAt    time.Time          `json:"createdAt" bson:"createdAt"`
+	UpdatedAt    time.Time          `json:"updatedAt" bson:"updatedAt"`
 }
 
 type Verification struct {

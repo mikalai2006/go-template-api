@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/mikalai2006/go-template-api/internal/config"
@@ -94,6 +95,7 @@ func (r *AppsMongo) FindLanguage(params domain.RequestParams) (domain.Response[d
 	if err != nil {
 		return domain.Response[domain.Language]{}, err
 	}
+	fmt.Println(pipe)
 	cursor, err := r.db.Collection(TblLanguage).Aggregate(ctx, pipe) // Find(ctx, params.Filter, opts)
 	if err != nil {
 		return response, err
@@ -111,7 +113,7 @@ func (r *AppsMongo) FindLanguage(params domain.RequestParams) (domain.Response[d
 	copy(resultSlice, results)
 
 	var options options.CountOptions
-	options.SetLimit(params.Limit)
+	// options.SetLimit(params.Limit)
 	options.SetSkip(params.Skip)
 	count, err := r.db.Collection(TblLanguage).CountDocuments(ctx, params.Filter, &options)
 	if err != nil {

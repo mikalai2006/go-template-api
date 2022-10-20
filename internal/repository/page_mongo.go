@@ -11,6 +11,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type PageMongo struct {
@@ -151,7 +152,10 @@ func (r *PageMongo) GetFullPage(params domain.RequestParams) (domain.Response[do
 	// }
 	copy(resultSlice, results)
 
-	count, err := r.db.Collection(tblPage).CountDocuments(ctx, bson.M{})
+	var options options.CountOptions
+	// options.SetLimit(params.Limit)
+	options.SetSkip(params.Skip)
+	count, err := r.db.Collection(tblPage).CountDocuments(ctx, params.Filter, &options)
 	if err != nil {
 		return response, err
 	}
@@ -401,6 +405,7 @@ func (r *PageMongo) FindPage(params domain.RequestParams) (domain.Response[domai
 	if err != nil {
 		return domain.Response[domain.Page]{}, err
 	}
+	fmt.Println(pipe)
 	cursor, err := r.db.Collection(tblPage).Aggregate(ctx, pipe) // Find(ctx, params.Filter, opts)
 	if err != nil {
 		return response, err
@@ -417,7 +422,10 @@ func (r *PageMongo) FindPage(params domain.RequestParams) (domain.Response[domai
 	// }
 	copy(resultSlice, results)
 
-	count, err := r.db.Collection(tblPage).CountDocuments(ctx, bson.M{})
+	var options options.CountOptions
+	// options.SetLimit(params.Limit)
+	options.SetSkip(params.Skip)
+	count, err := r.db.Collection(tblPage).CountDocuments(ctx, params.Filter, &options)
 	if err != nil {
 		return response, err
 	}

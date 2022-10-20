@@ -60,7 +60,7 @@ func (h HandlerV1) getPageForRouters(c *gin.Context) {
 func (h HandlerV1) getFullPage(c *gin.Context) {
 	appG := app.Gin{C: c}
 
-	params, err := utils.GetParamsFromRequest(c, domain.Page{})
+	params, err := utils.GetParamsFromRequest(c, domain.PageInputData{})
 	if err != nil {
 		appG.Response(http.StatusBadRequest, err, nil)
 		return
@@ -121,7 +121,7 @@ type InputPage struct {
 func (h HandlerV1) findPage(c *gin.Context) {
 	appG := app.Gin{C: c}
 
-	params, err := utils.GetParamsFromRequest(c, domain.Page{})
+	params, err := utils.GetParamsFromRequest(c, domain.PageInputData{})
 	if err != nil {
 		appG.Response(http.StatusBadRequest, err, nil)
 		return

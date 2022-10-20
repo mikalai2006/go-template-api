@@ -8,26 +8,27 @@ import (
 
 type Page struct {
 	ID     primitive.ObjectID `json:"id" bson:"_id,omitempty" form:"-"`
-	UserID primitive.ObjectID `json:"user_id" bson:"user_id" primitive:"true"`
+	UserID primitive.ObjectID `json:"userId" bson:"userId" primitive:"true"`
 
-	ComponentID primitive.ObjectID `json:"component_id" bson:"component_id" primitive:"true"`
-	LayoutID    primitive.ObjectID `json:"layout_id" bson:"layout_id" primitive:"true"`
+	ComponentID primitive.ObjectID `json:"componentId" bson:"componentId" primitive:"true"`
+	LayoutID    primitive.ObjectID `json:"layoutId" bson:"layoutId" primitive:"true"`
 	Slug        string             `json:"slug" bson:"slug" form:"slug"`
-	SlugFull    string             `json:"slug_full" bson:"slug_full" form:"slug_full"`
-	Title       string             `json:"title" bson:"title" form:"title"`
-	Path        string             `json:"path" bson:"path" form:"path"`
-	Name        string             `json:"name" bson:"name" form:"name"`
-	Publish     bool               `json:"publish" bson:"publish" form:"publish"`
-	SortOrder   int                `json:"sort_order" bson:"sort_order" form:"sort_order"`
-	Setting     interface{}        `json:"setting" bson:"setting" form:"setting"`
+	SlugFull    string             `json:"slugFull" bson:"slug_full"`
+	Title       string             `json:"title" bson:"title"`
+	Path        string             `json:"path" bson:"path"`
+	Name        string             `json:"name" bson:"name"`
+	ContentType string             `json:"contentType" bson:"content_type"`
+	Publish     bool               `json:"publish" bson:"publish"`
+	SortOrder   int                `json:"sortOrder" bson:"sort_order"`
+	Setting     interface{}        `json:"setting" bson:"setting"`
 
-	Component     Component       `json:"component" bson:"component"`
-	Layout        Component       `json:"layout" bson:"layout"`
-	XXX           any             `json:"xxx" bson:"xxx"`
+	Component     Component       `json:"-" bson:"component"`
+	Layout        Component       `json:"-" bson:"layout"`
+	XXX           any             `json:"-" bson:"xxx"`
 	Content       any             `json:"content" bson:"content"`
-	ComponentData []ComponentData `json:"component_data" bson:"component_data"`
-	CreatedAt     time.Time       `json:"created_at" bson:"created_at" form:"created_at"`
-	UpdatedAt     time.Time       `json:"updated_at" bson:"updated_at" form:"updated_at"`
+	ComponentData []ComponentData `json:"-" bson:"component_data"`
+	CreatedAt     time.Time       `json:"createdAt" bson:"createdAt"`
+	UpdatedAt     time.Time       `json:"updatedAt" bson:"updatedAt"`
 }
 
 // type PageContent struct {
@@ -35,15 +36,16 @@ type Page struct {
 
 type PageInputData struct {
 	Slug        string             `json:"slug" bson:"slug" form:"slug"`
-	SlugFull    string             `json:"slug_full" bson:"slug_full" form:"slug_full"`
+	SlugFull    string             `json:"slugFull" bson:"slug_full" form:"slugFull"`
 	Title       string             `json:"title" bson:"title" form:"title"`
 	Path        string             `json:"path" bson:"path" form:"path"`
 	Name        string             `json:"name" bson:"name" form:"name"`
+	ContentType string             `json:"contentType" bson:"content_type" form:"contentType"`
 	Publish     bool               `json:"publish" bson:"publish" form:"publish"`
-	SortOrder   int                `json:"sort_order" bson:"sort_order" form:"sort_order"`
+	SortOrder   int                `json:"sortOrder" bson:"sort_order" form:"sort_order"`
 	Setting     interface{}        `json:"setting" bson:"setting" form:"setting"`
-	ComponentID primitive.ObjectID `json:"component_id" bson:"component_id" primitive:"true"`
-	LayoutID    primitive.ObjectID `json:"layout_id" bson:"layout_id" primitive:"true"`
+	ComponentID primitive.ObjectID `json:"componentId" bson:"componentId" form:"componentId" primitive:"true"`
+	LayoutID    primitive.ObjectID `json:"layoutId" bson:"layoutId" form:"layoutId" primitive:"true"`
 }
 
 type PageRoutes struct {
@@ -51,7 +53,7 @@ type PageRoutes struct {
 	Name     string             `json:"name" bson:"name"`
 	Slug     string             `json:"slug" bson:"slug"`
 	Path     string             `json:"path" bson:"path"`
-	SlugFull string             `json:"slug_full" bson:"slug_full"`
+	SlugFull string             `json:"slugFull" bson:"slug_full"`
 	Publish  bool               `json:"publish" bson:"publish"`
 }
 

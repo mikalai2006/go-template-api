@@ -6,25 +6,24 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-type Tree struct {
-	UID    string                 `json:"_uid"`
-	Name   string                 `json:"name"`
-	Parent string                 `json:"parent"`
-	Child  map[string]interface{} `json:"child"`
-	Data   map[string]any         `json:"data"`
-}
-
 type Library struct {
-	ID     primitive.ObjectID `json:"_id,omitempty" bson:"_id" primitive:"true"`
+	ID     primitive.ObjectID `json:"id,omitempty" bson:"_id" primitive:"true"`
 	Name   string             `json:"name" bson:"name"`
-	Title  string             `json:"title" bson:"title"`
 	Icon   string             `json:"icon" bson:"icon"`
 	Groups string             `json:"groups" bson:"groups"`
 
 	Tree      interface{} `json:"tree" bson:"tree"`
 	Data      []*Field    `json:"-" bson:"data"`
-	CreatedAt time.Time   `json:"created_at" bson:"created_at" form:"created_at"`
-	UpdatedAt time.Time   `json:"updated_at" bson:"updated_at" form:"updated_at"`
+	CreatedAt time.Time   `json:"createdAt" bson:"createdAt" form:"createdAt"`
+	UpdatedAt time.Time   `json:"updatedAt" bson:"updatedAt" form:"updatedAt"`
+}
+
+type LibraryInput struct {
+	Name   string `json:"name" bson:"name" form:"name"`
+	Icon   string `json:"icon" bson:"icon" form:"icon"`
+	Groups string `json:"groups" bson:"groups" form:"groups"`
+
+	Data interface{} `json:"tree" bson:"tree" form:"data"`
 }
 
 type Field struct {
@@ -51,7 +50,3 @@ type FieldValue struct {
 type FieldNode struct {
 	Value map[string]any `json:"value" bson:"value"`
 }
-
-// type FieldsTree struct {
-// 	root *Node
-// }

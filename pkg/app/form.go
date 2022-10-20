@@ -2,33 +2,32 @@ package app
 
 import (
 	"encoding/json"
+	"fmt"
 	"reflect"
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 // BindAndValid binds and validates data.
 func BindAndValid[V any](c *gin.Context, form V) (interface{}, error) {
-	result := bson.M{}
-
 	var body map[string]interface{}
 	if er := json.NewDecoder(c.Request.Body).Decode(&body); er != nil {
-		return result, er
+		return nil, er
 	}
-
-	var tagValue, primitiveValue string
+	result := make(map[string]interface{}, len(body))
+	var tagValue, primitiveValue, tagJsonValue string
 	myDataReflect := reflect.Indirect(reflect.ValueOf(form))
 
 	for i := 0; i < myDataReflect.NumField(); i++ {
 		typeField := myDataReflect.Type().Field(i)
 		tag := typeField.Tag
 		tagValue = tag.Get("bson")
+		tagJsonValue = tag.Get("json")
 		primitiveValue = tag.Get("primitive")
-
-		if val, ok := body[tagValue]; ok {
+		if val, ok := body[tagJsonValue]; ok {
+			fmt.Println(tagValue, tagJsonValue, reflect.TypeOf(val))
 			switch myDataReflect.Field(i).Kind() {
 			case reflect.String:
 				result[tagValue] = val.(string)
@@ -36,7 +35,18 @@ func BindAndValid[V any](c *gin.Context, form V) (interface{}, error) {
 			case reflect.Bool:
 				result[tagValue] = val.(bool)
 
-			case reflect.Int:
+			case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+				// s := val.(string)
+				// i, err := strconv.ParseInt(s, 10, 64)
+				// if err == nil {
+				// 	result[tagValue] = i
+				// 	continue
+				// }
+				// f, err := strconv.ParseFloat(s, 64)
+				// if err == nil {
+				// 	result[tagValue] = f
+				// 	continue
+				// }
 				result[tagValue] = val
 			default:
 				if primitiveValue == "true" {
@@ -56,9 +66,9 @@ func BindAndValid[V any](c *gin.Context, form V) (interface{}, error) {
 		}
 	}
 
-	// fmt.Println("============result======================")
-	// fmt.Println(result)
-	// fmt.Println("==========================================")
+	fmt.Println("============result======================")
+	fmt.Println(result)
+	fmt.Println("==========================================")
 
 	result["updated_at"] = time.Now()
 	return result, nil
