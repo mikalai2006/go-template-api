@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/mikalai2006/go-template-api/internal/config"
 	"github.com/mikalai2006/go-template-api/internal/domain"
 	"github.com/mikalai2006/go-template-api/internal/utils"
 	"go.mongodb.org/mongo-driver/bson"
@@ -13,11 +14,12 @@ import (
 )
 
 type UserMongo struct {
-	db *mongo.Database
+	db   *mongo.Database
+	i18n config.I18nConfig
 }
 
-func NewUserMongo(db *mongo.Database) *UserMongo {
-	return &UserMongo{db: db}
+func NewUserMongo(db *mongo.Database, i18n config.I18nConfig) *UserMongo {
+	return &UserMongo{db: db, i18n: i18n}
 }
 
 func (r *UserMongo) Iam(userID string) (domain.User, error) {
@@ -68,7 +70,7 @@ func (r *UserMongo) FindUser(params domain.RequestParams) (domain.Response[domai
 
 	var results []domain.User
 	var response domain.Response[domain.User]
-	pipe, err := CreatePipeline(params)
+	pipe, err := CreatePipeline(params, &r.i18n)
 	if err != nil {
 		return domain.Response[domain.User]{}, err
 	}

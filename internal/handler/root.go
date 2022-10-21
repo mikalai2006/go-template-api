@@ -60,7 +60,7 @@ func (h *Handler) InitRoutes(cfg *config.Config) *gin.Engine {
 	router.NoRoute(func(c *gin.Context) {
 		appG := app.Gin{C: c}
 		// c.AbortWithError(http.StatusNotFound, errors.New("page not found"))
-		appG.Response(http.StatusNotFound, errors.New("page not found"), nil)
+		appG.ResponseError(http.StatusNotFound, errors.New("page not found"), nil)
 		// .SetMeta(gin.H{
 		// 	"code": http.StatusNotFound,
 		// 	"status": "error",

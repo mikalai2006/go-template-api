@@ -43,7 +43,7 @@ func (h *HandlerV1) getComponent(c *gin.Context) {
 	user, err := h.services.Component.GetComponent(id)
 	if err != nil {
 		// c.AbortWithError(http.StatusBadRequest, err)
-		appG.Response(http.StatusBadRequest, err, nil)
+		appG.ResponseError(http.StatusBadRequest, err, nil)
 		return
 	}
 
@@ -71,17 +71,17 @@ type InputComponent struct {
 func (h *HandlerV1) findComponent(c *gin.Context) {
 	appG := app.Gin{C: c}
 
-	params, err := utils.GetParamsFromRequest(c, domain.Component{})
+	params, err := utils.GetParamsFromRequest(c, domain.Component{}, &h.i18n)
 	if err != nil {
 		// c.AbortWithError(http.StatusBadRequest, err)
-		appG.Response(http.StatusBadRequest, err, nil)
+		appG.ResponseError(http.StatusBadRequest, err, nil)
 		return
 	}
 
 	users, err := h.services.Component.FindComponent(params)
 	if err != nil {
 		// c.AbortWithError(http.StatusBadRequest, err)
-		appG.Response(http.StatusBadRequest, err, nil)
+		appG.ResponseError(http.StatusBadRequest, err, nil)
 		return
 	}
 
@@ -94,21 +94,21 @@ func (h *HandlerV1) createComponent(c *gin.Context) {
 	userID, err := middleware.GetUserID(c)
 	if err != nil {
 		// c.AbortWithError(http.StatusUnauthorized, err)
-		appG.Response(http.StatusUnauthorized, err, nil)
+		appG.ResponseError(http.StatusUnauthorized, err, nil)
 		return
 	}
 
 	var input *domain.ComponentCreate
 	if er := c.BindJSON(&input); er != nil {
 		// c.AbortWithError(http.StatusBadRequest, err)
-		appG.Response(http.StatusBadRequest, er, nil)
+		appG.ResponseError(http.StatusBadRequest, er, nil)
 		return
 	}
 
 	user, err := h.services.Component.CreateComponent(userID, input)
 	if err != nil {
 		// c.AbortWithError(http.StatusBadRequest, err)
-		appG.Response(http.StatusBadRequest, err, nil)
+		appG.ResponseError(http.StatusBadRequest, err, nil)
 		// utils.NewErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
 	}
@@ -132,17 +132,17 @@ func (h *HandlerV1) createComponent(c *gin.Context) {
 func (h *HandlerV1) findByPopulate(c *gin.Context) {
 	appG := app.Gin{C: c}
 
-	params, err := utils.GetParamsFromRequest(c, domain.Component{})
+	params, err := utils.GetParamsFromRequest(c, domain.Component{}, &h.i18n)
 	if err != nil {
 		// c.AbortWithError(http.StatusBadRequest, err)
-		appG.Response(http.StatusBadRequest, err, nil)
+		appG.ResponseError(http.StatusBadRequest, err, nil)
 		return
 	}
 
 	users, err := h.services.Component.FindByPopulate(params)
 	if err != nil {
 		// c.AbortWithError(http.StatusBadRequest, err)
-		appG.Response(http.StatusBadRequest, err, nil)
+		appG.ResponseError(http.StatusBadRequest, err, nil)
 		return
 	}
 
@@ -168,14 +168,14 @@ func (h *HandlerV1) deleteComponent(c *gin.Context) {
 	id := c.Param("id")
 	if id == "" {
 		// c.AbortWithError(http.StatusBadRequest, errors.New("for remove need id"))
-		appG.Response(http.StatusBadRequest, errors.New("for remove need id"), nil)
+		appG.ResponseError(http.StatusBadRequest, errors.New("for remove need id"), nil)
 		return
 	}
 
 	user, err := h.services.Component.DeleteComponent(id) // , input
 	if err != nil {
 		// c.AbortWithError(http.StatusBadRequest, err)
-		appG.Response(http.StatusBadRequest, err, nil)
+		appG.ResponseError(http.StatusBadRequest, err, nil)
 		return
 	}
 
@@ -202,15 +202,15 @@ func (h *HandlerV1) updateComponent(c *gin.Context) {
 	id := c.Param("id")
 
 	var input domain.PageInputData
-	data, err := app.BindAndValid(c, &input)
+	data, err := utils.BindAndValid(c, &input)
 	if err != nil {
-		appG.Response(http.StatusBadRequest, err, nil)
+		appG.ResponseError(http.StatusBadRequest, err, nil)
 		return
 	}
 
 	user, err := h.services.Component.UpdateComponent(id, data)
 	if err != nil {
-		appG.Response(http.StatusBadRequest, err, nil)
+		appG.ResponseError(http.StatusBadRequest, err, nil)
 		return
 	}
 
@@ -233,17 +233,17 @@ func (h *HandlerV1) updateComponent(c *gin.Context) {
 func (h *HandlerV1) findLibrary(c *gin.Context) {
 	appG := app.Gin{C: c}
 
-	params, err := utils.GetParamsFromRequest(c, domain.LibraryInput{})
+	params, err := utils.GetParamsFromRequest(c, domain.LibraryInput{}, &h.i18n)
 	if err != nil {
 		// c.AbortWithError(http.StatusBadRequest, err)
-		appG.Response(http.StatusBadRequest, err, nil)
+		appG.ResponseError(http.StatusBadRequest, err, nil)
 		return
 	}
 
 	users, err := h.services.Component.FindLibrarys(params)
 	if err != nil {
 		// c.AbortWithError(http.StatusBadRequest, err)
-		appG.Response(http.StatusBadRequest, err, nil)
+		appG.ResponseError(http.StatusBadRequest, err, nil)
 		return
 	}
 

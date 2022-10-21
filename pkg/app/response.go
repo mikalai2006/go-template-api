@@ -12,7 +12,7 @@ type ErrorResponse struct {
 	Data    interface{} `json:"data"`
 }
 
-func (g *Gin) Response(httpCode int, err error, data interface{}) {
+func (g *Gin) ResponseError(httpCode int, err error, data interface{}) {
 	g.C.JSON(httpCode, ErrorResponse{
 		Code:    httpCode,
 		Message: err.Error(),

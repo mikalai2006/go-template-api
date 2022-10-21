@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"github.com/mikalai2006/go-template-api/internal/config"
 	"github.com/mikalai2006/go-template-api/internal/domain"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -26,35 +27,46 @@ func GetBodyToData(u Utils) (interface{}, error) {
 }
 
 // Parse request params and return struct domain.RequestParams.
-func GetParamsFromRequest[V any](c *gin.Context, filterStruct V) (domain.RequestParams, error) {
+func GetParamsFromRequest[V any](c *gin.Context, filterStruct V, i18n *config.I18nConfig) (domain.RequestParams, error) {
 	params := domain.RequestParams{
 		Filter: filterStruct,
 	}
+	// set current locale.
+	lang := c.Query("lang")
+	if lang != "" {
+		params.Lang = lang
+	} else {
+		params.Lang = i18n.Default
+	}
+
 	var filter V
 	if err := c.ShouldBind(&filter); err != nil {
 		// disable error for convert string to primitive.ObjectID.
-		return domain.RequestParams{}, nil
+		return domain.RequestParams{}, err
 	}
 
 	filterValues := c.Request.URL.Query()
 	dataFilter := bson.M{}
-	var tagValue, primitiveValue, tagJsonValue string
+	var tagValue, primitiveValue, tagJSONValue string
 	elementsFilter := reflect.ValueOf(filter)
 	for i := 0; i < elementsFilter.NumField(); i++ {
-		typeField := elementsFilter.Type().Field(i)
-		tag := typeField.Tag
-
+		tag := elementsFilter.Type().Field(i).Tag
 		tagValue = tag.Get("bson")
 		primitiveValue = tag.Get("primitive")
-		tagJsonValue = tag.Get("json")
-		primitiveValue = tag.Get("primitive")
-		fmt.Println(tagValue, tagJsonValue)
+		tagJSONValue = tag.Get("json")
+		// fmt.Println(tagValue, tagJSONValue, filterValues[tagJSONValue])
 
-		if len(filterValues[tagJsonValue]) != 0 {
+		if len(filterValues[tagJSONValue]) != 0 {
 			switch elementsFilter.Field(i).Kind() {
 			case reflect.String:
 				value := elementsFilter.Field(i).String()
-				dataFilter[tagValue] = value
+				if primitiveValue == "true" {
+					id, _ := primitive.ObjectIDFromHex(filterValues[tagJSONValue][0])
+					// fmt.Println("===== string add ", tagValue, filterValues[tagJSONValue])
+					dataFilter[tagValue] = id
+				} else {
+					dataFilter[tagValue] = value
+				}
 
 			case reflect.Bool:
 				value := elementsFilter.Field(i).Bool()
@@ -67,21 +79,28 @@ func GetParamsFromRequest[V any](c *gin.Context, filterStruct V) (domain.Request
 			default:
 				fmt.Println("default ", tagValue, elementsFilter.Field(i).Type(), primitiveValue)
 				if primitiveValue == "true" {
-					// fmt.Println("===== add ", tagValue)
-					id, _ := primitive.ObjectIDFromHex(filterValues[tagValue][0])
-					// if err != nil {
-					// 	// todo error
-					// }
-					dataFilter[tagValue] = id
+					fmt.Println("===== add ", tagValue, filterValues[tagValue])
+					// id, _ := primitive.ObjectIDFromHex(filterValues[tagValue][0])
+					// // if err != nil {
+					// // 	// todo error
+					// // }
+					// dataFilter[tagValue] = id
 				}
 			}
 		}
 	}
 
+	// bind query params.
 	var opts domain.Options
+	// limit, err := strconv.ParseInt(c.Query("$limit"), 10, strconv.IntSize)
+	// if err != nil {
+	// 	return domain.RequestParams{}, err
+	// }
+	// fmt.Println("query > ", limit)
 	if err := c.Bind(&opts); err != nil {
 		return domain.RequestParams{}, err
 	}
+	// fmt.Println("Bind options", opts)
 
 	sort := c.QueryMap("$sort")
 	var testBson bson.D
@@ -95,24 +114,13 @@ func GetParamsFromRequest[V any](c *gin.Context, filterStruct V) (domain.Request
 		}
 		opts.Sort = testBson
 	}
-	// err = bson.Unmarshal(sort, &sort)
-	// fmt.Println("----------")
-	// fmt.Printf("dataFilter=%s", dataFilter)
-	// fmt.Println("----------")
-	// fmt.Printf("len dataFilter=%s", len(dataFilter))
-	// fmt.Println("----------")
-	// fmt.Printf("filter=%s", filter)
-	// fmt.Println("----------")
-	// fmt.Printf("sort=%s", testBson)
-	// fmt.Println("----------")
-	// fmt.Printf("opts=%s", opts)
-	// fmt.Println("----------")
-	if opts.Limit == 0 || opts.Limit > 50 {
+	// TODO opts.Limit.
+	if opts.Limit == 0 || opts.Limit > 100 {
 		opts.Limit = 10
 	}
 	params.Filter = dataFilter
 	params.Options = opts
 
-	fmt.Println(params)
+	// fmt.Println("params: ", params)
 	return params, nil
 }

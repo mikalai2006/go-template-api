@@ -6,6 +6,7 @@ import (
 	"net"
 	"time"
 
+	"github.com/mikalai2006/go-template-api/internal/config"
 	"github.com/mikalai2006/go-template-api/internal/domain"
 	"github.com/mikalai2006/go-template-api/pkg/logger"
 	"go.mongodb.org/mongo-driver/bson"
@@ -15,21 +16,23 @@ import (
 )
 
 const (
-	tblShops = "shops"
-	tblUsers = "users"
-	TblAuth  = "auth"
-	tblPage  = "pages"
+	tblShops = "_shops"
+	tblUsers = "_users"
+	TblAuth  = "_auth"
+	tblPage  = "_pages"
 
-	tblComponent           = "components"
-	tblComponentData       = "component_datas"
-	tblComponentGroup      = "component_groups"
-	tblComponentSchema     = "component_schemas"
-	tblComponentSchemaData = "component_schemadatas"
+	tblComponent           = "_components"
+	tblComponentData       = "_component_datas"
+	tblComponentGroup      = "_component_groups"
+	tblComponentSchema     = "_component_schemas"
+	tblComponentSchemaData = "_component_schemadatas"
 
-	tblLibrary = "librarys"
-	tblFields  = "fields"
+	tblLibrary = "_librarys"
+	tblFields  = "_fields"
 
 	TblLanguage = "langs"
+
+	TblProduct = "_products"
 
 	MongoQueryTimeout = 10 * time.Second
 )
@@ -65,9 +68,25 @@ func NewMongoDB(cfg *ConfigMongoDB) (*mongo.Client, error) {
 	return client, nil
 }
 
-func CreatePipeline(params domain.RequestParams) (mongo.Pipeline, error) {
+func CreatePipeline(params domain.RequestParams, i18n *config.I18nConfig) (mongo.Pipeline, error) {
 	pipe := mongo.Pipeline{}
-	pipe = append(pipe, bson.D{{Key: "$match", Value: params.Filter}})
+	pipe = append(pipe,
+		bson.D{{Key: "$match", Value: params.Filter}},
+		bson.D{{
+			Key: "$replaceWith", Value: bson.M{
+				"$mergeObjects": bson.A{
+					"$$ROOT",
+					bson.D{{
+						Key: "$ifNull", Value: bson.A{
+							fmt.Sprintf("$locale.%s", params.Lang),
+							fmt.Sprintf("$locale.%s", i18n.Default),
+						},
+					}},
+				},
+			},
+		}},
+		bson.D{{Key: "$unset", Value: "locale"}},
+	)
 	// opts := options.Find()
 	if params.Options.Sort != nil {
 		// opts.SetSort(params.Options.Sort)

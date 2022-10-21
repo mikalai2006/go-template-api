@@ -38,7 +38,7 @@ func (h *HandlerV1) GetUser(c *gin.Context) {
 
 	user, err := h.services.User.GetUser(id)
 	if err != nil {
-		appG.Response(http.StatusBadRequest, err, nil)
+		appG.ResponseError(http.StatusBadRequest, err, nil)
 		return
 	}
 
@@ -66,15 +66,15 @@ func (h *HandlerV1) GetUser(c *gin.Context) {
 func (h *HandlerV1) FindUser(c *gin.Context) {
 	appG := app.Gin{C: c}
 
-	params, err := utils.GetParamsFromRequest(c, domain.UserInput{})
+	params, err := utils.GetParamsFromRequest(c, domain.UserInput{}, &h.i18n)
 	if err != nil {
-		appG.Response(http.StatusBadRequest, err, nil)
+		appG.ResponseError(http.StatusBadRequest, err, nil)
 		return
 	}
 
 	users, err := h.services.User.FindUser(params)
 	if err != nil {
-		appG.Response(http.StatusBadRequest, err, nil)
+		appG.ResponseError(http.StatusBadRequest, err, nil)
 		return
 	}
 
@@ -86,19 +86,19 @@ func (h *HandlerV1) CreateUser(c *gin.Context) {
 
 	userID, err := middleware.GetUserID(c)
 	if err != nil {
-		appG.Response(http.StatusUnauthorized, err, nil)
+		appG.ResponseError(http.StatusUnauthorized, err, nil)
 		return
 	}
 
 	var input *domain.User
 	if er := c.BindJSON(&input); er != nil {
-		appG.Response(http.StatusBadRequest, er, nil)
+		appG.ResponseError(http.StatusBadRequest, er, nil)
 		return
 	}
 
 	user, er := h.services.User.CreateUser(userID, input)
 	if er != nil {
-		appG.Response(http.StatusBadRequest, er, nil)
+		appG.ResponseError(http.StatusBadRequest, er, nil)
 		return
 	}
 
@@ -132,7 +132,7 @@ func (h *HandlerV1) DeleteUser(c *gin.Context) {
 
 	user, err := h.services.User.DeleteUser(id) // , input
 	if err != nil {
-		appG.Response(http.StatusBadRequest, err, nil)
+		appG.ResponseError(http.StatusBadRequest, err, nil)
 		return
 	}
 
@@ -160,13 +160,13 @@ func (h *HandlerV1) UpdateUser(c *gin.Context) {
 
 	var input *domain.User
 	if err := c.ShouldBindJSON(&input); err != nil {
-		appG.Response(http.StatusBadRequest, err, nil)
+		appG.ResponseError(http.StatusBadRequest, err, nil)
 		return
 	}
 
 	user, err := h.services.User.UpdateUser(id, input)
 	if err != nil {
-		appG.Response(http.StatusBadRequest, err, nil)
+		appG.ResponseError(http.StatusBadRequest, err, nil)
 		return
 	}
 

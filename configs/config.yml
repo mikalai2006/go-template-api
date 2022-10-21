@@ -12,4 +12,4 @@ oauth:
   timeExpireCookie: 900
 i18n:
   prefix: __i18n__
-  default: en
+  default: ru

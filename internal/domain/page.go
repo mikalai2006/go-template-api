@@ -7,7 +7,7 @@ import (
 )
 
 type Page struct {
-	ID     primitive.ObjectID `json:"id" bson:"_id,omitempty" form:"-"`
+	ID     primitive.ObjectID `json:"id" bson:"_id,omitempty"`
 	UserID primitive.ObjectID `json:"userId" bson:"userId" primitive:"true"`
 
 	ComponentID primitive.ObjectID `json:"componentId" bson:"componentId" primitive:"true"`
@@ -35,18 +35,38 @@ type Page struct {
 // }
 
 type PageInputData struct {
-	Slug        string             `json:"slug" bson:"slug" form:"slug"`
-	SlugFull    string             `json:"slugFull" bson:"slug_full" form:"slugFull"`
-	Title       string             `json:"title" bson:"title" form:"title"`
-	Path        string             `json:"path" bson:"path" form:"path"`
-	Name        string             `json:"name" bson:"name" form:"name"`
-	ContentType string             `json:"contentType" bson:"content_type" form:"contentType"`
-	Publish     bool               `json:"publish" bson:"publish" form:"publish"`
-	SortOrder   int                `json:"sortOrder" bson:"sort_order" form:"sort_order"`
-	Setting     interface{}        `json:"setting" bson:"setting" form:"setting"`
-	ComponentID primitive.ObjectID `json:"componentId" bson:"componentId" form:"componentId" primitive:"true"`
-	LayoutID    primitive.ObjectID `json:"layoutId" bson:"layoutId" form:"layoutId" primitive:"true"`
+	Slug        string      `json:"slug" bson:"slug" form:"slug"`
+	SlugFull    string      `json:"slugFull" bson:"slug_full" form:"slugFull"`
+	Title       string      `json:"title" bson:"title" form:"title"`
+	Path        string      `json:"path" bson:"path" form:"path"`
+	Name        string      `json:"name" bson:"name" form:"name"`
+	ContentType string      `json:"contentType" bson:"content_type" form:"contentType"`
+	Publish     bool        `json:"publish" bson:"publish" form:"publish"`
+	SortOrder   int         `json:"sortOrder" bson:"sort_order" form:"sort_order"`
+	Setting     interface{} `json:"setting" bson:"setting" form:"setting"`
+	ComponentID string      `json:"componentId" bson:"componentId" form:"componentId" primitive:"true"`
+	LayoutID    string      `json:"layoutId" bson:"layoutId" form:"layoutId" primitive:"true"`
 }
+
+// type PageQuery struct {
+// 	PaginationQuery
+// 	Options
+// 	PageFilter
+// }
+
+// type PageFilter struct {
+// 	Slug        string      `json:"slug" bson:"slug" form:"slug"`
+// 	SlugFull    string      `json:"slugFull" bson:"slug_full" form:"slugFull"`
+// 	Title       string      `json:"title" bson:"title" form:"title"`
+// 	Path        string      `json:"path" bson:"path" form:"path"`
+// 	Name        string      `json:"name" bson:"name" form:"name"`
+// 	ContentType string      `json:"contentType" bson:"content_type" form:"contentType"`
+// 	Publish     bool        `json:"publish" bson:"publish" form:"publish"`
+// 	SortOrder   int         `json:"sortOrder" bson:"sort_order" form:"sort_order"`
+// 	Setting     interface{} `json:"setting" bson:"setting" form:"setting"`
+// 	ComponentID string      `json:"componentId" bson:"componentId" form:"componentId" primitive:"true"`
+// 	LayoutID    string      `json:"layoutId" bson:"layoutId" form:"layoutId" primitive:"true"`
+// }
 
 type PageRoutes struct {
 	ID       primitive.ObjectID `json:"id" bson:"_id,omitempty"`

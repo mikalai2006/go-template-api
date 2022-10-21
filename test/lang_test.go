@@ -14,7 +14,7 @@ import (
 	"github.com/mikalai2006/go-template-api/internal/repository"
 )
 
-var testLanuageData = domain.Language{
+var TestLanuageData = domain.Language{
 	Name:      "testLang",
 	Code:      "ru",
 	Flag:      "flag",
@@ -28,10 +28,16 @@ func (s *TestSuite) TestCreateLangNotAuth() {
 	s.handler.Init(router.Group("/api"))
 	r := s.Require()
 
-	dataJSON, err := json.Marshal(testLanuageData)
+	dataJSON, err := json.Marshal(TestLanuageData)
+	s.NoError(err)
 
 	// test invalid header
-	req, err := http.NewRequestWithContext(context.Background(), http.MethodPost, "/api/v1/lang/", bytes.NewBuffer(dataJSON))
+	req, err := http.NewRequestWithContext(
+		context.Background(),
+		http.MethodPost,
+		"/api/v1/lang/",
+		bytes.NewBuffer(dataJSON),
+	)
 	req.Close = true
 	req.Header.Set("Content-type", "application/json")
 	req.Header.Set("Authorization", "Bearer")
@@ -44,7 +50,12 @@ func (s *TestSuite) TestCreateLangNotAuth() {
 	defer response.Body.Close()
 
 	// test empty token
-	req, err = http.NewRequestWithContext(context.Background(), http.MethodPost, "/api/v1/lang/", bytes.NewBuffer(dataJSON))
+	req, err = http.NewRequestWithContext(
+		context.Background(),
+		http.MethodPost,
+		"/api/v1/lang/",
+		bytes.NewBuffer(dataJSON),
+	)
 	req.Close = true
 	req.Header.Set("Content-type", "application/json")
 	req.Header.Set("Authorization", "Bearer ")
@@ -72,8 +83,14 @@ func (s *TestSuite) TestCreateLangAuth() {
 
 	r := s.Require()
 
-	dataJSON, err := json.Marshal(testLanuageData)
-	req, err := http.NewRequestWithContext(context.Background(), http.MethodPost, "/api/v1/lang/", bytes.NewBuffer(dataJSON))
+	dataJSON, err := json.Marshal(TestLanuageData)
+	s.NoError(err)
+	req, err := http.NewRequestWithContext(
+		context.Background(),
+		http.MethodPost,
+		"/api/v1/lang/",
+		bytes.NewBuffer(dataJSON),
+	)
 	req.Close = true
 	req.Header.Set("Content-type", "application/json")
 	req.Header.Set("Authorization", "Bearer "+auth.AccessToken)
@@ -89,12 +106,12 @@ func (s *TestSuite) TestCreateLangAuth() {
 	err = json.NewDecoder(response.Body).Decode(&re)
 	s.NoError(err)
 
-	r.Equal(re.Code, testLanuageData.Code)
-	r.Equal(re.Flag, testLanuageData.Flag)
-	r.Equal(re.Name, testLanuageData.Name)
-	r.Equal(re.Publish, testLanuageData.Publish)
-	r.Equal(re.SortOrder, testLanuageData.SortOrder)
-	r.Equal(re.Locale, testLanuageData.Locale)
+	r.Equal(re.Code, TestLanuageData.Code)
+	r.Equal(re.Flag, TestLanuageData.Flag)
+	r.Equal(re.Name, TestLanuageData.Name)
+	r.Equal(re.Publish, TestLanuageData.Publish)
+	r.Equal(re.SortOrder, TestLanuageData.SortOrder)
+	r.Equal(re.Locale, TestLanuageData.Locale)
 
 	r.Equal(http.StatusOK, response.StatusCode)
 }
@@ -152,8 +169,8 @@ func (s *TestSuite) TestFindLangByLimitBig() {
 	err = json.NewDecoder(response.Body).Decode(&re)
 	s.NoError(err)
 
-	r.Equal(re.Limit, 10)
-	r.Equal(len(re.Data), re.Total)
+	r.Equal(10, re.Limit)
+	r.Equal(re.Total, len(re.Data))
 
 	r.Equal(http.StatusOK, response.StatusCode)
 }
@@ -204,7 +221,13 @@ func (s *TestSuite) TestFindLangBySort() {
 		Publish:   true,
 	}
 	dataJSON, err := json.Marshal(testLanuageDataTwo)
-	req, err := http.NewRequestWithContext(context.Background(), http.MethodPost, "/api/v1/lang/", bytes.NewBuffer(dataJSON))
+	s.NoError(err)
+	req, err := http.NewRequestWithContext(
+		context.Background(),
+		http.MethodPost,
+		"/api/v1/lang/",
+		bytes.NewBuffer(dataJSON),
+	)
 	req.Close = true
 	req.Header.Set("Content-type", "application/json")
 	req.Header.Set("Authorization", "Bearer "+auth.AccessToken)
@@ -259,7 +282,13 @@ func (s *TestSuite) TestDeleteLang() {
 		Publish:   false,
 	}
 	dataJSON, err := json.Marshal(testData)
-	req, err := http.NewRequestWithContext(context.Background(), http.MethodPost, "/api/v1/lang/", bytes.NewBuffer(dataJSON))
+	s.NoError(err)
+	req, err := http.NewRequestWithContext(
+		context.Background(),
+		http.MethodPost,
+		"/api/v1/lang/",
+		bytes.NewBuffer(dataJSON),
+	)
 	req.Close = true
 	req.Header.Set("Content-type", "application/json")
 	req.Header.Set("Authorization", "Bearer "+auth.AccessToken)
@@ -279,7 +308,12 @@ func (s *TestSuite) TestDeleteLang() {
 	r := s.Require()
 
 	// test empty id.
-	req, err = http.NewRequestWithContext(context.Background(), http.MethodDelete, "/api/v1/lang/ ", nil)
+	req, err = http.NewRequestWithContext(
+		context.Background(),
+		http.MethodDelete,
+		"/api/v1/lang/ ",
+		nil,
+	)
 	req.Header.Set("Content-type", "application/json")
 	req.Header.Set("Authorization", "Bearer "+auth.AccessToken)
 	req.Close = true
@@ -294,7 +328,12 @@ func (s *TestSuite) TestDeleteLang() {
 
 	// test with id.
 	idForRemove := twoItem.ID.Hex()
-	req, err = http.NewRequestWithContext(context.Background(), http.MethodDelete, fmt.Sprintf("/api/v1/lang/%s", idForRemove), nil)
+	req, err = http.NewRequestWithContext(
+		context.Background(),
+		http.MethodDelete,
+		fmt.Sprintf("/api/v1/lang/%s", idForRemove),
+		nil,
+	)
 	req.Header.Set("Content-type", "application/json")
 	req.Header.Set("Authorization", "Bearer "+auth.AccessToken)
 	req.Close = true
@@ -311,7 +350,7 @@ func (s *TestSuite) TestDeleteLang() {
 	err = json.NewDecoder(response.Body).Decode(&re)
 	s.NoError(err)
 
-	//r.Equal(re.ID.Hex(), twoItem.ID.Hex())
+	// r.Equal(re.ID.Hex(), twoItem.ID.Hex())
 	// r.Equal(len(re.Data), re.Total)
 
 	r.Equal(http.StatusOK, response.StatusCode)

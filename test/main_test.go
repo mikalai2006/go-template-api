@@ -85,7 +85,7 @@ func (s *TestSuite) SetupSuite() {
 	s.db = client.Database(cfg.Mongo.DBTest)
 
 	// Init domain deps
-	repos := repository.NewRepositories(s.db, s.i18n)
+	repos := repository.NewRepositories(s.db, cfg.I18n)
 	hasherP := hasher.NewSHA1Hasher(cfg.Auth.Salt)
 
 	tokenManager, err := auths.NewManager(cfg.Auth.SigningKey)
@@ -105,6 +105,7 @@ func (s *TestSuite) SetupSuite() {
 		RefreshTokenTTL:        time.Minute * 15,
 		OtpGenerator:           otpGenerator,
 		VerificationCodeLength: 8,
+		I18n:                   cfg.I18n,
 	})
 
 	s.repos = repos
@@ -137,6 +138,7 @@ func (s *TestSuite) Auth(router *gin.Engine) (domain.ResponseTokens, error) {
 	r := s.Require()
 
 	dataJSON, err := json.Marshal(testUser)
+	s.NoError(err)
 	req, err := http.NewRequest(http.MethodPost, "/api/v1/auth/sign-up", bytes.NewReader(dataJSON))
 	req.Close = true
 	req.Header.Set("Content-type", "application/json")

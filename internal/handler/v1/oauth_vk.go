@@ -37,7 +37,7 @@ func (h *HandlerV1) OAuthVK(c *gin.Context) {
 
 	pathRequest, err := url.Parse(h.oauth.VkAuthURI)
 	if err != nil {
-		appG.Response(http.StatusBadRequest, err, nil)
+		appG.ResponseError(http.StatusBadRequest, err, nil)
 		return
 	}
 
@@ -58,7 +58,7 @@ func (h *HandlerV1) MeVk(c *gin.Context) {
 	code := c.Query("code")
 	clientURL := c.Query("state")
 	if code == "" {
-		appG.Response(http.StatusBadRequest, errors.New("no correct code"), nil)
+		appG.ResponseError(http.StatusBadRequest, errors.New("no correct code"), nil)
 		return
 	}
 
@@ -76,7 +76,7 @@ func (h *HandlerV1) MeVk(c *gin.Context) {
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		appG.Response(http.StatusBadRequest, err, nil)
+		appG.ResponseError(http.StatusBadRequest, err, nil)
 		return
 	}
 	defer resp.Body.Close()
@@ -87,17 +87,17 @@ func (h *HandlerV1) MeVk(c *gin.Context) {
 
 	bytes, err := io.ReadAll(resp.Body)
 	if err != nil {
-		appG.Response(http.StatusBadRequest, err, nil)
+		appG.ResponseError(http.StatusBadRequest, err, nil)
 		return
 	}
 	if er := json.Unmarshal(bytes, &token); er != nil {
-		appG.Response(http.StatusBadRequest, er, nil)
+		appG.ResponseError(http.StatusBadRequest, er, nil)
 		return
 	}
 
 	pathRequest, err = url.Parse(h.oauth.VkUserinfoURI)
 	if err != nil {
-		appG.Response(http.StatusBadRequest, err, nil)
+		appG.ResponseError(http.StatusBadRequest, err, nil)
 		return
 	}
 	parameters = url.Values{}
@@ -108,20 +108,20 @@ func (h *HandlerV1) MeVk(c *gin.Context) {
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 	resp, err = http.DefaultClient.Do(req)
 	if err != nil {
-		appG.Response(http.StatusBadRequest, err, nil)
+		appG.ResponseError(http.StatusBadRequest, err, nil)
 		return
 	}
 	defer resp.Body.Close()
 
 	bytes, err = io.ReadAll(resp.Body)
 	if err != nil {
-		appG.Response(http.StatusBadRequest, err, nil)
+		appG.ResponseError(http.StatusBadRequest, err, nil)
 		return
 	}
 
 	var bodyResponse VKBodyResponse
 	if er := json.Unmarshal(bytes, &bodyResponse); er != nil {
-		appG.Response(http.StatusBadRequest, er, nil)
+		appG.ResponseError(http.StatusBadRequest, er, nil)
 		return
 	}
 
@@ -134,26 +134,26 @@ func (h *HandlerV1) MeVk(c *gin.Context) {
 
 	user, err := h.services.Authorization.ExistAuth(input)
 	if err != nil {
-		appG.Response(http.StatusBadRequest, err, nil)
+		appG.ResponseError(http.StatusBadRequest, err, nil)
 		return
 	}
 
 	if user.Login == "" {
 		_, err = h.services.Authorization.CreateAuth(input)
 		if err != nil {
-			appG.Response(http.StatusBadRequest, err, nil)
+			appG.ResponseError(http.StatusBadRequest, err, nil)
 			return
 		}
 	}
 
 	tokens, err := h.services.Authorization.SignIn(input)
 	if err != nil {
-		appG.Response(http.StatusBadRequest, err, nil)
+		appG.ResponseError(http.StatusBadRequest, err, nil)
 		return
 	}
 	pathRequest, err = url.Parse(clientURL)
 	if err != nil {
-		appG.Response(http.StatusBadRequest, err, nil)
+		appG.ResponseError(http.StatusBadRequest, err, nil)
 		return
 	}
 	parameters = url.Values{}

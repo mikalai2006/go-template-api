@@ -48,7 +48,7 @@ func (r *ComponentMongo) FindComponent(params domain.RequestParams) (domain.Resp
 
 	results := []domain.Component{}
 	response := domain.Response[domain.Component]{}
-	pipe, err := CreatePipeline(params)
+	pipe, err := CreatePipeline(params, &r.i18n)
 
 	// Populate Parent field
 	pipe = append(pipe, bson.D{{Key: "$lookup", Value: bson.M{
@@ -327,7 +327,7 @@ func (r *ComponentMongo) FindLibrarys(params domain.RequestParams) (domain.Respo
 
 	results := []domain.Library{}
 	response := domain.Response[domain.Library]{}
-	pipe, err := CreatePipeline(params)
+	pipe, err := CreatePipeline(params, &r.i18n)
 	if err != nil {
 		return response, err
 	}

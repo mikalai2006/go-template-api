@@ -1,8 +1,12 @@
 package repository
 
 import (
+	"fmt"
+	"reflect"
+
 	"github.com/mikalai2006/go-template-api/internal/config"
 	"github.com/mikalai2006/go-template-api/internal/domain"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -53,6 +57,14 @@ type User interface {
 	Iam(userID string) (domain.User, error)
 }
 
+type Product interface {
+	CreateProduct(userID string, data *domain.ProductInput) (domain.Product, error)
+	GetProduct(id string) (domain.Product, error)
+	FindProduct(params domain.RequestParams) (domain.Response[domain.Product], error)
+	UpdateProduct(id string, data interface{}) (domain.Product, error)
+	DeleteProduct(id string) (domain.Product, error)
+}
+
 type Apps interface {
 	CreateLanguage(userID string, data *domain.LanguageInput) (domain.Language, error)
 	GetLanguage(id string) (domain.Language, error)
@@ -66,6 +78,7 @@ type Repositories struct {
 	Apps
 	Component
 	Page
+	Product
 	Shop
 	User
 }
@@ -73,10 +86,84 @@ type Repositories struct {
 func NewRepositories(mongodb *mongo.Database, i18n config.I18nConfig) *Repositories {
 	return &Repositories{
 		Authorization: NewAuthMongo(mongodb),
-		Shop:          NewShopMongo(mongodb),
-		User:          NewUserMongo(mongodb),
-		Page:          NewPageMongo(mongodb, i18n),
-		Component:     NewComponentMongo(mongodb, i18n),
 		Apps:          NewAppsMongo(mongodb, i18n),
+		Component:     NewComponentMongo(mongodb, i18n),
+		Page:          NewPageMongo(mongodb, i18n),
+		Product:       NewProductMongo(mongodb, i18n),
+		Shop:          NewShopMongo(mongodb, i18n),
+		User:          NewUserMongo(mongodb, i18n),
 	}
+}
+
+// func getPaginationOpts(pagination *domain.PaginationQuery) *options.FindOptions {
+// 	var opts *options.FindOptions
+// 	if pagination != nil {
+// 		opts = &options.FindOptions{
+// 			Skip:  pagination.GetSkip(),
+// 			Limit: pagination.GetLimit(),
+// 		}
+// 	}
+
+// 	return opts
+// }
+
+func createFilter[V any](filterData *V) any {
+	var filter V
+
+	filterReflect := reflect.ValueOf(filterData)
+	fmt.Println("========== filterReflect ===========")
+	fmt.Println("struct > ", filterReflect)
+	fmt.Println("struct type > ", filterReflect.Type())
+	filterIndirectData := reflect.Indirect(filterReflect)
+	fmt.Println("filter data > ", filterIndirectData)
+	fmt.Println("filter numField > ", filterIndirectData.NumField())
+	dataFilter := bson.M{}
+
+	var tagBson, tagJSON, tagPrimitive string
+	for i := 0; i < filterIndirectData.NumField(); i++ {
+		field := filterIndirectData.Field(i)
+		if field.Kind() == reflect.Ptr {
+			field = reflect.Indirect(field)
+		}
+		typeField := filterIndirectData.Type().Field(i)
+		tag := typeField.Tag
+		tagBson = tag.Get("bson")
+		tagJSON = tag.Get("json")
+		tagPrimitive = tag.Get("primitive")
+		switch field.Kind() {
+		case reflect.String:
+			value := field.String()
+			if tagPrimitive == "true" {
+				id, _ := primitive.ObjectIDFromHex(value)
+				fmt.Println("===== string add ", tag, value)
+				dataFilter[tagJSON] = id
+			} else {
+				dataFilter[tagJSON] = value
+			}
+
+		case reflect.Bool:
+			value := field.Bool()
+			dataFilter[tagJSON] = value
+
+		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+			value := field.Int()
+			dataFilter[tagJSON] = value
+
+		default:
+
+		}
+
+		fmt.Println(tagBson, tagJSON, tagPrimitive, fmt.Sprintf("[%s]", field), field.Kind(), field)
+	}
+
+	// structure := reflect.ValueOf(&filter)
+	// fmt.Println("========== filter ===========")
+	// fmt.Println("struct > ", structure)
+	// fmt.Println("struct type > ", structure.Type())
+	// fmt.Println("filter data > ", reflect.Indirect(structure))
+	// fmt.Println("filter numField > ", reflect.Indirect(structure).NumField())
+
+	fmt.Println("========== result ===========")
+	fmt.Println("dataFilter > ", dataFilter)
+	return filter
 }

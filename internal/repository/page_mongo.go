@@ -69,7 +69,7 @@ func (r *PageMongo) GetFullPage(params domain.RequestParams) (domain.Response[do
 
 	var results []domain.Page
 	var response domain.Response[domain.Page]
-	pipe, err := CreatePipeline(params)
+	pipe, err := CreatePipeline(params, &r.i18n)
 
 	// Populate Parent field.
 	pipe = append(pipe,
@@ -183,7 +183,9 @@ func mytest(s domain.ComponentData) bool {
 	return s.Parent == "page"
 }
 
-func filterComponentData(ss []domain.ComponentData, test func(domain.ComponentData) bool) (ret []domain.ComponentData) {
+func filterComponentData(
+	ss []domain.ComponentData,
+	test func(domain.ComponentData) bool) (ret []domain.ComponentData) {
 	for _, s := range ss {
 		if test(s) {
 			ret = append(ret, s)
@@ -192,7 +194,10 @@ func filterComponentData(ss []domain.ComponentData, test func(domain.ComponentDa
 	return
 }
 
-func filterComponentData2(ss []domain.ComponentData, ids interface{}, test func(domain.ComponentData, interface{}) bool) (ret []domain.ComponentData) {
+func filterComponentData2(
+	ss []domain.ComponentData,
+	ids interface{},
+	test func(domain.ComponentData, interface{}) bool) (ret []domain.ComponentData) {
 	for _, s := range ss {
 		if test(s, ids) {
 			ret = append(ret, s)
@@ -214,7 +219,11 @@ func mytestx(s domain.ComponentData, ids interface{}) bool {
 	return false
 }
 
-func createContent(allData []domain.ComponentData, datasets []domain.ComponentData, i18n config.I18nConfig) []interface{} {
+func createContent(
+	allData []domain.ComponentData,
+	datasets []domain.ComponentData,
+	i18n config.I18nConfig,
+) []interface{} {
 	s := reflect.ValueOf(datasets)
 	if s.Kind() != reflect.Slice {
 		fmt.Println("plot() given a non-slice type")
@@ -231,27 +240,27 @@ func createContent(allData []domain.ComponentData, datasets []domain.ComponentDa
 
 		for keyProperty, property := range datasets[keyData].Data {
 			// resultItem := map[string]interface{}{}
-			if reflect.ValueOf(property).Kind() == reflect.Map {
-				// if slice uids in data.
-				if val, ok := property.(map[string]interface{})["uids"]; ok {
-					newBlok[keyProperty] = property
-					// recurse.
-					nested := filterComponentData2(allData, val, mytestx)
-					newBlok[keyProperty] = createContent(allData, nested, i18n)
-				}
-				// if map i18n.
-				if _, ok := property.(map[string]interface{})[i18n.Default]; ok {
-					for i, data := range property.(map[string]interface{}) {
-						key := fmt.Sprintf("%s%s%s", keyProperty, i18n.Prefix, i)
-						newBlok[key] = data
-						if i == i18n.Default {
-							newBlok[keyProperty] = data
-						}
-					}
-				}
-			} else {
+			if reflect.ValueOf(property).Kind() != reflect.Map {
 				// if property not uids.
 				newBlok[keyProperty] = property
+				continue
+			}
+			// if slice uids in data.
+			if val, ok := property.(map[string]interface{})["uids"]; ok {
+				newBlok[keyProperty] = property
+				// recurse.
+				nested := filterComponentData2(allData, val, mytestx)
+				newBlok[keyProperty] = createContent(allData, nested, i18n)
+			}
+			// if map i18n.
+			if _, ok := property.(map[string]interface{})[i18n.Default]; ok {
+				for i, data := range property.(map[string]interface{}) {
+					key := fmt.Sprintf("%s%s%s", keyProperty, i18n.Prefix, i)
+					newBlok[key] = data
+					if i == i18n.Default {
+						newBlok[keyProperty] = data
+					}
+				}
 			}
 		}
 
@@ -399,13 +408,20 @@ func (r *PageMongo) FindPage(params domain.RequestParams) (domain.Response[domai
 	ctx, cancel := context.WithTimeout(context.Background(), MongoQueryTimeout)
 	defer cancel()
 
+	// opts := getPaginationOpts(&params.PaginationQuery)
+	// f := createFilter(&params.PageFilter)
+	// fmt.Println("f===", f)
+
 	var results []domain.Page
 	var response domain.Response[domain.Page]
-	pipe, err := CreatePipeline(params)
+	pipe, err := CreatePipeline(params, &r.i18n)
 	if err != nil {
 		return domain.Response[domain.Page]{}, err
 	}
-	fmt.Println(pipe)
+	// var pipe mongo.Pipeline
+	// pipe = append(pipe, bson.D{{"$match", params.PageFilter}})
+	fmt.Printf("params - %v", pipe)
+
 	cursor, err := r.db.Collection(tblPage).Aggregate(ctx, pipe) // Find(ctx, params.Filter, opts)
 	if err != nil {
 		return response, err
@@ -422,18 +438,18 @@ func (r *PageMongo) FindPage(params domain.RequestParams) (domain.Response[domai
 	// }
 	copy(resultSlice, results)
 
-	var options options.CountOptions
-	// options.SetLimit(params.Limit)
-	options.SetSkip(params.Skip)
-	count, err := r.db.Collection(tblPage).CountDocuments(ctx, params.Filter, &options)
-	if err != nil {
-		return response, err
-	}
+	// var options options.CountOptions
+	// // options.SetLimit(params.Limit)
+	// options.SetSkip(params.Skip)
+	// count, err := r.db.Collection(tblPage).CountDocuments(ctx, bson.M{}, &options)
+	// if err != nil {
+	// 	return response, err
+	// }
 
 	response = domain.Response[domain.Page]{
-		Total: int(count),
-		Skip:  int(params.Options.Skip),
-		Limit: int(params.Options.Limit),
+		Total: 0,
+		Skip:  int(params.Skip),
+		Limit: int(params.Limit),
 		Data:  resultSlice,
 	}
 	return response, nil

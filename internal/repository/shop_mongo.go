@@ -3,21 +3,23 @@ package repository
 import (
 	"context"
 
+	"github.com/mikalai2006/go-template-api/internal/config"
 	"github.com/mikalai2006/go-template-api/internal/domain"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type ShopMongo struct {
-	db *mongo.Database
+	db   *mongo.Database
+	i18n config.I18nConfig
 }
 
 const (
 	collectionName string = "shops"
 )
 
-func NewShopMongo(db *mongo.Database) *ShopMongo {
-	return &ShopMongo{db: db}
+func NewShopMongo(db *mongo.Database, i18n config.I18nConfig) *ShopMongo {
+	return &ShopMongo{db: db, i18n: i18n}
 }
 
 func (r *ShopMongo) FindShop(params domain.RequestParams) (domain.Response[domain.Shop], error) {
@@ -67,7 +69,7 @@ func (r *ShopMongo) GetAllShops(params domain.RequestParams) (domain.Response[do
 
 	var results []domain.Shop
 	var response domain.Response[domain.Shop]
-	pipe, err := CreatePipeline(params)
+	pipe, err := CreatePipeline(params, &r.i18n)
 	if err != nil {
 		return domain.Response[domain.Shop]{}, err
 	}

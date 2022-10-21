@@ -25,7 +25,7 @@ func (h *HandlerV1) getIam(c *gin.Context) {
 
 	userID, err := middleware.GetUserID(c)
 	if err != nil {
-		appG.Response(http.StatusUnauthorized, err, nil)
+		appG.ResponseError(http.StatusUnauthorized, err, nil)
 		return
 	}
 
@@ -39,17 +39,17 @@ func (h *HandlerV1) getIam(c *gin.Context) {
 
 	users, err := h.services.User.Iam(userID)
 	if err != nil {
-		appG.Response(http.StatusBadRequest, err, nil)
+		appG.ResponseError(http.StatusBadRequest, err, nil)
 		return
 	}
 
 	// implementation roles for user.
-	if roles, err := middleware.GetRoles(c); err != nil {
-		appG.Response(http.StatusUnauthorized, err, nil)
+	roles, err := middleware.GetRoles(c)
+	if err != nil {
+		appG.ResponseError(http.StatusUnauthorized, err, nil)
 		return
-	} else {
-		users.Roles = roles
 	}
+	users.Roles = roles
 
 	c.JSON(http.StatusOK, users)
 }
@@ -72,13 +72,13 @@ func (h *HandlerV1) SignUp(c *gin.Context) {
 	var input *domain.SignInInput
 
 	if err := c.BindJSON(&input); err != nil {
-		appG.Response(http.StatusBadRequest, err, nil)
+		appG.ResponseError(http.StatusBadRequest, err, nil)
 		return
 	}
 
 	id, err := h.services.Authorization.CreateAuth(input)
 	if err != nil {
-		appG.Response(http.StatusBadRequest, err, nil)
+		appG.ResponseError(http.StatusBadRequest, err, nil)
 		return
 	}
 
@@ -109,7 +109,7 @@ func (h *HandlerV1) SignIn(c *gin.Context) {
 	var input *domain.SignInInput
 
 	if err := c.BindJSON(&input); err != nil {
-		appG.Response(http.StatusBadRequest, err, nil)
+		appG.ResponseError(http.StatusBadRequest, err, nil)
 		return
 	}
 
@@ -118,14 +118,14 @@ func (h *HandlerV1) SignIn(c *gin.Context) {
 	}
 
 	if input.Email == "" && input.Login == "" {
-		appG.Response(http.StatusBadRequest, errors.New("request must be with email or login"), nil)
+		appG.ResponseError(http.StatusBadRequest, errors.New("request must be with email or login"), nil)
 		return
 	}
 
 	if input.Strategy == "local" {
 		tokens, err := h.services.Authorization.SignIn(input)
 		if err != nil {
-			appG.Response(http.StatusBadRequest, err, nil)
+			appG.ResponseError(http.StatusBadRequest, err, nil)
 			return
 		}
 		c.SetCookie("jwt-handmade", tokens.RefreshToken, h.oauth.TimeExpireCookie, "/", c.Request.URL.Hostname(), false, true)
@@ -165,7 +165,7 @@ func (h *HandlerV1) tokenRefresh(c *gin.Context) {
 
 	if jwtCookie == "" {
 		if err := c.BindJSON(&input); err != nil {
-			appG.Response(http.StatusBadRequest, err, nil)
+			appG.ResponseError(http.StatusBadRequest, err, nil)
 			return
 		}
 	} else {
@@ -180,7 +180,7 @@ func (h *HandlerV1) tokenRefresh(c *gin.Context) {
 
 	res, err := h.services.Authorization.RefreshTokens(input.Token)
 	if err != nil {
-		appG.Response(http.StatusBadRequest, err, nil)
+		appG.ResponseError(http.StatusBadRequest, err, nil)
 		return
 	}
 
@@ -209,18 +209,18 @@ func (h *HandlerV1) VerificationAuth(c *gin.Context) {
 	appG := app.Gin{C: c}
 	code := c.Param("code")
 	if code == "" {
-		appG.Response(http.StatusBadRequest, errors.New("code empty"), nil)
+		appG.ResponseError(http.StatusBadRequest, errors.New("code empty"), nil)
 		return
 	}
 
 	userID, err := middleware.GetUserID(c)
 	if err != nil {
-		appG.Response(http.StatusBadRequest, err, nil)
+		appG.ResponseError(http.StatusBadRequest, err, nil)
 		return
 	}
 
 	if er := h.services.Authorization.VerificationCode(userID, code); er != nil {
-		appG.Response(http.StatusBadRequest, er, nil)
+		appG.ResponseError(http.StatusBadRequest, er, nil)
 		return
 	}
 

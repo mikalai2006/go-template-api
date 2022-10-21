@@ -40,7 +40,7 @@ func (h *HandlerV1) OAuthGoogle(c *gin.Context) {
 	pathRequest, err := url.Parse(h.oauth.GoogleAuthURI)
 	if err != nil {
 		// c.AbortWithError(http.StatusBadRequest, err)
-		appG.Response(http.StatusBadRequest, err, nil)
+		appG.ResponseError(http.StatusBadRequest, err, nil)
 		return
 	}
 
@@ -63,7 +63,7 @@ func (h *HandlerV1) MeGoogle(c *gin.Context) {
 
 	if code == "" {
 		// c.AbortWithError(http.StatusBadRequest, errors.New("no correct code"))
-		appG.Response(http.StatusBadRequest, errors.New("no correct code"), nil)
+		appG.ResponseError(http.StatusBadRequest, errors.New("no correct code"), nil)
 		return
 	}
 
@@ -83,7 +83,7 @@ func (h *HandlerV1) MeGoogle(c *gin.Context) {
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		// c.AbortWithError(http.StatusBadRequest, err)
-		appG.Response(http.StatusBadRequest, err, nil)
+		appG.ResponseError(http.StatusBadRequest, err, nil)
 		return
 	}
 	defer resp.Body.Close()
@@ -95,18 +95,18 @@ func (h *HandlerV1) MeGoogle(c *gin.Context) {
 	bytes, err := io.ReadAll(resp.Body)
 	if err != nil {
 		// c.AbortWithError(http.StatusBadRequest, err)
-		appG.Response(http.StatusBadRequest, err, nil)
+		appG.ResponseError(http.StatusBadRequest, err, nil)
 		return
 	}
 	if er := json.Unmarshal(bytes, &token); er != nil { // Parse []byte to go struct pointer
 		// c.AbortWithError(http.StatusBadRequest, err)
-		appG.Response(http.StatusBadRequest, er, nil)
+		appG.ResponseError(http.StatusBadRequest, er, nil)
 		return
 	}
 
 	pathRequest, err = url.Parse(h.oauth.GoogleUserinfoURI)
 	if err != nil {
-		appG.Response(http.StatusBadRequest, err, nil)
+		appG.ResponseError(http.StatusBadRequest, err, nil)
 		return
 	}
 	r, _ := http.NewRequestWithContext(c, http.MethodGet, pathRequest.String(), http.NoBody) // URL-encoded payload
@@ -117,7 +117,7 @@ func (h *HandlerV1) MeGoogle(c *gin.Context) {
 	resp, err = http.DefaultClient.Do(r)
 	if err != nil {
 		// c.AbortWithError(http.StatusBadRequest, err)
-		appG.Response(http.StatusBadRequest, err, nil)
+		appG.ResponseError(http.StatusBadRequest, err, nil)
 		return
 	}
 	defer resp.Body.Close()
@@ -125,14 +125,14 @@ func (h *HandlerV1) MeGoogle(c *gin.Context) {
 	bytes, err = io.ReadAll(resp.Body)
 	if err != nil {
 		// c.AbortWithError(http.StatusBadRequest, err)
-		appG.Response(http.StatusBadRequest, err, nil)
+		appG.ResponseError(http.StatusBadRequest, err, nil)
 		return
 	}
 
 	var bodyResponse GoogleUserInfo
 	if e := json.Unmarshal(bytes, &bodyResponse); e != nil { // Parse []byte to go struct pointer
 		// c.AbortWithError(http.StatusBadRequest, err)
-		appG.Response(http.StatusBadRequest, e, nil)
+		appG.ResponseError(http.StatusBadRequest, e, nil)
 		return
 	}
 
@@ -146,7 +146,7 @@ func (h *HandlerV1) MeGoogle(c *gin.Context) {
 	user, err := h.services.Authorization.ExistAuth(input)
 	if err != nil {
 		// c.AbortWithError(http.StatusBadRequest, err)
-		appG.Response(http.StatusBadRequest, err, nil)
+		appG.ResponseError(http.StatusBadRequest, err, nil)
 		return
 	}
 
@@ -154,7 +154,7 @@ func (h *HandlerV1) MeGoogle(c *gin.Context) {
 		_, err = h.services.Authorization.CreateAuth(input)
 		if err != nil {
 			// c.AbortWithError(http.StatusBadRequest, err)
-			appG.Response(http.StatusBadRequest, err, nil)
+			appG.ResponseError(http.StatusBadRequest, err, nil)
 			return
 		}
 	}
@@ -162,14 +162,14 @@ func (h *HandlerV1) MeGoogle(c *gin.Context) {
 	tokens, err := h.services.Authorization.SignIn(input)
 	if err != nil {
 		// c.AbortWithError(http.StatusBadRequest, err)
-		appG.Response(http.StatusBadRequest, err, nil)
+		appG.ResponseError(http.StatusBadRequest, err, nil)
 		return
 	}
 
 	pathRequest, err = url.Parse(clientURL)
 	if err != nil {
 		// c.AbortWithError(http.StatusBadRequest, err)
-		appG.Response(http.StatusBadRequest, err, nil)
+		appG.ResponseError(http.StatusBadRequest, err, nil)
 		return
 	}
 	parameters = url.Values{}

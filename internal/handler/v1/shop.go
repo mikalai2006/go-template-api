@@ -21,19 +21,19 @@ func (h *HandlerV1) CreateShop(c *gin.Context) {
 	userID, err := middleware.GetUserID(c)
 	if err != nil {
 		// c.AbortWithError(http.StatusUnauthorized, err)
-		appG.Response(http.StatusUnauthorized, err, gin.H{"hello": "world"})
+		appG.ResponseError(http.StatusUnauthorized, err, gin.H{"hello": "world"})
 		return
 	}
 
 	var input *domain.Shop
 	if er := c.BindJSON(&input); er != nil {
-		appG.Response(http.StatusBadRequest, er, nil)
+		appG.ResponseError(http.StatusBadRequest, er, nil)
 		return
 	}
 
 	shop, err := h.services.Shop.CreateShop(userID, input)
 	if err != nil {
-		appG.Response(http.StatusBadRequest, err, nil)
+		appG.ResponseError(http.StatusBadRequest, err, nil)
 		return
 	}
 
@@ -55,15 +55,15 @@ func (h *HandlerV1) CreateShop(c *gin.Context) {
 func (h *HandlerV1) GetAllShops(c *gin.Context) {
 	appG := app.Gin{C: c}
 
-	params, err := utils.GetParamsFromRequest(c, domain.Shop{})
+	params, err := utils.GetParamsFromRequest(c, domain.Shop{}, &h.i18n)
 	if err != nil {
-		appG.Response(http.StatusBadRequest, err, nil)
+		appG.ResponseError(http.StatusBadRequest, err, nil)
 		return
 	}
 
 	shops, err := h.services.Shop.GetAllShops(params)
 	if err != nil {
-		appG.Response(http.StatusBadRequest, err, nil)
+		appG.ResponseError(http.StatusBadRequest, err, nil)
 		return
 	}
 
@@ -86,15 +86,15 @@ func (h *HandlerV1) GetAllShops(c *gin.Context) {
 func (h *HandlerV1) FindShop(c *gin.Context) {
 	appG := app.Gin{C: c}
 
-	params, err := utils.GetParamsFromRequest(c, domain.Shop{})
+	params, err := utils.GetParamsFromRequest(c, domain.Shop{}, &h.i18n)
 	if err != nil {
-		appG.Response(http.StatusBadRequest, err, nil)
+		appG.ResponseError(http.StatusBadRequest, err, nil)
 		return
 	}
 
 	shops, err := h.services.Shop.FindShop(params)
 	if err != nil {
-		appG.Response(http.StatusBadRequest, err, nil)
+		appG.ResponseError(http.StatusBadRequest, err, nil)
 		return
 	}
 

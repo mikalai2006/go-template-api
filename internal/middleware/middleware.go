@@ -24,7 +24,7 @@ func SetUserIdentity(c *gin.Context) {
 
 	if header == "" {
 		// c.AbortWithStatusJSON(http.StatusUnauthorized, errors.New("empty auth header"))
-		appG.Response(http.StatusUnauthorized, errors.New("empty auth header"), nil)
+		appG.ResponseError(http.StatusUnauthorized, errors.New("empty auth header"), nil)
 		return
 	}
 
@@ -32,13 +32,13 @@ func SetUserIdentity(c *gin.Context) {
 	countParts := 2
 	if len(headerParts) != countParts {
 		// c.AbortWithError(http.StatusUnauthorized, errors.New("invalid auth header"))
-		appG.Response(http.StatusUnauthorized, errors.New("invalid auth header"), nil)
+		appG.ResponseError(http.StatusUnauthorized, errors.New("invalid auth header"), nil)
 		return
 	}
 
 	if headerParts[1] == "" {
 		// c.AbortWithError(http.StatusUnauthorized, errors.New("invalid auth header"))
-		appG.Response(http.StatusUnauthorized, errors.New("invalid auth header"), nil)
+		appG.ResponseError(http.StatusUnauthorized, errors.New("invalid auth header"), nil)
 		return
 	}
 
@@ -51,14 +51,14 @@ func SetUserIdentity(c *gin.Context) {
 	tokenManager, err := auths.NewManager(os.Getenv("SIGNING_KEY"))
 	if err != nil {
 		// c.AbortWithError(http.StatusUnauthorized, err)
-		appG.Response(http.StatusUnauthorized, err, nil)
+		appG.ResponseError(http.StatusUnauthorized, err, nil)
 		return
 	}
 
 	claims, err := tokenManager.Parse(headerParts[1])
 	if err != nil {
 		// c.AbortWithError(http.StatusUnauthorized, err)
-		appG.Response(http.StatusUnauthorized, err, nil)
+		appG.ResponseError(http.StatusUnauthorized, err, nil)
 		return
 	}
 	c.Set(userCtx, claims.Subject)

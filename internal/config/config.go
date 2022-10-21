@@ -80,6 +80,7 @@ type (
 	I18nConfig struct {
 		Prefix  string
 		Default string
+		Locale  string
 	}
 )
 

@@ -2,8 +2,9 @@ package domain
 
 type RequestParams struct {
 	Options
-	Filter interface{} `json:"filter" bson:"filter"`
-	Group  interface{} `json:"group" bson:"$group"`
+	Filter interface{} `json:"filter" bson:"filter" form:"filter"`
+	Group  interface{} `json:"group" bson:"$group" form:"group"`
+	Lang   string      `json:"lang" bson:"lang" form:"lang"`
 }
 
 type Options struct {

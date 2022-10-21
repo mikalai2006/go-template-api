@@ -38,7 +38,7 @@ func (h HandlerV1) getPageForRouters(c *gin.Context) {
 
 	document, err := h.services.Page.GetPageForRouters()
 	if err != nil {
-		appG.Response(http.StatusBadRequest, err, nil)
+		appG.ResponseError(http.StatusBadRequest, err, nil)
 		return
 	}
 
@@ -60,15 +60,15 @@ func (h HandlerV1) getPageForRouters(c *gin.Context) {
 func (h HandlerV1) getFullPage(c *gin.Context) {
 	appG := app.Gin{C: c}
 
-	params, err := utils.GetParamsFromRequest(c, domain.PageInputData{})
+	params, err := utils.GetParamsFromRequest(c, domain.PageInputData{}, &h.i18n)
 	if err != nil {
-		appG.Response(http.StatusBadRequest, err, nil)
+		appG.ResponseError(http.StatusBadRequest, err, nil)
 		return
 	}
 
 	document, err := h.services.Page.GetFullPage(params)
 	if err != nil {
-		appG.Response(http.StatusBadRequest, err, nil)
+		appG.ResponseError(http.StatusBadRequest, err, nil)
 		return
 	}
 
@@ -93,7 +93,7 @@ func (h HandlerV1) getPage(c *gin.Context) {
 
 	document, err := h.services.Page.GetPage(id)
 	if err != nil {
-		appG.Response(http.StatusBadRequest, err, nil)
+		appG.ResponseError(http.StatusBadRequest, err, nil)
 		return
 	}
 
@@ -121,15 +121,21 @@ type InputPage struct {
 func (h HandlerV1) findPage(c *gin.Context) {
 	appG := app.Gin{C: c}
 
-	params, err := utils.GetParamsFromRequest(c, domain.PageInputData{})
+	// var params domain.PageQuery
+	// if err := c.Bind(&params); err != nil {
+	// 	appG.Response(http.StatusBadRequest, err, nil)
+	// 	return
+	// }
+
+	params, err := utils.GetParamsFromRequest(c, domain.PageInputData{}, &h.i18n)
 	if err != nil {
-		appG.Response(http.StatusBadRequest, err, nil)
+		appG.ResponseError(http.StatusBadRequest, err, nil)
 		return
 	}
 
 	documents, err := h.services.Page.FindPage(params)
 	if err != nil {
-		appG.Response(http.StatusBadRequest, err, nil)
+		appG.ResponseError(http.StatusBadRequest, err, nil)
 		return
 	}
 
@@ -141,19 +147,19 @@ func (h HandlerV1) createPage(c *gin.Context) {
 
 	userID, err := middleware.GetUserID(c)
 	if err != nil {
-		appG.Response(http.StatusUnauthorized, err, nil)
+		appG.ResponseError(http.StatusUnauthorized, err, nil)
 		return
 	}
 
 	var input *domain.Page
 	if er := c.BindJSON(&input); er != nil {
-		appG.Response(http.StatusBadRequest, er, nil)
+		appG.ResponseError(http.StatusBadRequest, er, nil)
 		return
 	}
 
 	document, err := h.services.Page.CreatePage(userID, input)
 	if err != nil {
-		appG.Response(http.StatusBadRequest, err, nil)
+		appG.ResponseError(http.StatusBadRequest, err, nil)
 		return
 	}
 
@@ -178,7 +184,7 @@ func (h HandlerV1) deletePage(c *gin.Context) {
 
 	id := c.Param("id")
 	if id == "" {
-		appG.Response(http.StatusBadRequest, errors.New("for remove need id"), nil)
+		appG.ResponseError(http.StatusBadRequest, errors.New("for remove need id"), nil)
 		return
 	}
 	// var input domain.Page
@@ -190,7 +196,7 @@ func (h HandlerV1) deletePage(c *gin.Context) {
 
 	document, err := h.services.Page.DeletePage(id) // , input
 	if err != nil {
-		appG.Response(http.StatusBadRequest, err, nil)
+		appG.ResponseError(http.StatusBadRequest, err, nil)
 		return
 	}
 
@@ -217,15 +223,15 @@ func (h HandlerV1) updatePage(c *gin.Context) {
 	id := c.Param("id")
 
 	var input domain.PageInputData
-	data, err := app.BindAndValid(c, &input)
+	data, err := utils.BindAndValid(c, &input)
 	if err != nil {
-		appG.Response(http.StatusBadRequest, err, nil)
+		appG.ResponseError(http.StatusBadRequest, err, nil)
 		return
 	}
 
 	document, err := h.services.Page.UpdatePage(id, &data)
 	if err != nil {
-		appG.Response(http.StatusInternalServerError, err, nil)
+		appG.ResponseError(http.StatusInternalServerError, err, nil)
 		return
 	}
 

@@ -66,9 +66,8 @@ func (m *Manager) Parse(accessToken string) (*AuthClaims, error) {
 
 	if claims, ok := token.Claims.(*AuthClaims); ok && token.Valid {
 		return claims, nil
-	} else {
-		return nil, err
 	}
+	return nil, err
 }
 
 func (m *Manager) NewRefreshToken() (string, error) {

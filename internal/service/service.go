@@ -57,6 +57,14 @@ type Component interface {
 	FindLibrarys(params domain.RequestParams) (domain.Response[domain.Library], error)
 }
 
+type Product interface {
+	CreateProduct(userID string, data *domain.ProductInput) (domain.Product, error)
+	GetProduct(id string) (domain.Product, error)
+	FindProduct(params domain.RequestParams) (domain.Response[domain.Product], error)
+	UpdateProduct(id string, data interface{}) (domain.Product, error)
+	DeleteProduct(id string) (domain.Product, error)
+}
+
 type Apps interface {
 	CreateLanguage(userID string, data *domain.LanguageInput) (domain.Language, error)
 	GetLanguage(id string) (domain.Language, error)
@@ -70,6 +78,7 @@ type Services struct {
 	Apps
 	Component
 	Page
+	Product
 	Shop
 	User
 }
@@ -97,9 +106,10 @@ func NewServices(cfgService *ConfigServices) *Services {
 			cfgService.VerificationCodeLength,
 		),
 		Shop:      NewShopService(cfgService.Repositories.Shop),
-		User:      NewUserService(cfgService.Repositories.User),
-		Page:      NewPageService(cfgService.Repositories.Page, cfgService.I18n),
-		Component: NewComponentService(cfgService.Repositories.Component, cfgService.I18n),
 		Apps:      NewAppsService(cfgService.Repositories, cfgService.I18n),
+		Component: NewComponentService(cfgService.Repositories.Component, cfgService.I18n),
+		Page:      NewPageService(cfgService.Repositories.Page, cfgService.I18n),
+		Product:   NewProductService(cfgService.Repositories, cfgService.I18n),
+		User:      NewUserService(cfgService.Repositories.User),
 	}
 }

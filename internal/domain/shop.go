@@ -11,7 +11,6 @@ type Shop struct {
 }
 
 type ShopInput struct {
-	RequestParams
 	Title       string `json:"title" bson:"title" form:"title"`
 	Description string `json:"description" bson:"description" form:"description"`
 	Seo         string `json:"seo" bson:"seo" form:"seo"`

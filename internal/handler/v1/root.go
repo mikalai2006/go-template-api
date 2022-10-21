@@ -33,6 +33,7 @@ func (h *HandlerV1) Init(api *gin.RouterGroup) {
 		h.RegisterPage(v1)
 		h.RegisterComponent(v1)
 		h.RegisterApp(v1)
+		h.RegisterProduct(v1)
 
 		oauth := v1.Group("/oauth")
 		h.registerVkOAuth(oauth)
