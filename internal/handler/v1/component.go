@@ -2,7 +2,9 @@ package v1
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/mikalai2006/go-template-api/internal/domain"
@@ -19,6 +21,7 @@ func (h *HandlerV1) RegisterComponent(router *gin.RouterGroup) {
 	route.POST("/", middleware.SetUserIdentity, h.createComponent)
 	route.DELETE("/:id", middleware.SetUserIdentity, h.deleteComponent)
 	route.PATCH("/:id", middleware.SetUserIdentity, h.updateComponent)
+	// route.PATCH("/:id/schema", middleware.SetUserIdentity, h.updateComponentWithSchema)
 
 	library := router.Group("/library")
 	library.GET("/", h.findLibrary)
@@ -98,7 +101,7 @@ func (h *HandlerV1) createComponent(c *gin.Context) {
 		return
 	}
 
-	var input *domain.ComponentCreate
+	var input *domain.ComponentInput
 	if er := c.BindJSON(&input); er != nil {
 		// c.AbortWithError(http.StatusBadRequest, err)
 		appG.ResponseError(http.StatusBadRequest, er, nil)
@@ -201,14 +204,29 @@ func (h *HandlerV1) updateComponent(c *gin.Context) {
 
 	id := c.Param("id")
 
-	var input domain.PageInputData
-	data, err := utils.BindAndValid(c, &input)
+	var input domain.ComponentInput
+	err := c.BindJSON(&input) // utils.BindAndValid(c, &input)
 	if err != nil {
 		appG.ResponseError(http.StatusBadRequest, err, nil)
 		return
 	}
 
-	user, err := h.services.Component.UpdateComponent(id, data)
+	fmt.Println("input: ", input)
+	if input.Schema != nil {
+		fmt.Println("input.Schema | yes |: ", input.Schema)
+	}
+
+	for i := range input.Schema {
+		fmt.Println(i, "-|: ", input.Schema[i])
+		for j := range input.Schema[i] {
+			k := strings.Split(j, h.i18n.Prefix)
+			if len(k) == 2 {
+				input.Schema[i][j] = ""
+			}
+		}
+	}
+
+	user, err := h.services.Component.UpdateComponent(id, input)
 	if err != nil {
 		appG.ResponseError(http.StatusBadRequest, err, nil)
 		return

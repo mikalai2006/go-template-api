@@ -3,7 +3,6 @@ package repository
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/mikalai2006/go-template-api/internal/config"
 	"github.com/mikalai2006/go-template-api/internal/domain"
@@ -51,51 +50,51 @@ func (r *ComponentMongo) FindComponent(params domain.RequestParams) (domain.Resp
 	pipe, err := CreatePipeline(params, &r.i18n)
 
 	// Populate Parent field
-	pipe = append(pipe, bson.D{{Key: "$lookup", Value: bson.M{
-		"from": "component_schemas",
-		"as":   "schema",
-		// "localField":   "_id",
-		// "foreignField": "componentId",
-		"let": bson.D{{Key: "componentId", Value: "$_id"}},
-		"pipeline": mongo.Pipeline{
-			bson.D{{Key: "$match", Value: bson.M{"$expr": bson.M{"$eq": [2]string{"$componentId", "$$componentId"}}}}},
+	// pipe = append(pipe, bson.D{{Key: "$lookup", Value: bson.M{
+	// 	"from": "component_schemas",
+	// 	"as":   "schema",
+	// 	// "localField":   "_id",
+	// 	// "foreignField": "componentId",
+	// 	"let": bson.D{{Key: "componentId", Value: "$_id"}},
+	// 	"pipeline": mongo.Pipeline{
+	// 		bson.D{{Key: "$match", Value: bson.M{"$expr": bson.M{"$eq": [2]string{"$componentId", "$$componentId"}}}}},
 
-			bson.D{{Key: "$lookup", Value: bson.M{
-				"from": "librarys",
-				"as":   "library",
-				// "let":  bson.D{{"libraryId", "$libraryId"}},
-				// "pipeline": mongo.Pipeline{
-				// 	bson.D{{Key: "$match", Value: bson.M{"$expr": bson.M{"$eq": [2]string{"$_id", "$$libraryId"}}}}},
-				// 	bson.D{{"$unwind", bson.D{{"path", "$library"}, {"preserveNullAndEmptyArrays", true}}}},
-				// },
-				"localField":   "libraryId",
-				"foreignField": "_id",
-			}}},
+	// 		bson.D{{Key: "$lookup", Value: bson.M{
+	// 			"from": "librarys",
+	// 			"as":   "library",
+	// 			// "let":  bson.D{{"libraryId", "$libraryId"}},
+	// 			// "pipeline": mongo.Pipeline{
+	// 			// 	bson.D{{Key: "$match", Value: bson.M{"$expr": bson.M{"$eq": [2]string{"$_id", "$$libraryId"}}}}},
+	// 			// 	bson.D{{"$unwind", bson.D{{"path", "$library"}, {"preserveNullAndEmptyArrays", true}}}},
+	// 			// },
+	// 			"localField":   "libraryId",
+	// 			"foreignField": "_id",
+	// 		}}},
 
-			bson.D{{Key: "$lookup", Value: bson.M{
-				"from": "component_schemadatas",
-				"as":   "schema_data",
-				// "let":  bson.D{{"libraryId", "$libraryId"}},
-				// "pipeline": mongo.Pipeline{
-				// 	bson.D{{Key: "$match", Value: bson.M{"$expr": bson.M{"$eq": [2]string{"$_id", "$$libraryId"}}}}},
-				// 	bson.D{{"$unwind", bson.D{{"path", "$library"}, {"preserveNullAndEmptyArrays", true}}}},
-				// },
-				"localField":   "_id",
-				"foreignField": "schemaId",
-			}}},
-			// bson.D{{"$project", bson.M{
-			// 	"library": bson.M{"$arrayElemAt": []interface{}{"$library", 0}},
-			// }}},
-			// bson.D{{"$project", bson.M{
-			// 	"schema": bson.M{"$arrayElemAt": []interface{}{"$schema", 0}},
-			// }}},
-		},
-	}}}, bson.D{{Key: "$lookup", Value: bson.M{
-		"from":         "component_groups",
-		"as":           "groups",
-		"localField":   "group",
-		"foreignField": "_id",
-	}}})
+	// 		bson.D{{Key: "$lookup", Value: bson.M{
+	// 			"from": "component_schemadatas",
+	// 			"as":   "schema_data",
+	// 			// "let":  bson.D{{"libraryId", "$libraryId"}},
+	// 			// "pipeline": mongo.Pipeline{
+	// 			// 	bson.D{{Key: "$match", Value: bson.M{"$expr": bson.M{"$eq": [2]string{"$_id", "$$libraryId"}}}}},
+	// 			// 	bson.D{{"$unwind", bson.D{{"path", "$library"}, {"preserveNullAndEmptyArrays", true}}}},
+	// 			// },
+	// 			"localField":   "_id",
+	// 			"foreignField": "schemaId",
+	// 		}}},
+	// 		// bson.D{{"$project", bson.M{
+	// 		// 	"library": bson.M{"$arrayElemAt": []interface{}{"$library", 0}},
+	// 		// }}},
+	// 		// bson.D{{"$project", bson.M{
+	// 		// 	"schema": bson.M{"$arrayElemAt": []interface{}{"$schema", 0}},
+	// 		// }}},
+	// 	},
+	// }}}, bson.D{{Key: "$lookup", Value: bson.M{
+	// 	"from":         "component_groups",
+	// 	"as":           "groups",
+	// 	"localField":   "group",
+	// 	"foreignField": "_id",
+	// }}})
 
 	if err != nil {
 		return response, err
@@ -133,7 +132,7 @@ func (r *ComponentMongo) FindComponent(params domain.RequestParams) (domain.Resp
 	return response, nil
 }
 
-func (r *ComponentMongo) CreateComponent(userID string, component *domain.ComponentCreate) (*domain.Component, error) {
+func (r *ComponentMongo) CreateComponent(userID string, component *domain.ComponentInput) (*domain.Component, error) {
 	var result *domain.Component
 
 	collection := r.db.Collection(tblComponent)
@@ -146,23 +145,24 @@ func (r *ComponentMongo) CreateComponent(userID string, component *domain.Compon
 		return nil, err
 	}
 
-	newItem := domain.Component{
-		Name:      component.Name,
-		Title:     component.Title,
-		UserID:    userIDPrimitive,
-		Group:     component.Group,
-		IsPage:    component.IsPage,
-		IsGlobal:  component.IsGlobal,
-		IsLayout:  component.IsLayout,
-		SortOrder: 0,
-		Publish:   component.Publish,
-		Tpl:       "tpl",
-		Setting:   component.Setting,
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
-	}
+	// newItem := domain.Component{
+	// 	Name:      component.Name,
+	// 	Type:      component.Type,
+	// 	Title:     component.Title,
+	// 	UserID:    userIDPrimitive,
+	// 	Publish:   component.Publish,
+	// 	Status:    component.Status,
+	// 	Tpl:       component.Tpl,
+	// 	SortOrder: component.SortOrder,
+	// 	Group:     component.Group,
+	// 	Setting:   component.Setting,
+	// 	Schema:    component.Schema,
+	// 	CreatedAt: time.Now(),
+	// 	UpdatedAt: time.Now(),
+	// }
+	component.UserID = userIDPrimitive
 
-	res, err := collection.InsertOne(ctx, newItem)
+	res, err := collection.InsertOne(ctx, component)
 	if err != nil {
 		return nil, err
 	}
@@ -218,6 +218,8 @@ func (r *ComponentMongo) UpdateComponent(id string, data interface{}) (domain.Co
 	if err != nil {
 		return result, err
 	}
+
+	// data["user_id"] = idPrimitive
 
 	filter := bson.M{"_id": idPrimitive}
 

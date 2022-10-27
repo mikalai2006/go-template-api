@@ -2,6 +2,7 @@ package service
 
 import (
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/mikalai2006/go-template-api/internal/domain"
@@ -57,6 +58,11 @@ func (s *AuthService) CreateAuth(auth *domain.SignInInput) (string, error) {
 	verificationCode := s.otpGenerator.RandomSecret(s.verificationCodeLength)
 
 	authData := &domain.Auth{
+		VkID:      auth.VkID,
+		GoogleID:  auth.GoogleID,
+		GithubID:  auth.GithubID,
+		AppleID:   auth.AppleID,
+		Roles:     []string{"user"},
 		Login:     auth.Login,
 		Password:  passwordHash,
 		Email:     auth.Email,
@@ -90,6 +96,7 @@ func (s *AuthService) SignIn(auth *domain.SignInInput) (domain.ResponseTokens, e
 	}
 	auth.Password = passwordHash
 
+	fmt.Println("sign in ", auth)
 	user, err := s.repository.GetByCredentials(auth)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {

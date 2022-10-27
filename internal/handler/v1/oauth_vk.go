@@ -12,6 +12,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/mikalai2006/go-template-api/internal/domain"
 	"github.com/mikalai2006/go-template-api/pkg/app"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type VKBodyResponse struct {
@@ -125,23 +126,44 @@ func (h *HandlerV1) MeVk(c *gin.Context) {
 		return
 	}
 
+	fmt.Println("input Vk")
 	input := &domain.SignInInput{
 		Login:    bodyResponse.Response[0].FirstName,
 		Strategy: "jwt",
-		Password: "",
+		Password: "1",
 		VkID:     fmt.Sprintf("%d", bodyResponse.Response[0].ID),
 	}
 
+	fmt.Println("input Vk", input)
 	user, err := h.services.Authorization.ExistAuth(input)
 	if err != nil {
 		appG.ResponseError(http.StatusBadRequest, err, nil)
 		return
 	}
 
+	var userID string
 	if user.Login == "" {
-		_, err = h.services.Authorization.CreateAuth(input)
+		userID, err = h.services.Authorization.CreateAuth(input)
 		if err != nil {
 			appG.ResponseError(http.StatusBadRequest, err, nil)
+			return
+		}
+
+		primitiveID, err := primitive.ObjectIDFromHex(userID)
+		if err != nil {
+			appG.ResponseError(http.StatusBadRequest, err, nil)
+			return
+		}
+		newUser := domain.User{
+			UserID: primitiveID,
+			Login:  input.Login,
+			Name:   input.Login,
+			Roles:  []string{"user"},
+			Lang:   h.i18n.Default,
+		}
+		_, err = h.services.User.CreateUser(userID, &newUser)
+		if err != nil {
+			appG.ResponseError(http.StatusInternalServerError, err, nil)
 			return
 		}
 	}
@@ -151,6 +173,7 @@ func (h *HandlerV1) MeVk(c *gin.Context) {
 		appG.ResponseError(http.StatusBadRequest, err, nil)
 		return
 	}
+
 	pathRequest, err = url.Parse(clientURL)
 	if err != nil {
 		appG.ResponseError(http.StatusBadRequest, err, nil)

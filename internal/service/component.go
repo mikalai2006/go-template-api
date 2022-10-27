@@ -27,7 +27,7 @@ func (s *ComponentService) FindByPopulate(params domain.RequestParams) (domain.R
 	return s.repo.FindByPopulate(params)
 }
 func (s *ComponentService) CreateComponent(
-	userID string, component *domain.ComponentCreate,
+	userID string, component *domain.ComponentInput,
 ) (*domain.Component, error) {
 	return s.repo.CreateComponent(userID, component)
 }

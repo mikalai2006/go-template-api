@@ -116,9 +116,9 @@ func (r *UserMongo) CreateUser(userID string, user *domain.User) (*domain.User, 
 	}
 
 	newUser := domain.User{
+		Avatar:    user.Avatar,
 		Name:      user.Name,
 		UserID:    userIDPrimitive,
-		Type:      "guest",
 		Login:     user.Login,
 		Lang:      user.Lang,
 		Currency:  user.Currency,

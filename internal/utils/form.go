@@ -28,7 +28,7 @@ func BindAndValid[V any](c *gin.Context, form V) (interface{}, error) {
 		tagJSONValue = tag.Get("json")
 		primitiveValue = tag.Get("primitive")
 		if val, ok := body[tagJSONValue]; ok {
-			fmt.Println(tagValue, tagJSONValue, reflect.TypeOf(val))
+			// fmt.Println(tagValue, tagJSONValue, reflect.TypeOf(val))
 			switch myDataReflect.Field(i).Kind() {
 			case reflect.String:
 				result[tagValue] = val.(string)
@@ -51,12 +51,30 @@ func BindAndValid[V any](c *gin.Context, form V) (interface{}, error) {
 				result[tagValue] = val
 			default:
 				if primitiveValue == "true" {
-					id, err := primitive.ObjectIDFromHex(val.(string))
-					if err != nil {
-						// todo error
-						return result, err
+					if reflect.ValueOf(val).Kind() == reflect.Slice {
+						l := len(val.([]interface{}))
+						idsPrimititiveSlice := make([]primitive.ObjectID, l)
+						allValue := val.([]interface{})
+						for i := range val.([]interface{}) {
+							id, err := primitive.ObjectIDFromHex(allValue[i].(string))
+							if err != nil {
+								// todo error
+								return result, err
+							}
+							idsPrimititiveSlice[i] = id
+						}
+						result[tagValue] = idsPrimititiveSlice
+						// fmt.Println("default: ", tagValue, reflect.ValueOf(val).Kind())
+					} else {
+
+						id, err := primitive.ObjectIDFromHex(val.(string))
+						if err != nil {
+							// todo error
+							return result, err
+						}
+						// fmt.Println("default: ", tagValue, reflect.ValueOf(val).Kind())
+						result[tagValue] = id
 					}
-					result[tagValue] = id
 				}
 				// value := myDataReflect.Field(i)
 				// fmt.Println("   === default: tag=", tagValue, value)
@@ -67,9 +85,9 @@ func BindAndValid[V any](c *gin.Context, form V) (interface{}, error) {
 		}
 	}
 
-	fmt.Println("============result======================")
-	fmt.Println(result)
-	fmt.Println("==========================================")
+	// fmt.Println("============result======================")
+	// fmt.Println(result)
+	// fmt.Println("==========================================")
 
 	result["updated_at"] = time.Now()
 	return result, nil

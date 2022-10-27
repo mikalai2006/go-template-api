@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/mikalai2006/go-template-api/internal/domain"
@@ -54,11 +55,11 @@ func chooseProvider(auth *domain.SignInInput) bson.D {
 	}
 
 	if auth.VkID != "" {
-		return bson.D{{Key: "vkid", Value: auth.VkID}}
+		return bson.D{{Key: "vk_id", Value: auth.VkID}}
 	} else if auth.GoogleID != "" {
-		return bson.D{{Key: "googleid", Value: auth.GoogleID}}
+		return bson.D{{Key: "google_id", Value: auth.GoogleID}}
 	}
-	return bson.D{{Key: "vkid", Value: "none"}}
+	return bson.D{{Key: "vk_id", Value: "none"}}
 }
 
 func (r *AuthMongo) CheckExistAuth(auth *domain.SignInInput) (domain.Auth, error) {
@@ -100,6 +101,7 @@ func (r *AuthMongo) GetByCredentials(auth *domain.SignInInput) (domain.Auth, err
 
 	filter := chooseProvider(auth)
 
+	fmt.Println("filter credit ", filter)
 	err := r.db.Collection(TblAuth).FindOne(ctx, filter).Decode(&user)
 
 	return user, err

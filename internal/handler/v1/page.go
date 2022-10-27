@@ -151,7 +151,7 @@ func (h HandlerV1) createPage(c *gin.Context) {
 		return
 	}
 
-	var input *domain.Page
+	var input *domain.PageInputData
 	if er := c.BindJSON(&input); er != nil {
 		appG.ResponseError(http.StatusBadRequest, er, nil)
 		return

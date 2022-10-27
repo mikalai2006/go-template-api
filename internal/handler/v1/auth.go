@@ -8,6 +8,7 @@ import (
 	"github.com/mikalai2006/go-template-api/internal/domain"
 	"github.com/mikalai2006/go-template-api/internal/middleware"
 	"github.com/mikalai2006/go-template-api/pkg/app"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 func (h *HandlerV1) registerAuth(router *gin.RouterGroup) {
@@ -69,8 +70,12 @@ func (h *HandlerV1) getIam(c *gin.Context) {
 func (h *HandlerV1) SignUp(c *gin.Context) {
 	appG := app.Gin{C: c}
 
-	var input *domain.SignInInput
+	lang := c.Query("lang")
+	if lang == "" {
+		lang = h.i18n.Default
+	}
 
+	var input *domain.SignInInput
 	if err := c.BindJSON(&input); err != nil {
 		appG.ResponseError(http.StatusBadRequest, err, nil)
 		return
@@ -82,9 +87,30 @@ func (h *HandlerV1) SignUp(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, map[string]interface{}{
-		"id": id,
-	})
+	primitiveID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		appG.ResponseError(http.StatusBadRequest, err, nil)
+		return
+	}
+
+	// create default
+	// avatar := fmt.Sprintf("https://www.gravatar.com/avatar/%s?d=identicon", id)
+
+	newUser := domain.User{
+		// Avatar: avatar,
+		UserID: primitiveID,
+		Login:  input.Login,
+		Name:   input.Login,
+		Roles:  []string{"user"},
+		Lang:   lang,
+	}
+	document, err := h.services.User.CreateUser(id, &newUser)
+	if err != nil {
+		appG.ResponseError(http.StatusInternalServerError, err, nil)
+		return
+	}
+
+	c.JSON(http.StatusOK, document)
 }
 
 // @Summary SignIn

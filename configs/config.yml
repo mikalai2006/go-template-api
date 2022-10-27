@@ -2,7 +2,7 @@ db:
   dbname: "api_db"
   sslmode: "disable"
 mongodb:
-  dbname: "api_db"
+  dbname: "api_prod_db"
   dbtest: "api_test"
   sslmode: false
 auth:

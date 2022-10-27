@@ -31,7 +31,7 @@ func (s *PageService) FindPage(params domain.RequestParams) (domain.Response[dom
 	return s.repo.FindPage(params)
 }
 
-func (s *PageService) CreatePage(userID string, page *domain.Page) (*domain.Page, error) {
+func (s *PageService) CreatePage(userID string, page *domain.PageInputData) (*domain.Page, error) {
 	return s.repo.CreatePage(userID, page)
 }
 

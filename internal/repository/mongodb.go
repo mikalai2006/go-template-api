@@ -16,23 +16,23 @@ import (
 )
 
 const (
-	tblShops = "_shops"
-	tblUsers = "_users"
-	TblAuth  = "_auth"
-	tblPage  = "_pages"
+	tblShops = "shops"
+	tblUsers = "users"
+	TblAuth  = "auths"
+	tblPage  = "pages"
 
-	tblComponent           = "_components"
-	tblComponentData       = "_component_datas"
-	tblComponentGroup      = "_component_groups"
-	tblComponentSchema     = "_component_schemas"
-	tblComponentSchemaData = "_component_schemadatas"
+	tblComponent           = "components"
+	tblComponentData       = "component_datas"
+	tblComponentGroup      = "component_groups"
+	tblComponentSchema     = "component_schemas"
+	tblComponentSchemaData = "component_schemadatas"
 
-	tblLibrary = "_librarys"
-	tblFields  = "_fields"
+	tblLibrary = "librarys"
+	tblFields  = "fields"
 
 	TblLanguage = "langs"
 
-	TblProduct = "_products"
+	TblProduct = "products"
 
 	MongoQueryTimeout = 10 * time.Second
 )

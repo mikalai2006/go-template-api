@@ -10,42 +10,44 @@ type Page struct {
 	ID     primitive.ObjectID `json:"id" bson:"_id,omitempty"`
 	UserID primitive.ObjectID `json:"userId" bson:"userId" primitive:"true"`
 
-	ComponentID primitive.ObjectID `json:"componentId" bson:"componentId" primitive:"true"`
-	LayoutID    primitive.ObjectID `json:"layoutId" bson:"layoutId" primitive:"true"`
+	ComponentID primitive.ObjectID `json:"componentId" bson:"component_id" primitive:"true"`
+	LayoutID    primitive.ObjectID `json:"layoutId" bson:"layout_id" primitive:"true"`
 	Slug        string             `json:"slug" bson:"slug" form:"slug"`
 	SlugFull    string             `json:"slugFull" bson:"slug_full"`
 	Title       string             `json:"title" bson:"title"`
 	Path        string             `json:"path" bson:"path"`
 	Name        string             `json:"name" bson:"name"`
-	ContentType string             `json:"contentType" bson:"content_type"`
 	Publish     bool               `json:"publish" bson:"publish"`
 	SortOrder   int                `json:"sortOrder" bson:"sort_order"`
 	Setting     interface{}        `json:"setting" bson:"setting"`
 
-	Component     Component       `json:"-" bson:"component"`
-	Layout        Component       `json:"-" bson:"layout"`
+	Component     Component       `json:"component" bson:"component"`
+	Layout        Component       `json:"layout" bson:"layout"`
 	XXX           any             `json:"-" bson:"xxx"`
 	Content       any             `json:"content" bson:"content"`
 	ComponentData []ComponentData `json:"-" bson:"component_data"`
-	CreatedAt     time.Time       `json:"createdAt" bson:"createdAt"`
-	UpdatedAt     time.Time       `json:"updatedAt" bson:"updatedAt"`
+	CreatedAt     time.Time       `json:"createdAt" bson:"created_at"`
+	UpdatedAt     time.Time       `json:"updatedAt" bson:"updated_at"`
 }
 
 // type PageContent struct {
 // }
 
 type PageInputData struct {
-	Slug        string      `json:"slug" bson:"slug" form:"slug"`
-	SlugFull    string      `json:"slugFull" bson:"slug_full" form:"slugFull"`
-	Title       string      `json:"title" bson:"title" form:"title"`
-	Path        string      `json:"path" bson:"path" form:"path"`
-	Name        string      `json:"name" bson:"name" form:"name"`
-	ContentType string      `json:"contentType" bson:"content_type" form:"contentType"`
-	Publish     bool        `json:"publish" bson:"publish" form:"publish"`
-	SortOrder   int         `json:"sortOrder" bson:"sort_order" form:"sort_order"`
-	Setting     interface{} `json:"setting" bson:"setting" form:"setting"`
-	ComponentID string      `json:"componentId" bson:"componentId" form:"componentId" primitive:"true"`
-	LayoutID    string      `json:"layoutId" bson:"layoutId" form:"layoutId" primitive:"true"`
+	UserID      primitive.ObjectID `json:"userId" bson:"user_id" form:"userId" primitive:"true"`
+	Slug        string             `json:"slug" bson:"slug" form:"slug"`
+	SlugFull    string             `json:"slugFull" bson:"slug_full" form:"slugFull"`
+	Title       string             `json:"title" bson:"title" form:"title"`
+	Path        string             `json:"path" bson:"path" form:"path"`
+	Name        string             `json:"name" bson:"name" form:"name"`
+	Publish     bool               `json:"publish" bson:"publish" form:"publish"`
+	SortOrder   int                `json:"sortOrder" bson:"sort_order" form:"sort_order"`
+	Setting     interface{}        `json:"setting" bson:"setting" form:"setting"`
+	ComponentID primitive.ObjectID `json:"componentId" bson:"component_id" form:"componentId" primitive:"true"`
+	LayoutID    primitive.ObjectID `json:"layoutId" bson:"layout_id" form:"layoutId" primitive:"true"`
+
+	CreatedAt time.Time `json:"createdAt" bson:"created_at"`
+	UpdatedAt time.Time `json:"updatedAt" bson:"updated_at"`
 }
 
 // type PageQuery struct {

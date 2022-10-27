@@ -8,32 +8,31 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
+// Type     string `json:"type" db:"type" bson:"type"`
+
 type User struct {
 	ID     primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty" primitive:"true"`
-	UserID primitive.ObjectID `json:"user_id,omitempty" bson:"user_id,omitempty" primitive:"true"`
+	UserID primitive.ObjectID `json:"userId,omitempty" bson:"user_id,omitempty" primitive:"true"`
 
-	Type     string `json:"type" db:"type" bson:"type"`
-	Name     string `json:"name,omitempty" db:"name" bson:"name"`
-	Login    string `json:"login" db:"login" bson:"login"`
-	Currency string `json:"currency" bson:"currency" db:"currency"`
-	Lang     string `json:"lang" db:"lang" bson:"lang"`
-	Avatar   string `json:"avatar" db:"avatar" bson:"avatar"`
-
-	Roles     []string  `json:"roles" bson:"-" db:"-" form:"-"`
-	Online    bool      `json:"online" db:"online" bson:"online"`
-	Verify    bool      `json:"verify" db:"verify" bson:"verify"`
-	LastTime  time.Time `json:"last_time" db:"last_time" bson:"last_time"`
-	CreatedAt time.Time `json:"created_at" db:"created_at" bson:"created_at"`
-	UpdatedAt time.Time `json:"updated_at" db:"updated_at" bson:"updated_at"`
+	Name      string    `json:"name,omitempty" bson:"name"`
+	Login     string    `json:"login" bson:"login"`
+	Currency  string    `json:"currency" bson:"currency"`
+	Lang      string    `json:"lang" bson:"lang"`
+	Avatar    string    `json:"avatar" bson:"avatar"`
+	Roles     []string  `json:"roles" bson:"-"`
+	Online    bool      `json:"online" bson:"online"`
+	Verify    bool      `json:"verify" bson:"verify"`
+	LastTime  time.Time `json:"lastTime" bson:"last_time"`
+	CreatedAt time.Time `json:"createdAt" bson:"created_at"`
+	UpdatedAt time.Time `json:"updatedAt" bson:"updated_at"`
 }
 
 type UserInput struct {
-	Type     string `json:"type" db:"type" bson:"type" form:"type"`
-	Name     string `json:"name,omitempty" db:"name" bson:"name" form:"name"`
-	Login    string `json:"login" db:"login" bson:"login" form:"login"`
-	Currency string `json:"currency" bson:"currency" db:"currency" form:"currency"`
-	Lang     string `json:"lang" db:"lang" bson:"lang" form:"lang"`
-	Avatar   string `json:"avatar" db:"avatar" bson:"avatar" form:"avatar"`
+	Name     string `json:"name,omitempty" bson:"name" form:"name"`
+	Login    string `json:"login" bson:"login" form:"login"`
+	Currency string `json:"currency" bson:"currency" form:"currency"`
+	Lang     string `json:"lang" bson:"lang" form:"lang"`
+	Avatar   string `json:"avatar" bson:"avatar" form:"avatar"`
 }
 
 func (user *User) BodyToData() (interface{}, error) {

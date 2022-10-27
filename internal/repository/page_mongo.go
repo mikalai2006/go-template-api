@@ -23,7 +23,7 @@ func NewPageMongo(db *mongo.Database, i18n config.I18nConfig) *PageMongo {
 	return &PageMongo{db: db, i18n: i18n}
 }
 
-func (r *PageMongo) CreatePage(userID string, page *domain.Page) (*domain.Page, error) {
+func (r *PageMongo) CreatePage(userID string, page *domain.PageInputData) (*domain.Page, error) {
 	var result *domain.Page
 
 	collection := r.db.Collection(tblPage)
@@ -36,7 +36,7 @@ func (r *PageMongo) CreatePage(userID string, page *domain.Page) (*domain.Page, 
 		return nil, err
 	}
 
-	newPage := domain.Page{
+	newPage := domain.PageInputData{
 		Name:        page.Name,
 		Title:       page.Title,
 		UserID:      userIDPrimitive,
@@ -45,7 +45,7 @@ func (r *PageMongo) CreatePage(userID string, page *domain.Page) (*domain.Page, 
 		ComponentID: page.ComponentID,
 		Publish:     page.Publish,
 		LayoutID:    page.LayoutID,
-		SortOrder:   0,
+		SortOrder:   page.SortOrder,
 		CreatedAt:   time.Now(),
 		UpdatedAt:   time.Now(),
 	}
@@ -80,7 +80,7 @@ func (r *PageMongo) GetFullPage(params domain.RequestParams) (domain.Response[do
 				"as":   "component",
 				// "localField":   "_id",
 				// "foreignField": "componentId",
-				"let": bson.D{{Key: "componentId", Value: "$componentId"}},
+				"let": bson.D{{Key: "componentId", Value: "$component_id"}},
 				"pipeline": mongo.Pipeline{
 					bson.D{{Key: "$match", Value: bson.M{"$expr": bson.M{"$eq": [2]string{"$_id", "$$componentId"}}}}},
 				},
@@ -95,7 +95,7 @@ func (r *PageMongo) GetFullPage(params domain.RequestParams) (domain.Response[do
 			"as":   "component_data",
 			// "localField":   "_id",
 			// "foreignField": "pageId",
-			"let": bson.D{{Key: "pageId", Value: "$_id"}, {Key: "layoutId", Value: "$layoutId"}},
+			"let": bson.D{{Key: "pageId", Value: "$_id"}, {Key: "layoutId", Value: "$layout_id"}},
 			"pipeline": mongo.Pipeline{
 				bson.D{{Key: "$match", Value: bson.D{
 					{Key: "$and", Value: bson.A{
@@ -123,7 +123,7 @@ func (r *PageMongo) GetFullPage(params domain.RequestParams) (domain.Response[do
 				Value: bson.M{
 					"from": tblComponent,
 					"as":   "layout",
-					"let":  bson.D{{Key: "layoutId", Value: "$layoutId"}},
+					"let":  bson.D{{Key: "layoutId", Value: "$layout_id"}},
 					"pipeline": mongo.Pipeline{
 						bson.D{{Key: "$match", Value: bson.M{"$expr": bson.M{"$eq": [2]string{"$_id", "$$layoutId"}}}}},
 					},
@@ -167,6 +167,14 @@ func (r *PageMongo) GetFullPage(params domain.RequestParams) (domain.Response[do
 		mapP := createContent(resultSlice[keyPage].ComponentData, datas, r.i18n)
 		if len(mapP) > 0 {
 			resultSlice[keyPage].Content = mapP[0]
+		} else {
+			resultSlice[keyPage].Content = bson.M{
+				"component": resultSlice[keyPage].Component.Name,
+				"_uid":      resultSlice[keyPage].ID,
+				"layout": bson.A{
+					bson.M{"component": resultSlice[keyPage].Layout.Name, "_uid": resultSlice[keyPage].LayoutID},
+				},
+			}
 		}
 		// fmt.Println("pages", pages)
 	}
@@ -365,6 +373,20 @@ func (r *PageMongo) GetPage(id string) (domain.Page, error) {
 	err = r.db.Collection(tblPage).FindOne(ctx, filter).Decode(&result)
 	if err != nil {
 		return domain.Page{}, err
+	}
+
+	datas := filterComponentData(result.ComponentData, mytest)
+	mapP := createContent(result.ComponentData, datas, r.i18n)
+	if len(mapP) > 0 {
+		result.Content = mapP[0]
+	} else {
+		result.Content = bson.M{
+			"component": result.Component.Name,
+			"_uid":      result.ID,
+			"layout": bson.A{
+				bson.M{"component": result.Layout.Name, "_uid": result.LayoutID},
+			},
+		}
 	}
 
 	return result, nil

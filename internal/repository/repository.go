@@ -32,7 +32,7 @@ type Page interface {
 	GetFullPage(params domain.RequestParams) (domain.Response[domain.Page], error)
 	FindPage(params domain.RequestParams) (domain.Response[domain.Page], error)
 	GetPage(id string) (domain.Page, error)
-	CreatePage(userID string, page *domain.Page) (*domain.Page, error)
+	CreatePage(userID string, page *domain.PageInputData) (*domain.Page, error)
 	DeletePage(id string) (domain.Page, error)
 	UpdatePage(id string, data interface{}) (domain.Page, error)
 }
@@ -40,7 +40,7 @@ type Page interface {
 type Component interface {
 	GetComponent(id string) (domain.Component, error)
 	FindComponent(params domain.RequestParams) (domain.Response[domain.Component], error)
-	CreateComponent(userID string, component *domain.ComponentCreate) (*domain.Component, error)
+	CreateComponent(userID string, component *domain.ComponentInput) (*domain.Component, error)
 	DeleteComponent(id string) (domain.Component, error)
 	UpdateComponent(id string, data interface{}) (domain.Component, error)
 
