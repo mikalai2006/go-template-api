@@ -19,24 +19,16 @@ type ComponentSchema struct {
 	UpdatedAt time.Time `json:"updated_at" bson:"updated_at" form:"updated_at"`
 }
 
-type ComponentGroup struct {
-	ID          primitive.ObjectID     `json:"_id,omitempty" bson:"_id" primitive:"true"`
-	Title       map[string]interface{} `json:"title" bson:"title"`
-	Description map[string]interface{} `json:"description" bson:"description"`
-	CreatedAt   time.Time              `json:"created_at" bson:"created_at" form:"created_at"`
-	UpdatedAt   time.Time              `json:"updated_at" bson:"updated_at" form:"updated_at"`
-}
-
 type ComponentData struct {
-	ID        primitive.ObjectID `json:"_id,omitempty" bson:"_id" primitive:"true"`
+	ID        primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty" primitive:"true"`
 	Parent    string             `json:"parent" bson:"parent"`
 	UID       string             `json:"_uid" bson:"_uid"`
-	PageID    primitive.ObjectID `json:"pageId" bson:"pageId" primitive:"true"`
-	LayoutID  primitive.ObjectID `json:"layoutId" bson:"layoutId" primitive:"true"`
+	PageID    primitive.ObjectID `json:"pageId" bson:"page_id" primitive:"true"`
+	LayoutID  primitive.ObjectID `json:"layoutId" bson:"layout_id" primitive:"true"`
 	Component string             `json:"component" bson:"component"`
 
 	Publish   bool                   `json:"publish" bson:"publish" form:"publish"`
-	Data      map[string]interface{} `json:"data" bson:"data"`
+	Data      map[string]interface{} `json:"data" bson:"data" form:"data"`
 	CreatedAt time.Time              `json:"created_at" bson:"created_at" form:"created_at"`
 	UpdatedAt time.Time              `json:"updated_at" bson:"updated_at" form:"updated_at"`
 }
@@ -68,7 +60,7 @@ type Component struct {
 	// IsLayout  bool                   `json:"is_layout" bson:"is_layout" form:"is_layout"`
 	Tpl       string                            `json:"tpl" bson:"tpl" form:"tpl"`
 	SortOrder int                               `json:"sortOrder" bson:"sort_order" form:"sortOrder"`
-	Group     []primitive.ObjectID              `json:"group" bson:"group" form:"group" primitive:"true"`
+	Group     primitive.ObjectID                `json:"group" bson:"group" form:"group" primitive:"true"`
 	Groups    []ComponentGroup                  `json:"groups" bson:"groups" form:"groups"`
 	Schema    map[string]map[string]interface{} `json:"schema" bson:"schema" form:"schema"`
 	Setting   map[string]interface{}            `json:"setting" bson:"setting" form:"setting"`
@@ -86,8 +78,10 @@ type ComponentInput struct {
 	Tpl       string                            `json:"tpl" bson:"tpl" form:"tpl"`
 	SortOrder int                               `json:"sortOrder" bson:"sort_order" form:"sortOrder"`
 	Schema    map[string]map[string]interface{} `json:"schema" bson:"schema" form:"schema"`
-	Group     []primitive.ObjectID              `json:"group" bson:"group" form:"group" primitive:"true" binding:"required"`
+	Group     string                            `json:"group" bson:"group" form:"group" primitive:"true" binding:"required"`
 	Setting   map[string]interface{}            `json:"setting" bson:"setting" form:"setting"`
+	CreatedAt time.Time                         `json:"createdAt" bson:"created_at" form:"createdAt"`
+	UpdatedAt time.Time                         `json:"updatedAt" bson:"updated_at" form:"updatedAt"`
 }
 
 // func (component *Component) BodyToData() (interface{}, error) {

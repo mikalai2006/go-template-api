@@ -44,6 +44,7 @@ type Page interface {
 	CreatePage(userID string, page *domain.PageInputData) (*domain.Page, error)
 	DeletePage(id string) (domain.Page, error)
 	UpdatePage(id string, data interface{}) (domain.Page, error)
+	UpdatePageWithContent(id string, data map[string]interface{}) (domain.Page, error)
 }
 
 type Component interface {
@@ -55,6 +56,13 @@ type Component interface {
 	FindByPopulate(params domain.RequestParams) (domain.Response[domain.Component], error)
 
 	FindLibrarys(params domain.RequestParams) (domain.Response[domain.Library], error)
+}
+
+type ComponentGroup interface {
+	FindComponentGroup() (domain.Response[domain.ComponentGroup], error)
+	CreateComponentGroup(userID string, component *domain.ComponentGroup) (*domain.ComponentGroup, error)
+	UpdateComponentGroup(id string, data interface{}) (domain.ComponentGroup, error)
+	DeleteComponentGroup(id string) (domain.ComponentGroup, error)
 }
 
 type Product interface {
@@ -77,6 +85,7 @@ type Services struct {
 	Authorization
 	Apps
 	Component
+	ComponentGroup
 	Page
 	Product
 	Shop
@@ -105,11 +114,12 @@ func NewServices(cfgService *ConfigServices) *Services {
 			cfgService.OtpGenerator,
 			cfgService.VerificationCodeLength,
 		),
-		Shop:      NewShopService(cfgService.Repositories.Shop),
-		Apps:      NewAppsService(cfgService.Repositories, cfgService.I18n),
-		Component: NewComponentService(cfgService.Repositories.Component, cfgService.I18n),
-		Page:      NewPageService(cfgService.Repositories.Page, cfgService.I18n),
-		Product:   NewProductService(cfgService.Repositories, cfgService.I18n),
-		User:      NewUserService(cfgService.Repositories.User),
+		Shop:           NewShopService(cfgService.Repositories.Shop),
+		Apps:           NewAppsService(cfgService.Repositories, cfgService.I18n),
+		Component:      NewComponentService(cfgService.Repositories.Component, cfgService.I18n),
+		ComponentGroup: NewComponentGroupService(cfgService.Repositories.ComponentGroup, cfgService.I18n),
+		Page:           NewPageService(cfgService.Repositories.Page, cfgService.I18n),
+		Product:        NewProductService(cfgService.Repositories, cfgService.I18n),
+		User:           NewUserService(cfgService.Repositories.User),
 	}
 }

@@ -42,3 +42,7 @@ func (s *PageService) DeletePage(id string) (domain.Page, error) {
 func (s *PageService) UpdatePage(id string, data interface{}) (domain.Page, error) {
 	return s.repo.UpdatePage(id, data)
 }
+
+func (s *PageService) UpdatePageWithContent(id string, data map[string]interface{}) (domain.Page, error) {
+	return s.repo.UpdatePageWithContent(id, data)
+}

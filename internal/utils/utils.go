@@ -39,11 +39,13 @@ func GetParamsFromRequest[V any](c *gin.Context, filterStruct V, i18n *config.I1
 		params.Lang = i18n.Default
 	}
 
+	fmt.Println("lang", lang)
 	var filter V
 	if err := c.ShouldBind(&filter); err != nil {
 		// disable error for convert string to primitive.ObjectID.
 		return domain.RequestParams{}, err
 	}
+	fmt.Println("filter", filter)
 
 	filterValues := c.Request.URL.Query()
 	dataFilter := bson.M{}
@@ -57,6 +59,7 @@ func GetParamsFromRequest[V any](c *gin.Context, filterStruct V, i18n *config.I1
 		// fmt.Println(tagValue, tagJSONValue, filterValues[tagJSONValue])
 
 		if len(filterValues[tagJSONValue]) != 0 {
+			fmt.Println(tagValue, elementsFilter.Field(i).Kind())
 			switch elementsFilter.Field(i).Kind() {
 			case reflect.String:
 				value := elementsFilter.Field(i).String()

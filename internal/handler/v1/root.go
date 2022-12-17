@@ -32,6 +32,7 @@ func (h *HandlerV1) Init(api *gin.RouterGroup) {
 		h.RegisterUser(v1)
 		h.RegisterPage(v1)
 		h.RegisterComponent(v1)
+		h.RegisterComponentGroup(v1)
 		h.RegisterApp(v1)
 		h.RegisterProduct(v1)
 

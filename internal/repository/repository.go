@@ -35,6 +35,7 @@ type Page interface {
 	CreatePage(userID string, page *domain.PageInputData) (*domain.Page, error)
 	DeletePage(id string) (domain.Page, error)
 	UpdatePage(id string, data interface{}) (domain.Page, error)
+	UpdatePageWithContent(id string, data map[string]interface{}) (domain.Page, error)
 }
 
 type Component interface {
@@ -46,6 +47,13 @@ type Component interface {
 
 	FindByPopulate(params domain.RequestParams) (domain.Response[domain.Component], error)
 	FindLibrarys(params domain.RequestParams) (domain.Response[domain.Library], error)
+}
+
+type ComponentGroup interface {
+	FindComponentGroup() (domain.Response[domain.ComponentGroup], error)
+	CreateComponentGroup(userID string, componentGroup *domain.ComponentGroup) (*domain.ComponentGroup, error)
+	UpdateComponentGroup(id string, data interface{}) (domain.ComponentGroup, error)
+	DeleteComponentGroup(id string) (domain.ComponentGroup, error)
 }
 
 type User interface {
@@ -77,6 +85,7 @@ type Repositories struct {
 	Authorization
 	Apps
 	Component
+	ComponentGroup
 	Page
 	Product
 	Shop
@@ -85,13 +94,14 @@ type Repositories struct {
 
 func NewRepositories(mongodb *mongo.Database, i18n config.I18nConfig) *Repositories {
 	return &Repositories{
-		Authorization: NewAuthMongo(mongodb),
-		Apps:          NewAppsMongo(mongodb, i18n),
-		Component:     NewComponentMongo(mongodb, i18n),
-		Page:          NewPageMongo(mongodb, i18n),
-		Product:       NewProductMongo(mongodb, i18n),
-		Shop:          NewShopMongo(mongodb, i18n),
-		User:          NewUserMongo(mongodb, i18n),
+		Authorization:  NewAuthMongo(mongodb),
+		Apps:           NewAppsMongo(mongodb, i18n),
+		Component:      NewComponentMongo(mongodb, i18n),
+		ComponentGroup: NewComponentGroupMongo(mongodb, i18n),
+		Page:           NewPageMongo(mongodb, i18n),
+		Product:        NewProductMongo(mongodb, i18n),
+		Shop:           NewShopMongo(mongodb, i18n),
+		User:           NewUserMongo(mongodb, i18n),
 	}
 }
 

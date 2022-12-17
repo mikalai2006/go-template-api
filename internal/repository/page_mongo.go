@@ -101,11 +101,11 @@ func (r *PageMongo) GetFullPage(params domain.RequestParams) (domain.Response[do
 					{Key: "$and", Value: bson.A{
 						bson.D{{Key: "$or",
 							Value: bson.A{
-								bson.M{"$expr": bson.M{"$eq": [2]string{"$pageId", "$$pageId"}}},
+								bson.M{"$expr": bson.M{"$eq": [2]string{"$page_id", "$$pageId"}}},
 								bson.D{{Key: "$and", Value: bson.A{
-									bson.M{"$expr": bson.M{"$eq": [2]string{"$layoutId", "$$layoutId"}}},
+									bson.M{"$expr": bson.M{"$eq": [2]string{"$layout_id", "$$layoutId"}}},
 									// bson.M{"$expr": bson.M{"$eq": [2]string{"$pageId", string(primitive.NilObjectID[0])}}},
-									bson.M{"pageId": nil},
+									bson.M{"page_id": primitive.NilObjectID},
 								}},
 								},
 							},
@@ -163,16 +163,97 @@ func (r *PageMongo) GetFullPage(params domain.RequestParams) (domain.Response[do
 	for keyPage := range resultSlice {
 		// mapP := relationMapX(resultSlice[keyPage].ComponentData, r.i18n)
 		// resultSlice[keyPage].XXX = mapP
-		datas := filterComponentData(resultSlice[keyPage].ComponentData, mytest)
-		mapP := createContent(resultSlice[keyPage].ComponentData, datas, r.i18n)
-		if len(mapP) > 0 {
-			resultSlice[keyPage].Content = mapP[0]
+		// datas = append(datas, domain.ComponentData{
+		// 	Parent: "page",
+		// 	Data: map[string]interface{}{
+		// 		"layout": map[string]interface{}{
+		// 			"uids": primitive.A{
+		// 				resultSlice[keyPage].LayoutID.Hex(),
+		// 			},
+		// 			"global": true,
+		// 		},
+		// 	},
+		// 	Publish:   true,
+		// 	PageID:    resultSlice[keyPage].ID,
+		// 	LayoutID:  resultSlice[keyPage].LayoutID,
+		// 	UID:       resultSlice[keyPage].Component.ID.Hex(),
+		// 	Component: resultSlice[keyPage].Component.Name,
+		// })
+		mapAllData := map[string]domain.ComponentData{}
+		for i, _ := range resultSlice[keyPage].ComponentData {
+			if resultSlice[keyPage].ComponentData[i].Parent == "global" {
+				resultSlice[keyPage].ComponentData[i].Parent = resultSlice[keyPage].ID.Hex()
+			}
+			mapAllData[resultSlice[keyPage].ComponentData[i].UID] = resultSlice[keyPage].ComponentData[i]
+		}
+
+		// add default page node.
+		if _, ok := mapAllData[resultSlice[keyPage].ID.Hex()]; ok {
+			// fmt.Println("yes page data=")
 		} else {
+			// fmt.Println("no page data!")
+			mapAllData[resultSlice[keyPage].ID.Hex()] = domain.ComponentData{
+				Parent: "page",
+				Data: map[string]interface{}{
+					"layout": map[string]interface{}{
+						"uids": primitive.A{
+							resultSlice[keyPage].LayoutID.Hex(),
+						},
+						"global": true,
+					},
+				},
+				Publish:   true,
+				PageID:    resultSlice[keyPage].ID,
+				LayoutID:  resultSlice[keyPage].LayoutID,
+				UID:       resultSlice[keyPage].ID.Hex(),
+				Component: resultSlice[keyPage].Component.Name,
+			}
+			resultSlice[keyPage].ComponentData = append(resultSlice[keyPage].ComponentData, mapAllData[resultSlice[keyPage].ID.Hex()])
+			// mapAllData[resultSlice[keyPage].LayoutID.Hex()] = domain.ComponentData{
+			// 	Parent: resultSlice[keyPage].Component.ID.Hex(),
+			// 	Data: map[string]interface{}{
+			// 		"global": true,
+			// 	},
+			// 	Publish:   true,
+			// 	PageID:    primitive.NilObjectID,
+			// 	LayoutID:  resultSlice[keyPage].LayoutID,
+			// 	UID:       resultSlice[keyPage].LayoutID.Hex(),
+			// 	Component: resultSlice[keyPage].Layout.Name,
+			// }
+		}
+
+		// add default layout node.
+		if _, ok := mapAllData[resultSlice[keyPage].LayoutID.Hex()]; ok {
+		} else {
+			mapAllData[resultSlice[keyPage].LayoutID.Hex()] = domain.ComponentData{
+				Parent: resultSlice[keyPage].Component.ID.Hex(),
+				Data: map[string]interface{}{
+					"global": true,
+				},
+				Publish:   true,
+				PageID:    primitive.NilObjectID,
+				LayoutID:  resultSlice[keyPage].LayoutID,
+				UID:       resultSlice[keyPage].LayoutID.Hex(),
+				Component: resultSlice[keyPage].Layout.Name,
+			}
+			resultSlice[keyPage].ComponentData = append(resultSlice[keyPage].ComponentData, mapAllData[resultSlice[keyPage].LayoutID.Hex()])
+		}
+		datas := filterComponentData(resultSlice[keyPage].ComponentData, mytest)
+		mapP := createContent(mapAllData, datas, resultSlice[keyPage].LayoutID.Hex(), r.i18n)
+		// fmt.Println("datas=", datas)
+		// fmt.Println("=========")
+		// fmt.Println("mapAllData=", mapAllData)
+		if len(mapP) > 0 {
+			// fmt.Println("yes content")
+			resultSlice[keyPage].Content = mapP[0]
+			// fmt.Printf("%#v\n", mapP[0])
+		} else {
+			// fmt.Println("no content! default")
 			resultSlice[keyPage].Content = bson.M{
 				"component": resultSlice[keyPage].Component.Name,
 				"_uid":      resultSlice[keyPage].ID,
 				"layout": bson.A{
-					bson.M{"component": resultSlice[keyPage].Layout.Name, "_uid": resultSlice[keyPage].LayoutID},
+					bson.M{"component": resultSlice[keyPage].Layout.Name, "_uid": resultSlice[keyPage].LayoutID, "global": true},
 				},
 			}
 		}
@@ -220,6 +301,7 @@ func mytestx(s domain.ComponentData, ids interface{}) bool {
 	}
 	sIds := reflect.ValueOf(ids)
 	for i := 0; i < sIds.Len(); i++ {
+		// fmt.Println("sIds.Index(i)=", i, sIds.Index(i))
 		if s.UID == sIds.Index(i).Elem().String() {
 			return true
 		}
@@ -228,8 +310,10 @@ func mytestx(s domain.ComponentData, ids interface{}) bool {
 }
 
 func createContent(
-	allData []domain.ComponentData,
+	allData map[string]domain.ComponentData,
 	datasets []domain.ComponentData,
+	layoutID string,
+	// global bool,
 	i18n config.I18nConfig,
 ) []interface{} {
 	s := reflect.ValueOf(datasets)
@@ -244,6 +328,7 @@ func createContent(
 			"_uid":      datasets[keyData].UID,
 			"parent":    datasets[keyData].Parent,
 			"component": datasets[keyData].Component,
+			// "global":    global,
 		}
 
 		for keyProperty, property := range datasets[keyData].Data {
@@ -253,12 +338,21 @@ func createContent(
 				newBlok[keyProperty] = property
 				continue
 			}
+			// detect global.
+			// if keyProperty == "layout" {
+			// 	global = true
+			// }
+
 			// if slice uids in data.
 			if val, ok := property.(map[string]interface{})["uids"]; ok {
 				newBlok[keyProperty] = property
 				// recurse.
-				nested := filterComponentData2(allData, val, mytestx)
-				newBlok[keyProperty] = createContent(allData, nested, i18n)
+				// nested := filterComponentData2(allData, val, mytestx)
+				nested := []domain.ComponentData{} // make(, len(val.(primitive.A)))
+				for _, uID := range val.(primitive.A) {
+					nested = append(nested, allData[uID.(string)])
+				}
+				newBlok[keyProperty] = createContent(allData, nested, layoutID, i18n)
 			}
 			// if map i18n.
 			if _, ok := property.(map[string]interface{})[i18n.Default]; ok {
@@ -376,7 +470,14 @@ func (r *PageMongo) GetPage(id string) (domain.Page, error) {
 	}
 
 	datas := filterComponentData(result.ComponentData, mytest)
-	mapP := createContent(result.ComponentData, datas, r.i18n)
+	mapAllData := map[string]domain.ComponentData{}
+	for i, _ := range result.ComponentData {
+		if result.ComponentData[i].Parent == "layout" {
+			result.ComponentData[i].Parent = result.Layout.ID.Hex()
+		}
+		mapAllData[result.ComponentData[i].UID] = result.ComponentData[i]
+	}
+	mapP := createContent(mapAllData, datas, result.Layout.ID.Hex(), r.i18n)
 	if len(mapP) > 0 {
 		result.Content = mapP[0]
 	} else {
@@ -384,7 +485,7 @@ func (r *PageMongo) GetPage(id string) (domain.Page, error) {
 			"component": result.Component.Name,
 			"_uid":      result.ID,
 			"layout": bson.A{
-				bson.M{"component": result.Layout.Name, "_uid": result.LayoutID},
+				bson.M{"component": result.Layout.Name, "_uid": result.LayoutID, "global": true},
 			},
 		}
 	}
@@ -528,5 +629,63 @@ func (r *PageMongo) UpdatePage(id string, data interface{}) (domain.Page, error)
 		return result, err
 	}
 
+	return result, nil
+}
+
+func (r *PageMongo) UpdatePageWithContent(id string, data map[string]interface{}) (domain.Page, error) {
+	var result domain.Page
+	ctx, cancel := context.WithTimeout(context.Background(), MongoQueryTimeout)
+	defer cancel()
+
+	collection := r.db.Collection(tblComponentData)
+
+	// disable old data.
+	var layoutID primitive.ObjectID
+	if LID, ok := data["layout_id"]; ok {
+		layoutID = LID.(primitive.ObjectID)
+		// fmt.Println("layout_id=", layoutID)
+	}
+	pageID, _ := primitive.ObjectIDFromHex(id)
+	// fmt.Println("page_id=", pageID)
+	filter := bson.M{
+		"$or": bson.A{
+			bson.M{
+				"page_id":   pageID,
+				"layout_id": layoutID,
+			},
+			bson.M{
+				"page_id":   primitive.NilObjectID,
+				"layout_id": layoutID,
+			},
+		},
+	}
+	// bson.M{"$or": bson.A{
+	// 	bson.M{"page_id": pageID},
+	// 	bson.M{"layout_id": layoutID},
+	// }}
+	update := bson.D{{Key: "$set", Value: bson.D{{Key: "publish", Value: false}}}}
+	_, err := collection.UpdateMany(ctx, filter, update)
+	if err != nil {
+		panic(err)
+	}
+
+	// set new data.
+	if val, ok := data["content"]; ok {
+		data := val.([]domain.ComponentData)
+		var ui []interface{}
+		for _, t := range data {
+			ui = append(ui, t)
+		}
+		_, err := collection.InsertMany(ctx, ui)
+		if err != nil {
+			return result, err
+		}
+
+	}
+
+	// err = collection.FindOne(ctx, filter).Decode(&result)
+	// if err != nil {
+	// 	return result, err
+	// }
 	return result, nil
 }

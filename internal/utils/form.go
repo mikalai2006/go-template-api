@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/mikalai2006/go-template-api/internal/domain"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -91,6 +92,273 @@ func BindAndValid[V any](c *gin.Context, form V) (interface{}, error) {
 
 	result["updated_at"] = time.Now()
 	return result, nil
+}
+
+// BindAndValid component data for page.
+func BindPageWithContent[V any](c *gin.Context, form V) (map[string]interface{}, error) {
+	var body map[string]interface{}
+	if er := json.NewDecoder(c.Request.Body).Decode(&body); er != nil {
+		return nil, er
+	}
+	pageID := c.Param("id")
+	var layoutID string
+	if id, ok := body["layoutId"]; ok {
+		layoutID = id.(string)
+	}
+	result := make(map[string]interface{}, len(body))
+	var tagValue, primitiveValue, tagJSONValue string
+	myDataReflect := reflect.Indirect(reflect.ValueOf(form))
+
+	for i := 0; i < myDataReflect.NumField(); i++ {
+		typeField := myDataReflect.Type().Field(i)
+		tag := typeField.Tag
+		tagValue = tag.Get("bson")
+		tagJSONValue = tag.Get("json")
+		primitiveValue = tag.Get("primitive")
+		if val, ok := body[tagJSONValue]; ok {
+			// fmt.Println(tagValue, tagJSONValue, reflect.TypeOf(val))
+			switch myDataReflect.Field(i).Kind() {
+			case reflect.String:
+				result[tagValue] = val.(string)
+
+			case reflect.Bool:
+				result[tagValue] = val.(bool)
+
+			case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+				// s := val.(string)
+				// i, err := strconv.ParseInt(s, 10, 64)
+				// if err == nil {
+				// 	result[tagValue] = i
+				// 	continue
+				// }
+				// f, err := strconv.ParseFloat(s, 64)
+				// if err == nil {
+				// 	result[tagValue] = f
+				// 	continue
+				// }
+				result[tagValue] = val
+			default:
+				if primitiveValue == "true" {
+					if reflect.ValueOf(val).Kind() == reflect.Slice {
+						l := len(val.([]interface{}))
+						idsPrimititiveSlice := make([]primitive.ObjectID, l)
+						allValue := val.([]interface{})
+						for i := range val.([]interface{}) {
+							id, err := primitive.ObjectIDFromHex(allValue[i].(string))
+							if err != nil {
+								// todo error
+								return result, err
+							}
+							idsPrimititiveSlice[i] = id
+						}
+						result[tagValue] = idsPrimititiveSlice
+						// fmt.Println("default: ", tagValue, reflect.ValueOf(val).Kind())
+					} else {
+
+						id, err := primitive.ObjectIDFromHex(val.(string))
+						if err != nil {
+							// todo error
+							return result, err
+						}
+						// fmt.Println("default: ", tagValue, reflect.ValueOf(val).Kind())
+						result[tagValue] = id
+					}
+				}
+				if tagValue == "content" {
+					result[tagValue] = buildFlatDataFormTree(val.(map[string]interface{}), layoutID, pageID)
+					// value := myDataReflect.Field(i)
+					// fmt.Println("   === default: tag=", tagValue, value)
+					// fmt.Println("   === default: value=", value)
+					// fmt.Println("   === default: tag primitiveValue=", primitiveValue)
+					// fmt.Println("   === default: kind= ", myDataReflect.Field(i).Kind())
+				}
+			}
+		}
+	}
+
+	result["updated_at"] = time.Now()
+	return result, nil
+}
+
+type StackNode struct {
+	Node   interface{}
+	Parent string
+	Global bool
+}
+
+func buildFlatDataFormTree(
+	tree interface{},
+	layoutID string,
+	pageID string,
+	// relations map[string][]*domain.Field,
+	// level int,
+	// i18n config.I18nConfig,
+) []domain.ComponentData {
+	// level++
+	var result []domain.ComponentData
+	var stack []StackNode
+	stack = append(stack, StackNode{
+		Node:   tree,
+		Parent: "page",
+		// Global: false,
+	})
+	PID, _ := primitive.ObjectIDFromHex(pageID)
+	LID, _ := primitive.ObjectIDFromHex(layoutID)
+
+	for len(stack) > 0 {
+		n := len(stack) - 1 // Top element
+		currentNode := stack[n]
+		stack = stack[:n] // Pop
+
+		val := reflect.ValueOf(currentNode.Node)
+
+		// if valData.Kind() == reflect.Struct {
+		// 	fmt.Println("val type: ", valData.Interface().(map[string]interface{}))
+		// 	valInt := reflect.ValueOf(currentNode.Node).Elem()
+		// 	val = reflect.ValueOf(valInt)
+		// 	// copy := reflect.New(val.Type()).Elem()
+		// 	// for i := 0; i < val.NumField(); i += 1 {
+		// 	// 	copy.Field(i).Set(val.Field(i))
+		// 	// 	fmt.Println("val.Field(i)=", val.Field(i))
+		// 	// }
+		// 	// val = copy
+		// }
+		// fmt.Println("currentNode.Node->", currentNode, " kind=", val.Kind())
+
+		if val.Kind() == reflect.Map {
+			globalValue := val.MapIndex(reflect.ValueOf("global"))
+			var PPID primitive.ObjectID
+			if globalValue.IsValid() {
+				PPID = primitive.NilObjectID
+			} else {
+				PPID = PID
+			}
+
+			keyUID := val.MapIndex(reflect.ValueOf("_uid"))
+			var parent string
+			if keyUID.Elem().String() == layoutID {
+				parent = "global"
+			} else {
+				parent = currentNode.Parent
+			}
+
+			res := domain.ComponentData{
+				Parent:   parent,
+				UID:      keyUID.Elem().String(),
+				PageID:   PPID,
+				LayoutID: LID,
+				// Component: "Component",
+				Publish:   true,
+				CreatedAt: time.Now(),
+				UpdatedAt: time.Now(),
+			}
+			resData := map[string]interface{}{}
+
+			// fmt.Println("keyUID->", keyUID)
+
+			for _, e := range val.MapKeys() {
+				v := val.MapIndex(e)
+				key := e.Interface().(string)
+				if key == "component" {
+					res.Component = v.Elem().String()
+				} else if key == "_uid" {
+					res.UID = v.Elem().String()
+				} else {
+					switch t := v.Interface().(type) {
+					case int:
+						// fmt.Println(e, "=", t)
+						resData[key] = t
+					case string:
+						// fmt.Println(e, "=", t)
+						resData[key] = t
+					case bool:
+						// fmt.Println(e, "=", t)
+						resData[key] = t
+					default:
+						// fmt.Println("default:", e, "=", t, reflect.TypeOf(t).Kind())
+						if reflect.TypeOf(t).Kind() == reflect.Slice {
+							// reflect.ValueOf(t)
+							s := reflect.ValueOf(t)
+							uids := []string{}
+
+							for i := 0; i < s.Len(); i++ {
+								// fmt.Println("s.Index(i).Elem()=", s.Index(i))
+								// global := false
+								// fmt.Println("global=", key, globalValue)
+								// if key == "layout" {
+								// 	global = true
+								// }
+
+								// add UID node to slice.
+								valChild := s.Index(i).Elem()
+								for _, ee := range valChild.MapKeys() {
+									vChild := valChild.MapIndex(ee)
+									keyChild := ee.Interface().(string)
+									if keyChild == "_uid" {
+										uids = append(uids, vChild.Elem().String())
+									}
+								}
+								stack = append(stack, StackNode{
+									Node:   s.Index(i).Elem().Interface(), // s.Index(i),
+									Parent: keyUID.Elem().String(),
+									// Global: global,
+								})
+								// fmt.Println("========================")
+								// fmt.Println(s.Index(i).Elem().Interface())
+								// fmt.Println("========================")
+							}
+							resData[key] = map[string]interface{}{
+								"uids": uids,
+							}
+						}
+					}
+				}
+			}
+			res.Data = resData
+			result = append(result, res)
+		}
+		// fmt.Println("stack->", len(stack), stack)
+	}
+
+	// for i, field := range fields {
+	// 	node := map[string]interface{}{
+	// 		"_uid":   field.UID,
+	// 		"parent": field.Parent,
+	// 		"name":   field.Name,
+	// 		"level":  level,
+	// 	}
+
+	// 	for k, fieldData := range field.Data.Value {
+	// 		switch c := fieldData.(type) {
+	// 		case map[string]interface{}:
+	// 			if _, ok := c[i18n.Default]; ok {
+	// 				for i, data := range fieldData.(map[string]any) {
+	// 					key := fmt.Sprintf("%s%s%s", k, i18n.Prefix, i)
+	// 					node[key] = data
+	// 					if i == i18n.Default {
+	// 						node[k] = data
+	// 					}
+	// 				}
+	// 				// delete(field.Data.Value, k)
+	// 			}
+	// 		default:
+	// 			node[k] = fieldData
+	// 		}
+	// 	}
+
+	// 	if childIDS, ok := relations[field.UID]; ok {
+	// 		node["child"] = buildTree(childIDS, relations, level, i18n)
+	// 	}
+	// 	if node["parent"] == nil || node["level"].(int) != 1 {
+	// 		tree[i] = node
+	// 	}
+	// }
+
+	// fmt.Println("============result======================")
+	// fmt.Println(result)
+	// fmt.Println("==========================================")
+
+	return result
 }
 
 func BindJSON[V any](data map[string]interface{}) (V, error) {

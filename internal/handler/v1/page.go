@@ -16,6 +16,7 @@ func (h HandlerV1) RegisterPage(router *gin.RouterGroup) {
 	page.POST("/", middleware.SetUserIdentity, h.createPage)
 	page.DELETE("/:id", middleware.SetUserIdentity, h.deletePage)
 	page.PATCH("/:id", middleware.SetUserIdentity, h.updatePage)
+	page.PATCH("/:id/content", middleware.SetUserIdentity, h.updatePageWithContent)
 	page.GET("/:id", h.getPage)
 	page.GET("/get", h.getFullPage)
 	page.GET("/find", h.findPage)
@@ -60,7 +61,7 @@ func (h HandlerV1) getPageForRouters(c *gin.Context) {
 func (h HandlerV1) getFullPage(c *gin.Context) {
 	appG := app.Gin{C: c}
 
-	params, err := utils.GetParamsFromRequest(c, domain.PageInputData{}, &h.i18n)
+	params, err := utils.GetParamsFromRequest(c, domain.PageFilterData{}, &h.i18n)
 	if err != nil {
 		appG.ResponseError(http.StatusBadRequest, err, nil)
 		return
@@ -127,7 +128,7 @@ func (h HandlerV1) findPage(c *gin.Context) {
 	// 	return
 	// }
 
-	params, err := utils.GetParamsFromRequest(c, domain.PageInputData{}, &h.i18n)
+	params, err := utils.GetParamsFromRequest(c, domain.PageFilterData{}, &h.i18n)
 	if err != nil {
 		appG.ResponseError(http.StatusBadRequest, err, nil)
 		return
@@ -230,6 +231,27 @@ func (h HandlerV1) updatePage(c *gin.Context) {
 	}
 
 	document, err := h.services.Page.UpdatePage(id, &data)
+	if err != nil {
+		appG.ResponseError(http.StatusInternalServerError, err, nil)
+		return
+	}
+
+	c.JSON(http.StatusOK, document)
+}
+
+func (h HandlerV1) updatePageWithContent(c *gin.Context) {
+	appG := app.Gin{C: c}
+
+	id := c.Param("id")
+
+	var input domain.PageWithContent
+	data, err := utils.BindPageWithContent(c, &input)
+	if err != nil {
+		appG.ResponseError(http.StatusBadRequest, err, nil)
+		return
+	}
+
+	document, err := h.services.Page.UpdatePageWithContent(id, data)
 	if err != nil {
 		appG.ResponseError(http.StatusInternalServerError, err, nil)
 		return

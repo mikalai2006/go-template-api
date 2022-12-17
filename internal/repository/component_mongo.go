@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/mikalai2006/go-template-api/internal/config"
 	"github.com/mikalai2006/go-template-api/internal/domain"
@@ -161,6 +162,8 @@ func (r *ComponentMongo) CreateComponent(userID string, component *domain.Compon
 	// 	UpdatedAt: time.Now(),
 	// }
 	component.UserID = userIDPrimitive
+	component.CreatedAt = time.Now()
+	component.UpdatedAt = time.Now()
 
 	res, err := collection.InsertOne(ctx, component)
 	if err != nil {

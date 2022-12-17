@@ -3,7 +3,6 @@ package repository
 import (
 	"context"
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/mikalai2006/go-template-api/internal/domain"
@@ -101,7 +100,7 @@ func (r *AuthMongo) GetByCredentials(auth *domain.SignInInput) (domain.Auth, err
 
 	filter := chooseProvider(auth)
 
-	fmt.Println("filter credit ", filter)
+	// fmt.Println("filter credit ", filter)
 	err := r.db.Collection(TblAuth).FindOne(ctx, filter).Decode(&user)
 
 	return user, err
