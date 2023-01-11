@@ -3,6 +3,7 @@ package utils
 import (
 	"encoding/json"
 	"fmt"
+	"os"
 	"reflect"
 	"strings"
 	"time"
@@ -226,6 +227,32 @@ func buildFlatDataFormTree(
 		// fmt.Println("currentNode.Node->", currentNode, " kind=", val.Kind())
 
 		if val.Kind() == reflect.Map {
+
+			// create file css for page.
+			cssValue := val.MapIndex(reflect.ValueOf("___cssPage"))
+			if cssValue.IsValid() {
+				filePath := fmt.Sprintf("./public/css/p_%s.css", pageID)
+				f, err := os.Create(filePath)
+				if err != nil {
+					fmt.Println(err)
+				}
+				defer f.Close()
+
+				f.Write([]byte(cssValue.Elem().String()))
+			}
+
+			// create file css for layout.
+			cssLayoutValue := val.MapIndex(reflect.ValueOf("___cssLayout"))
+			if cssLayoutValue.IsValid() {
+				filePath := fmt.Sprintf("./public/css/l_%s.css", layoutID)
+				f, err := os.Create(filePath)
+				if err != nil {
+					fmt.Println(err)
+				}
+				defer f.Close()
+
+				f.Write([]byte(cssLayoutValue.Elem().String()))
+			}
 			globalValue := val.MapIndex(reflect.ValueOf("global"))
 			var PPID primitive.ObjectID
 			if globalValue.IsValid() {
@@ -259,7 +286,9 @@ func buildFlatDataFormTree(
 			for _, e := range val.MapKeys() {
 				v := val.MapIndex(e)
 				key := e.Interface().(string)
-				if key == "component" {
+				if key == "___cssLayout" || key == "___cssPage" {
+					// res.Component = v.Elem().String()
+				} else if key == "component" {
 					res.Component = v.Elem().String()
 				} else if key == "_uid" {
 					res.UID = v.Elem().String()
@@ -310,6 +339,10 @@ func buildFlatDataFormTree(
 							resData[key] = map[string]interface{}{
 								"uids": uids,
 							}
+						} else {
+							// fmt.Println(" custom object ===", key, t)
+							// write custom object as property.
+							resData[key] = t
 						}
 					}
 				}

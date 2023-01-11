@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net"
+	"reflect"
 	"time"
 
 	"github.com/mikalai2006/go-template-api/internal/config"
@@ -27,12 +28,16 @@ const (
 	tblComponentSchema     = "component_schemas"
 	tblComponentSchemaData = "component_schemadatas"
 
+	tblComponentPreset = "component_presets"
+
 	tblLibrary = "librarys"
 	tblFields  = "fields"
 
 	TblLanguage = "langs"
 
 	TblProduct = "products"
+
+	tblImage = "image"
 
 	MongoQueryTimeout = 10 * time.Second
 )
@@ -68,8 +73,27 @@ func NewMongoDB(cfg *ConfigMongoDB) (*mongo.Client, error) {
 	return client, nil
 }
 
+func test(t interface{}) {
+	switch reflect.TypeOf(t).Kind() {
+	case reflect.Slice:
+		s := reflect.ValueOf(t)
+
+		for i := 0; i < s.Len(); i++ {
+			fmt.Println(s.Index(i))
+		}
+	}
+}
+
 func CreatePipeline(params domain.RequestParams, i18n *config.I18nConfig) (mongo.Pipeline, error) {
 	pipe := mongo.Pipeline{}
+	// fmt.Println("params.Filter: ", params.Filter)
+
+	// filter := map[string]interface{}{}
+	// elementsFilter := reflect.ValueOf(params.Filter)
+	// for i := 0; i < elementsFilter.NumField(); i++ {
+	// 	fmt.Println("params.Filter: ", elementsFilter.Field(i))
+	// }
+
 	pipe = append(pipe,
 		bson.D{{Key: "$match", Value: params.Filter}},
 		bson.D{{
@@ -136,7 +160,7 @@ func CreatePipeline(params domain.RequestParams, i18n *config.I18nConfig) (mongo
 	// aggProject = bson.M{"$project": bson.M{
 	//   "parent": bson.M{"$arrayElemAt": []interface{}{"$parent", 0}},
 	// }}
-
+	// fmt.Println("pipe: ", pipe)
 	return pipe, nil
 }
 

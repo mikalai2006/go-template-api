@@ -10,6 +10,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type ComponentMongo struct {
@@ -27,16 +28,32 @@ func (r *ComponentMongo) GetComponent(id string) (domain.Component, error) {
 
 	result := domain.Component{}
 
-	userIDPrimitive, err := primitive.ObjectIDFromHex(id)
+	IDComponentPrimitive, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		return result, err
 	}
 
-	filter := bson.M{"_id": userIDPrimitive}
+	filter := bson.M{"_id": IDComponentPrimitive}
+	aggSearch := bson.M{"$match": filter}
 
-	err = r.db.Collection(tblComponent).FindOne(ctx, filter).Decode(&result)
+	// Populate Presets field.
+	aggPopulate := bson.M{"$lookup": bson.M{
+		"from":         tblComponentPreset, // the collection name
+		"localField":   "_id",              // the field on the child struct
+		"foreignField": "component_id",     // the field on the parent struct
+		"as":           "presets",          // the field to populate into
+	}}
+
+	cursor, err := r.db.Collection(tblComponent).Aggregate(ctx, []bson.M{aggSearch, aggPopulate}) // .FindOne(ctx, filter).Decode(&result)
 	if err != nil {
 		return result, err
+	}
+	defer cursor.Close(ctx)
+
+	if cursor.Next(ctx) {
+		if er := cursor.Decode(&result); er != nil {
+			return result, er
+		}
 	}
 
 	return result, nil
@@ -48,9 +65,16 @@ func (r *ComponentMongo) FindComponent(params domain.RequestParams) (domain.Resp
 
 	results := []domain.Component{}
 	response := domain.Response[domain.Component]{}
+	params.Options.Limit = 500
 	pipe, err := CreatePipeline(params, &r.i18n)
+	// Populate Presets.
+	pipe = append(pipe, bson.D{{Key: "$lookup", Value: bson.M{
+		"from":         "component_presets",
+		"as":           "presets",
+		"localField":   "_id",
+		"foreignField": "component_id",
+	}}})
 
-	// Populate Parent field
 	// pipe = append(pipe, bson.D{{Key: "$lookup", Value: bson.M{
 	// 	"from": "component_schemas",
 	// 	"as":   "schema",
@@ -100,8 +124,56 @@ func (r *ComponentMongo) FindComponent(params domain.RequestParams) (domain.Resp
 	if err != nil {
 		return response, err
 	}
+	fmt.Println("pipe: ", pipe)
 
 	cursor, err := r.db.Collection(tblComponent).Aggregate(ctx, pipe) // Find(ctx, params.Filter, opts)
+	if err != nil {
+		return response, err
+	}
+	defer cursor.Close(ctx)
+
+	if er := cursor.All(ctx, &results); er != nil {
+		return response, er
+	}
+
+	// fmt.Println("results=", results[0].Schema)
+
+	resultSlice := make([]domain.Component, len(results))
+	// for i, d := range results {
+	// 	resultSlice[i] = d
+	// }
+	copy(resultSlice, results)
+
+	count, err := r.db.Collection(tblComponent).CountDocuments(ctx, bson.M{})
+	if err != nil {
+		return response, err
+	}
+
+	response = domain.Response[domain.Component]{
+		Total: int(count),
+		Skip:  int(params.Options.Skip),
+		Limit: int(params.Options.Limit),
+		Data:  resultSlice,
+	}
+	return response, nil
+}
+
+func (r *ComponentMongo) FindGroupComponent(params domain.RequestParams) (domain.Response[domain.Component], error) {
+	ctx, cancel := context.WithTimeout(context.Background(), MongoQueryTimeout)
+	defer cancel()
+
+	results := []domain.Component{}
+	response := domain.Response[domain.Component]{}
+	// pipe, err := CreatePipeline(params, &r.i18n)
+	// if err != nil {
+	// 	return response, err
+	// }
+	var options options.FindOptions
+	options.SetLimit(params.Limit)
+	options.SetSkip(params.Skip)
+	options.SetSort(params.Sort)
+	// fmt.Println("options", params.Sort)
+	cursor, err := r.db.Collection(tblComponent).Find(ctx, params.Filter, &options) // Find(ctx, params.Filter, opts)
 	if err != nil {
 		return response, err
 	}

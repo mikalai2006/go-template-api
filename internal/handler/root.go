@@ -67,7 +67,8 @@ func (h *Handler) InitRoutes(cfg *config.Config) *gin.Engine {
 		// 	"message": "hello",
 		// })
 	})
-
+	router.Static("/images", "./public")
+	router.Static("/css", "./public/css")
 	return router
 }
 

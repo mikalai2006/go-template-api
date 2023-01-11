@@ -11,7 +11,7 @@ import (
 // Type     string `json:"type" db:"type" bson:"type"`
 
 type User struct {
-	ID     primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty" primitive:"true"`
+	ID     primitive.ObjectID `json:"id,omitempty" bson:"_id,omitempty" primitive:"true"`
 	UserID primitive.ObjectID `json:"userId,omitempty" bson:"user_id,omitempty" primitive:"true"`
 
 	Name      string    `json:"name,omitempty" bson:"name"`

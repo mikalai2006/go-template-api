@@ -23,6 +23,9 @@ func (s *ComponentService) FindComponent(params domain.RequestParams) (domain.Re
 	return s.repo.FindComponent(params)
 }
 
+func (s *ComponentService) FindGroupComponent(params domain.RequestParams) (domain.Response[domain.Component], error) {
+	return s.repo.FindGroupComponent(params)
+}
 func (s *ComponentService) FindByPopulate(params domain.RequestParams) (domain.Response[domain.Component], error) {
 	return s.repo.FindByPopulate(params)
 }

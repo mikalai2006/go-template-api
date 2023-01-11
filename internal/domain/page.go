@@ -8,7 +8,7 @@ import (
 
 type Page struct {
 	ID     primitive.ObjectID `json:"id" bson:"_id,omitempty"`
-	UserID primitive.ObjectID `json:"userId" bson:"userId" primitive:"true"`
+	UserID primitive.ObjectID `json:"userId" bson:"user_id" primitive:"true"`
 
 	ComponentID primitive.ObjectID `json:"componentId" bson:"component_id" primitive:"true"`
 	LayoutID    primitive.ObjectID `json:"layoutId" bson:"layout_id" primitive:"true"`
@@ -24,8 +24,8 @@ type Page struct {
 	Component     Component       `json:"component" bson:"component"`
 	Layout        Component       `json:"layout" bson:"layout"`
 	XXX           any             `json:"-" bson:"xxx"`
-	Content       any             `json:"content" bson:"content"`
-	ComponentData []ComponentData `json:"componentData" bson:"component_data"`
+	Content       interface{}     `json:"content" bson:"content"`
+	ComponentData []ComponentData `json:"-" bson:"component_data"`
 	CreatedAt     time.Time       `json:"createdAt" bson:"created_at"`
 	UpdatedAt     time.Time       `json:"updatedAt" bson:"updated_at"`
 }

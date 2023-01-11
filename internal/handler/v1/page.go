@@ -2,7 +2,9 @@ package v1
 
 import (
 	"errors"
+	"log"
 	"net/http"
+	"os"
 
 	"github.com/gin-gonic/gin"
 	"github.com/mikalai2006/go-template-api/internal/domain"
@@ -10,6 +12,15 @@ import (
 	"github.com/mikalai2006/go-template-api/internal/utils"
 	"github.com/mikalai2006/go-template-api/pkg/app"
 )
+
+func init() {
+	if _, err := os.Stat("public/css"); errors.Is(err, os.ErrNotExist) {
+		err := os.MkdirAll("public/css", os.ModePerm)
+		if err != nil {
+			log.Println(err)
+		}
+	}
+}
 
 func (h HandlerV1) RegisterPage(router *gin.RouterGroup) {
 	page := router.Group("/page")
@@ -256,6 +267,19 @@ func (h HandlerV1) updatePageWithContent(c *gin.Context) {
 		appG.ResponseError(http.StatusInternalServerError, err, nil)
 		return
 	}
+
+	// params := domain.RequestParams{
+	// 	Filter: domain.ComponentPresetFind{},
+	// }
+	// dataFilter := bson.M{"component_id": document.ID}
+	// params.Lang = h.i18n.Default
+	// params.Filter = dataFilter
+
+	// document2, err := h.services.Page.GetFullPage(params)
+	// if err != nil {
+	// 	appG.ResponseError(http.StatusBadRequest, err, nil)
+	// 	return
+	// }
 
 	c.JSON(http.StatusOK, document)
 }

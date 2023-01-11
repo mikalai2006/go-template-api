@@ -184,6 +184,10 @@ func (r *PageMongo) GetFullPage(params domain.RequestParams) (domain.Response[do
 			if resultSlice[keyPage].ComponentData[i].Parent == "global" {
 				resultSlice[keyPage].ComponentData[i].Parent = resultSlice[keyPage].ID.Hex()
 			}
+			// if id component changed, edit component name to page.
+			if resultSlice[keyPage].ComponentData[i].Parent == "page" {
+				resultSlice[keyPage].ComponentData[i].Component = resultSlice[keyPage].Component.Name
+			}
 			mapAllData[resultSlice[keyPage].ComponentData[i].UID] = resultSlice[keyPage].ComponentData[i]
 		}
 
@@ -338,11 +342,13 @@ func createContent(
 				newBlok[keyProperty] = property
 				continue
 			}
+			// fmt.Println(" map key=", keyProperty, property)
 			// detect global.
 			// if keyProperty == "layout" {
 			// 	global = true
 			// }
 
+			newBlok[keyProperty] = property
 			// if slice uids in data.
 			if val, ok := property.(map[string]interface{})["uids"]; ok {
 				newBlok[keyProperty] = property
@@ -363,6 +369,7 @@ func createContent(
 						newBlok[keyProperty] = data
 					}
 				}
+				// continue
 			}
 		}
 
@@ -683,9 +690,9 @@ func (r *PageMongo) UpdatePageWithContent(id string, data map[string]interface{}
 
 	}
 
-	// err = collection.FindOne(ctx, filter).Decode(&result)
-	// if err != nil {
-	// 	return result, err
-	// }
+	err = r.db.Collection(tblPage).FindOne(ctx, bson.M{"_id": pageID}).Decode(&result)
+	if err != nil {
+		return result, err
+	}
 	return result, nil
 }

@@ -11,6 +11,7 @@ import (
 	"github.com/mikalai2006/go-template-api/internal/middleware"
 	"github.com/mikalai2006/go-template-api/internal/utils"
 	"github.com/mikalai2006/go-template-api/pkg/app"
+	"go.mongodb.org/mongo-driver/bson"
 )
 
 func (h *HandlerV1) RegisterComponent(router *gin.RouterGroup) {
@@ -18,6 +19,7 @@ func (h *HandlerV1) RegisterComponent(router *gin.RouterGroup) {
 	route.GET("/:id", h.getComponent)
 	route.GET("/find", h.findComponent)
 	route.GET("/populate", h.findByPopulate)
+	route.GET("/group", h.findComponentByGroup)
 	route.POST("/", middleware.SetUserIdentity, h.createComponent)
 	route.DELETE("/:id", middleware.SetUserIdentity, h.deleteComponent)
 	route.PATCH("/:id", middleware.SetUserIdentity, h.updateComponent)
@@ -74,7 +76,7 @@ type InputComponent struct {
 func (h *HandlerV1) findComponent(c *gin.Context) {
 	appG := app.Gin{C: c}
 
-	params, err := utils.GetParamsFromRequest(c, domain.Component{}, &h.i18n)
+	params, err := utils.GetParamsFromRequest(c, domain.ComponentFind{}, &h.i18n)
 	if err != nil {
 		// c.AbortWithError(http.StatusBadRequest, err)
 		appG.ResponseError(http.StatusBadRequest, err, nil)
@@ -142,14 +144,33 @@ func (h *HandlerV1) findByPopulate(c *gin.Context) {
 		return
 	}
 
-	users, err := h.services.Component.FindByPopulate(params)
+	components, err := h.services.Component.FindByPopulate(params)
 	if err != nil {
 		// c.AbortWithError(http.StatusBadRequest, err)
 		appG.ResponseError(http.StatusBadRequest, err, nil)
 		return
 	}
 
-	c.JSON(http.StatusOK, users)
+	c.JSON(http.StatusOK, components)
+}
+
+func (h *HandlerV1) findComponentByGroup(c *gin.Context) {
+	appG := app.Gin{C: c}
+
+	params, err := utils.GetParamsFromRequest(c, domain.ComponentInputByGroup{}, &h.i18n)
+	if err != nil {
+		// c.AbortWithError(http.StatusBadRequest, err)
+		appG.ResponseError(http.StatusBadRequest, err, nil)
+		return
+	}
+	components, err := h.services.Component.FindGroupComponent(params)
+	if err != nil {
+		// c.AbortWithError(http.StatusBadRequest, err)
+		appG.ResponseError(http.StatusBadRequest, err, nil)
+		return
+	}
+
+	c.JSON(http.StatusOK, components)
 }
 
 // @Summary Delete component
@@ -226,13 +247,28 @@ func (h *HandlerV1) updateComponent(c *gin.Context) {
 		}
 	}
 
-	user, err := h.services.Component.UpdateComponent(id, input)
+	component, err := h.services.Component.UpdateComponent(id, input)
 	if err != nil {
 		appG.ResponseError(http.StatusBadRequest, err, nil)
 		return
 	}
 
-	c.JSON(http.StatusOK, user)
+	params := domain.RequestParams{
+		Filter: domain.ComponentPresetFind{},
+	}
+	dataFilter := bson.M{"component_id": component.ID}
+	params.Lang = h.i18n.Default
+	params.Filter = dataFilter
+
+	presets, err := h.services.ComponentPreset.FindComponentPreset(params)
+	if err != nil {
+		appG.ResponseError(http.StatusBadRequest, err, nil)
+		return
+	}
+
+	component.Presets = presets.Data
+
+	c.JSON(http.StatusOK, component)
 }
 
 // @Summary Find few library and populate

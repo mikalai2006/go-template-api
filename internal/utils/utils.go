@@ -39,32 +39,39 @@ func GetParamsFromRequest[V any](c *gin.Context, filterStruct V, i18n *config.I1
 		params.Lang = i18n.Default
 	}
 
-	fmt.Println("lang", lang)
+	// fmt.Println("lang", c.QueryMap("name"))
 	var filter V
 	if err := c.ShouldBind(&filter); err != nil {
 		// disable error for convert string to primitive.ObjectID.
 		return domain.RequestParams{}, err
 	}
-	fmt.Println("filter", filter)
+	fmt.Println("filter: ", filter)
 
 	filterValues := c.Request.URL.Query()
+	// fmt.Println("filterValues: ", filterValues)
 	dataFilter := bson.M{}
-	var tagValue, primitiveValue, tagJSONValue string
+	var tagValue, primitiveValue, tagJSONValue, tagMapQuery string
 	elementsFilter := reflect.ValueOf(filter)
 	for i := 0; i < elementsFilter.NumField(); i++ {
 		tag := elementsFilter.Type().Field(i).Tag
 		tagValue = tag.Get("bson")
 		primitiveValue = tag.Get("primitive")
 		tagJSONValue = tag.Get("json")
-		// fmt.Println(tagValue, tagJSONValue, filterValues[tagJSONValue])
+		tagMapQuery = fmt.Sprintf("%s[]", tag.Get("json"))
 
-		if len(filterValues[tagJSONValue]) != 0 {
-			fmt.Println(tagValue, elementsFilter.Field(i).Kind())
+		valueParam := filterValues[tagJSONValue]
+		// if len(valueParam) == 0 {
+		// 	valueParam = filterValues[tagMapQuery]
+		// }
+
+		// fmt.Println(tagValue, tagJSONValue, tagMapQuery, valueParam)
+		if len(valueParam) != 0 {
+			// fmt.Println(tagValue, elementsFilter.Field(i).Kind())
 			switch elementsFilter.Field(i).Kind() {
 			case reflect.String:
 				value := elementsFilter.Field(i).String()
 				if primitiveValue == "true" {
-					id, _ := primitive.ObjectIDFromHex(filterValues[tagJSONValue][0])
+					id, _ := primitive.ObjectIDFromHex(valueParam[0])
 					// fmt.Println("===== string add ", tagValue, filterValues[tagJSONValue])
 					dataFilter[tagValue] = id
 				} else {
@@ -80,14 +87,34 @@ func GetParamsFromRequest[V any](c *gin.Context, filterStruct V, i18n *config.I1
 				dataFilter[tagValue] = value
 
 			default:
-				fmt.Println("default ", tagValue, elementsFilter.Field(i).Type(), primitiveValue)
+
+			}
+		} else {
+			valueParam = filterValues[tagMapQuery]
+			if len(valueParam) != 0 {
+				// fmt.Println("custom:", tagValue, valueParam)
+				// fmt.Println("default ", tagValue, elementsFilter.Field(i).Type(), primitiveValue)
 				if primitiveValue == "true" {
-					fmt.Println("===== add ", tagValue, filterValues[tagValue])
+					var sliceIn bson.D
+					a := []primitive.ObjectID{}
+					for i := range valueParam {
+						id, _ := primitive.ObjectIDFromHex(valueParam[i])
+						// fmt.Println("===== add ", tagValue, id)
+						a = append(a, id)
+					}
+					// fmt.Println("===== a ", a)
+					sliceIn = bson.D{{"$in", a}}
+					dataFilter[tagValue] = sliceIn
 					// id, _ := primitive.ObjectIDFromHex(filterValues[tagValue][0])
 					// // if err != nil {
 					// // 	// todo error
 					// // }
 					// dataFilter[tagValue] = id
+				} else {
+					fmt.Println(tagValue, tagJSONValue, tagMapQuery, valueParam)
+					var sliceIn bson.D
+					sliceIn = bson.D{{"$in", valueParam}}
+					dataFilter[tagValue] = sliceIn
 				}
 			}
 		}
@@ -123,7 +150,7 @@ func GetParamsFromRequest[V any](c *gin.Context, filterStruct V, i18n *config.I1
 	}
 	params.Filter = dataFilter
 	params.Options = opts
-
-	// fmt.Println("params: ", params)
+	// fmt.Println("query map: ", c.Request.URL.Query())
+	fmt.Println("params: ", params)
 	return params, nil
 }

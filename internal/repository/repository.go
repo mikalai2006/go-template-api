@@ -41,6 +41,7 @@ type Page interface {
 type Component interface {
 	GetComponent(id string) (domain.Component, error)
 	FindComponent(params domain.RequestParams) (domain.Response[domain.Component], error)
+	FindGroupComponent(params domain.RequestParams) (domain.Response[domain.Component], error)
 	CreateComponent(userID string, component *domain.ComponentInput) (*domain.Component, error)
 	DeleteComponent(id string) (domain.Component, error)
 	UpdateComponent(id string, data interface{}) (domain.Component, error)
@@ -54,6 +55,13 @@ type ComponentGroup interface {
 	CreateComponentGroup(userID string, componentGroup *domain.ComponentGroup) (*domain.ComponentGroup, error)
 	UpdateComponentGroup(id string, data interface{}) (domain.ComponentGroup, error)
 	DeleteComponentGroup(id string) (domain.ComponentGroup, error)
+}
+
+type ComponentPreset interface {
+	FindComponentPreset(params domain.RequestParams) (domain.Response[domain.ComponentPreset], error)
+	CreateComponentPreset(userID string, ComponentPreset *domain.ComponentPresetInput) (*domain.ComponentPreset, error)
+	UpdateComponentPreset(id string, data interface{}) (domain.ComponentPreset, error)
+	DeleteComponentPreset(id string) (domain.ComponentPreset, error)
 }
 
 type User interface {
@@ -73,6 +81,13 @@ type Product interface {
 	DeleteProduct(id string) (domain.Product, error)
 }
 
+type Image interface {
+	CreateImage(userID string, data *domain.ImageInput) (domain.Image, error)
+	GetImage(id string) (domain.Image, error)
+	FindImage(params domain.RequestParams) (domain.Response[domain.Image], error)
+	DeleteImage(id string) (domain.Image, error)
+}
+
 type Apps interface {
 	CreateLanguage(userID string, data *domain.LanguageInput) (domain.Language, error)
 	GetLanguage(id string) (domain.Language, error)
@@ -86,6 +101,8 @@ type Repositories struct {
 	Apps
 	Component
 	ComponentGroup
+	ComponentPreset
+	Image
 	Page
 	Product
 	Shop
@@ -94,14 +111,16 @@ type Repositories struct {
 
 func NewRepositories(mongodb *mongo.Database, i18n config.I18nConfig) *Repositories {
 	return &Repositories{
-		Authorization:  NewAuthMongo(mongodb),
-		Apps:           NewAppsMongo(mongodb, i18n),
-		Component:      NewComponentMongo(mongodb, i18n),
-		ComponentGroup: NewComponentGroupMongo(mongodb, i18n),
-		Page:           NewPageMongo(mongodb, i18n),
-		Product:        NewProductMongo(mongodb, i18n),
-		Shop:           NewShopMongo(mongodb, i18n),
-		User:           NewUserMongo(mongodb, i18n),
+		Authorization:   NewAuthMongo(mongodb),
+		Apps:            NewAppsMongo(mongodb, i18n),
+		Component:       NewComponentMongo(mongodb, i18n),
+		ComponentGroup:  NewComponentGroupMongo(mongodb, i18n),
+		ComponentPreset: NewComponentPresetMongo(mongodb, i18n),
+		Image:           NewImageMongo(mongodb, i18n),
+		Page:            NewPageMongo(mongodb, i18n),
+		Product:         NewProductMongo(mongodb, i18n),
+		Shop:            NewShopMongo(mongodb, i18n),
+		User:            NewUserMongo(mongodb, i18n),
 	}
 }
 
