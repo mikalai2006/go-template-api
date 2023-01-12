@@ -2,7 +2,6 @@ package service
 
 import (
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/mikalai2006/go-template-api/internal/domain"
@@ -96,7 +95,7 @@ func (s *AuthService) SignIn(auth *domain.SignInInput) (domain.ResponseTokens, e
 	}
 	auth.Password = passwordHash
 
-	fmt.Println("sign in ", auth)
+	// fmt.Println("sign in ", auth)
 	user, err := s.repository.GetByCredentials(auth)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {

@@ -2,7 +2,6 @@ package v1
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 	"strings"
 
@@ -232,13 +231,13 @@ func (h *HandlerV1) updateComponent(c *gin.Context) {
 		return
 	}
 
-	fmt.Println("input: ", input)
-	if input.Schema != nil {
-		fmt.Println("input.Schema | yes |: ", input.Schema)
-	}
+	// fmt.Println("input: ", input)
+	// if input.Schema != nil {
+	// 	fmt.Println("input.Schema | yes |: ", input.Schema)
+	// }
 
 	for i := range input.Schema {
-		fmt.Println(i, "-|: ", input.Schema[i])
+		// fmt.Println(i, "-|: ", input.Schema[i])
 		for j := range input.Schema[i] {
 			k := strings.Split(j, h.i18n.Prefix)
 			if len(k) == 2 {

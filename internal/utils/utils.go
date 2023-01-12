@@ -45,7 +45,7 @@ func GetParamsFromRequest[V any](c *gin.Context, filterStruct V, i18n *config.I1
 		// disable error for convert string to primitive.ObjectID.
 		return domain.RequestParams{}, err
 	}
-	fmt.Println("filter: ", filter)
+	// fmt.Println("filter: ", filter)
 
 	filterValues := c.Request.URL.Query()
 	// fmt.Println("filterValues: ", filterValues)
@@ -111,7 +111,7 @@ func GetParamsFromRequest[V any](c *gin.Context, filterStruct V, i18n *config.I1
 					// // }
 					// dataFilter[tagValue] = id
 				} else {
-					fmt.Println(tagValue, tagJSONValue, tagMapQuery, valueParam)
+					// fmt.Println(tagValue, tagJSONValue, tagMapQuery, valueParam)
 					var sliceIn bson.D
 					sliceIn = bson.D{{"$in", valueParam}}
 					dataFilter[tagValue] = sliceIn
@@ -151,6 +151,6 @@ func GetParamsFromRequest[V any](c *gin.Context, filterStruct V, i18n *config.I1
 	params.Filter = dataFilter
 	params.Options = opts
 	// fmt.Println("query map: ", c.Request.URL.Query())
-	fmt.Println("params: ", params)
+	// fmt.Println("params: ", params)
 	return params, nil
 }

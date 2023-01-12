@@ -264,7 +264,9 @@ func buildFlatDataFormTree(
 			keyUID := val.MapIndex(reflect.ValueOf("_uid"))
 			var parent string
 			if keyUID.Elem().String() == layoutID {
-				parent = "global"
+				parent = "layout"
+			} else if keyUID.Elem().String() == pageID {
+				parent = "page"
 			} else {
 				parent = currentNode.Parent
 			}
@@ -324,7 +326,11 @@ func buildFlatDataFormTree(
 									vChild := valChild.MapIndex(ee)
 									keyChild := ee.Interface().(string)
 									if keyChild == "_uid" {
-										uids = append(uids, vChild.Elem().String())
+										valUID := vChild.Elem().String()
+										if valUID == pageID {
+											valUID = "page"
+										}
+										uids = append(uids, valUID)
 									}
 								}
 								stack = append(stack, StackNode{

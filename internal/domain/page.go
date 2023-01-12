@@ -19,6 +19,7 @@ type Page struct {
 	Name        string             `json:"name" bson:"name"`
 	Publish     bool               `json:"publish" bson:"publish"`
 	SortOrder   int                `json:"sortOrder" bson:"sort_order"`
+	ContentType string             `json:"contentType" bson:"content_type"`
 	Setting     interface{}        `json:"setting" bson:"setting"`
 
 	Component     Component       `json:"component" bson:"component"`
@@ -43,6 +44,7 @@ type PageWithContent struct {
 	Publish     bool               `json:"publish" bson:"publish"`
 	SortOrder   int                `json:"sortOrder" bson:"sort_order"`
 	Setting     interface{}        `json:"setting" bson:"setting"`
+	ContentType string             `json:"contentType" bson:"content_type"`
 
 	Content   any       `json:"content" bson:"content" form:"content"`
 	UpdatedAt time.Time `json:"updatedAt" bson:"updated_at"`
@@ -63,6 +65,7 @@ type PageInputData struct {
 	Setting     interface{}        `json:"setting" bson:"setting" form:"setting"`
 	ComponentID primitive.ObjectID `json:"componentId" bson:"component_id" form:"componentId" primitive:"true"`
 	LayoutID    primitive.ObjectID `json:"layoutId" bson:"layout_id" form:"layoutId" primitive:"true"`
+	ContentType string             `json:"contentType" bson:"content_type" form:"contentType"`
 
 	CreatedAt time.Time `json:"createdAt" bson:"created_at"`
 	UpdatedAt time.Time `json:"updatedAt" bson:"updated_at"`
@@ -81,6 +84,7 @@ type PageFilterData struct {
 	Setting     interface{} `json:"setting" bson:"setting" form:"setting"`
 	ComponentID string      `json:"componentId" bson:"component_id" form:"componentId" primitive:"true"`
 	LayoutID    string      `json:"layoutId" bson:"layout_id" form:"layoutId" primitive:"true"`
+	ContentType string      `json:"contentType" bson:"content_type" form:"contentType"`
 
 	CreatedAt time.Time `json:"createdAt" bson:"created_at"`
 	UpdatedAt time.Time `json:"updatedAt" bson:"updated_at"`

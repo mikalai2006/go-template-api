@@ -13,6 +13,7 @@ type ComponentPreset struct {
 	Title       string                 `json:"title" bson:"title"`
 	Description string                 `json:"description" bson:"description"`
 	Data        map[string]interface{} `json:"data" bson:"data"`
+	Image       map[string]interface{} `json:"image" bson:"image"`
 	CreatedAt   time.Time              `json:"createdAt" bson:"created_at"`
 	UpdatedAt   time.Time              `json:"updatedAt" bson:"updated_at"`
 }
@@ -22,6 +23,7 @@ type ComponentPresetInput struct {
 	Title       string                 `json:"title" bson:"title" form:"title"`
 	Description string                 `json:"description" bson:"description" form:"description"`
 	Data        map[string]interface{} `json:"data" bson:"data" form:"data"`
+	Image       map[string]interface{} `json:"image" bson:"image" form:"image"`
 }
 type ComponentPresetFind struct {
 	ComponentID string                 `json:"componentId" bson:"component_id" form:"componentId" primitive:"true"`

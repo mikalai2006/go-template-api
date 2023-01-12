@@ -2,7 +2,6 @@ package repository
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/mikalai2006/go-template-api/internal/config"
@@ -74,7 +73,7 @@ func (r *UserMongo) FindUser(params domain.RequestParams) (domain.Response[domai
 	if err != nil {
 		return domain.Response[domain.User]{}, err
 	}
-	fmt.Println("gogo", pipe)
+	// fmt.Println("gogo", pipe)
 	cursor, err := r.db.Collection(tblUsers).Aggregate(ctx, pipe) // Find(ctx, params.Filter, opts)
 	if err != nil {
 		return response, err

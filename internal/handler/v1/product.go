@@ -2,7 +2,6 @@ package v1
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -100,7 +99,7 @@ func (h *HandlerV1) updateProduct(c *gin.Context) {
 		appG.ResponseError(http.StatusBadRequest, err, nil)
 		return
 	}
-	fmt.Println(data)
+	// fmt.Println(data)
 
 	document, err := h.services.Product.UpdateProduct(id, &data)
 	if err != nil {

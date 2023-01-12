@@ -6,4 +6,5 @@
 /help
 /tmp
 /gin-bin
+/public/*/*.*
 coverage.out

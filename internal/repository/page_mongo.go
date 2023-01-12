@@ -198,13 +198,13 @@ func (r *PageMongo) GetFullPage(params domain.RequestParams) (domain.Response[do
 			// fmt.Println("no page data!")
 			mapAllData[resultSlice[keyPage].ID.Hex()] = domain.ComponentData{
 				Parent: "page",
-				Data: map[string]interface{}{
-					"layout": map[string]interface{}{
-						"uids": primitive.A{
-							resultSlice[keyPage].LayoutID.Hex(),
-						},
-						"global": true,
-					},
+				Data:   map[string]interface{}{
+					// "layout": map[string]interface{}{
+					// 	"uids": primitive.A{
+					// 		resultSlice[keyPage].LayoutID.Hex(),
+					// 	},
+					// 	"global": true,
+					// },
 				},
 				Publish:   true,
 				PageID:    resultSlice[keyPage].ID,
@@ -230,7 +230,7 @@ func (r *PageMongo) GetFullPage(params domain.RequestParams) (domain.Response[do
 		if _, ok := mapAllData[resultSlice[keyPage].LayoutID.Hex()]; ok {
 		} else {
 			mapAllData[resultSlice[keyPage].LayoutID.Hex()] = domain.ComponentData{
-				Parent: resultSlice[keyPage].Component.ID.Hex(),
+				Parent: "layout", //resultSlice[keyPage].Component.ID.Hex(),
 				Data: map[string]interface{}{
 					"global": true,
 				},
@@ -243,7 +243,7 @@ func (r *PageMongo) GetFullPage(params domain.RequestParams) (domain.Response[do
 			resultSlice[keyPage].ComponentData = append(resultSlice[keyPage].ComponentData, mapAllData[resultSlice[keyPage].LayoutID.Hex()])
 		}
 		datas := filterComponentData(resultSlice[keyPage].ComponentData, mytest)
-		mapP := createContent(mapAllData, datas, resultSlice[keyPage].LayoutID.Hex(), r.i18n)
+		mapP := createContent(mapAllData, datas, resultSlice[keyPage].LayoutID.Hex(), resultSlice[keyPage].ID.Hex(), r.i18n)
 		// fmt.Println("datas=", datas)
 		// fmt.Println("=========")
 		// fmt.Println("mapAllData=", mapAllData)
@@ -273,7 +273,7 @@ func (r *PageMongo) GetFullPage(params domain.RequestParams) (domain.Response[do
 	return response, nil
 }
 func mytest(s domain.ComponentData) bool {
-	return s.Parent == "page"
+	return s.Parent == "layout"
 }
 
 func filterComponentData(
@@ -317,6 +317,7 @@ func createContent(
 	allData map[string]domain.ComponentData,
 	datasets []domain.ComponentData,
 	layoutID string,
+	pageID string,
 	// global bool,
 	i18n config.I18nConfig,
 ) []interface{} {
@@ -356,9 +357,13 @@ func createContent(
 				// nested := filterComponentData2(allData, val, mytestx)
 				nested := []domain.ComponentData{} // make(, len(val.(primitive.A)))
 				for _, uID := range val.(primitive.A) {
+					if uID == "page" {
+						uID = pageID
+						fmt.Println("is page", allData[uID.(string)])
+					}
 					nested = append(nested, allData[uID.(string)])
 				}
-				newBlok[keyProperty] = createContent(allData, nested, layoutID, i18n)
+				newBlok[keyProperty] = createContent(allData, nested, pageID, layoutID, i18n)
 			}
 			// if map i18n.
 			if _, ok := property.(map[string]interface{})[i18n.Default]; ok {
@@ -484,7 +489,7 @@ func (r *PageMongo) GetPage(id string) (domain.Page, error) {
 		}
 		mapAllData[result.ComponentData[i].UID] = result.ComponentData[i]
 	}
-	mapP := createContent(mapAllData, datas, result.Layout.ID.Hex(), r.i18n)
+	mapP := createContent(mapAllData, datas, result.Layout.ID.Hex(), result.ID.Hex(), r.i18n)
 	if len(mapP) > 0 {
 		result.Content = mapP[0]
 	} else {

@@ -3,7 +3,6 @@ package v1
 import (
 	"errors"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 
@@ -14,20 +13,20 @@ import (
 	"github.com/mikalai2006/go-template-api/pkg/app"
 )
 
-func init() {
-	if _, err := os.Stat("public/single"); errors.Is(err, os.ErrNotExist) {
-		err := os.MkdirAll("public/single", os.ModePerm)
-		if err != nil {
-			log.Println(err)
-		}
-	}
-	if _, err := os.Stat("public/multiple"); errors.Is(err, os.ErrNotExist) {
-		err := os.MkdirAll("public/multiple", os.ModePerm)
-		if err != nil {
-			log.Println(err)
-		}
-	}
-}
+// func init() {
+// 	if _, err := os.Stat("public/single"); errors.Is(err, os.ErrNotExist) {
+// 		err := os.MkdirAll("public/single", os.ModePerm)
+// 		if err != nil {
+// 			log.Println(err)
+// 		}
+// 	}
+// 	if _, err := os.Stat("public/multiple"); errors.Is(err, os.ErrNotExist) {
+// 		err := os.MkdirAll("public/multiple", os.ModePerm)
+// 		if err != nil {
+// 			log.Println(err)
+// 		}
+// 	}
+// }
 
 func (h *HandlerV1) RegisterImage(router *gin.RouterGroup) {
 	route := router.Group("/image")
@@ -83,7 +82,7 @@ func (h *HandlerV1) createImage(c *gin.Context) {
 		appG.ResponseError(http.StatusBadRequest, er, nil)
 		return
 	}
-	fmt.Println("input", input)
+	// fmt.Println("input", input)
 	input.UserID = userID
 	// var image domain.Image
 

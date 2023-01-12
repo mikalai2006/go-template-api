@@ -1,7 +1,6 @@
 package repository
 
 import (
-	"fmt"
 	"reflect"
 
 	"github.com/mikalai2006/go-template-api/internal/config"
@@ -140,15 +139,15 @@ func createFilter[V any](filterData *V) any {
 	var filter V
 
 	filterReflect := reflect.ValueOf(filterData)
-	fmt.Println("========== filterReflect ===========")
-	fmt.Println("struct > ", filterReflect)
-	fmt.Println("struct type > ", filterReflect.Type())
+	// fmt.Println("========== filterReflect ===========")
+	// fmt.Println("struct > ", filterReflect)
+	// fmt.Println("struct type > ", filterReflect.Type())
 	filterIndirectData := reflect.Indirect(filterReflect)
-	fmt.Println("filter data > ", filterIndirectData)
-	fmt.Println("filter numField > ", filterIndirectData.NumField())
+	// fmt.Println("filter data > ", filterIndirectData)
+	// fmt.Println("filter numField > ", filterIndirectData.NumField())
 	dataFilter := bson.M{}
 
-	var tagBson, tagJSON, tagPrimitive string
+	var tagJSON, tagPrimitive string
 	for i := 0; i < filterIndirectData.NumField(); i++ {
 		field := filterIndirectData.Field(i)
 		if field.Kind() == reflect.Ptr {
@@ -156,7 +155,7 @@ func createFilter[V any](filterData *V) any {
 		}
 		typeField := filterIndirectData.Type().Field(i)
 		tag := typeField.Tag
-		tagBson = tag.Get("bson")
+		// tagBson = tag.Get("bson")
 		tagJSON = tag.Get("json")
 		tagPrimitive = tag.Get("primitive")
 		switch field.Kind() {
@@ -164,7 +163,7 @@ func createFilter[V any](filterData *V) any {
 			value := field.String()
 			if tagPrimitive == "true" {
 				id, _ := primitive.ObjectIDFromHex(value)
-				fmt.Println("===== string add ", tag, value)
+				// fmt.Println("===== string add ", tag, value)
 				dataFilter[tagJSON] = id
 			} else {
 				dataFilter[tagJSON] = value
@@ -182,7 +181,7 @@ func createFilter[V any](filterData *V) any {
 
 		}
 
-		fmt.Println(tagBson, tagJSON, tagPrimitive, fmt.Sprintf("[%s]", field), field.Kind(), field)
+		// fmt.Println(tagBson, tagJSON, tagPrimitive, fmt.Sprintf("[%s]", field), field.Kind(), field)
 	}
 
 	// structure := reflect.ValueOf(&filter)
@@ -192,7 +191,7 @@ func createFilter[V any](filterData *V) any {
 	// fmt.Println("filter data > ", reflect.Indirect(structure))
 	// fmt.Println("filter numField > ", reflect.Indirect(structure).NumField())
 
-	fmt.Println("========== result ===========")
-	fmt.Println("dataFilter > ", dataFilter)
+	// fmt.Println("========== result ===========")
+	// fmt.Println("dataFilter > ", dataFilter)
 	return filter
 }

@@ -126,7 +126,7 @@ func (h *HandlerV1) MeVk(c *gin.Context) {
 		return
 	}
 
-	fmt.Println("input Vk")
+	// fmt.Println("input Vk")
 	input := &domain.SignInInput{
 		Login:    bodyResponse.Response[0].FirstName,
 		Strategy: "jwt",
@@ -134,7 +134,7 @@ func (h *HandlerV1) MeVk(c *gin.Context) {
 		VkID:     fmt.Sprintf("%d", bodyResponse.Response[0].ID),
 	}
 
-	fmt.Println("input Vk", input)
+	// fmt.Println("input Vk", input)
 	user, err := h.services.Authorization.ExistAuth(input)
 	if err != nil {
 		appG.ResponseError(http.StatusBadRequest, err, nil)
