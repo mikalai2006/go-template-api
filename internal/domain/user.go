@@ -28,7 +28,8 @@ type User struct {
 }
 
 type UserInput struct {
-	Name     string `json:"name,omitempty" bson:"name" form:"name"`
+	UserID   string `json:"userId" bson:"user_id" form:"userId" primitive:"true"`
+	Name     string `json:"name" bson:"name" form:"name"`
 	Login    string `json:"login" bson:"login" form:"login"`
 	Currency string `json:"currency" bson:"currency" form:"currency"`
 	Lang     string `json:"lang" bson:"lang" form:"lang"`

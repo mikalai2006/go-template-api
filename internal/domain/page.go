@@ -10,6 +10,7 @@ type Page struct {
 	ID     primitive.ObjectID `json:"id" bson:"_id,omitempty"`
 	UserID primitive.ObjectID `json:"userId" bson:"user_id" primitive:"true"`
 
+	SpaceID     primitive.ObjectID `json:"spaceId" bson:"space_id" primitive:"true"`
 	ComponentID primitive.ObjectID `json:"componentId" bson:"component_id" primitive:"true"`
 	LayoutID    primitive.ObjectID `json:"layoutId" bson:"layout_id" primitive:"true"`
 	Slug        string             `json:"slug" bson:"slug" form:"slug"`
@@ -34,6 +35,7 @@ type Page struct {
 type PageWithContent struct {
 	UserID primitive.ObjectID `json:"userId" bson:"userId" primitive:"true"`
 
+	SpaceID     primitive.ObjectID `json:"spaceId" bson:"space_id" primitive:"true"`
 	ComponentID primitive.ObjectID `json:"componentId" bson:"component_id" primitive:"true"`
 	LayoutID    primitive.ObjectID `json:"layoutId" bson:"layout_id" primitive:"true"`
 	Slug        string             `json:"slug" bson:"slug" form:"slug"`
@@ -54,6 +56,7 @@ type PageWithContent struct {
 // }
 
 type PageInputData struct {
+	SpaceID     primitive.ObjectID `json:"spaceId" bson:"space_id" form:"spaceId" primitive:"true"`
 	UserID      primitive.ObjectID `json:"userId" bson:"user_id" form:"userId" primitive:"true"`
 	Slug        string             `json:"slug" bson:"slug" form:"slug"`
 	SlugFull    string             `json:"slugFull" bson:"slug_full" form:"slugFull"`
@@ -72,6 +75,7 @@ type PageInputData struct {
 }
 
 type PageFilterData struct {
+	SpaceID     string      `json:"spaceId" bson:"space_id" form:"spaceId" primitive:"true"`
 	ID          string      `json:"id" bson:"_id" form:"id" primitive:"true"`
 	UserID      string      `json:"userId" bson:"user_id" form:"userId" primitive:"true"`
 	Slug        string      `json:"slug" bson:"slug" form:"slug"`

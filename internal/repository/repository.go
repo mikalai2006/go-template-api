@@ -72,6 +72,14 @@ type User interface {
 	Iam(userID string) (domain.User, error)
 }
 
+type Partner interface {
+	CreatePartner(userID string, data *domain.PartnerInput) (domain.Partner, error)
+	GetPartner(id string) (domain.Partner, error)
+	FindPartner(params domain.RequestParams) (domain.Response[domain.Partner], error)
+	UpdatePartner(id string, data interface{}) (domain.Partner, error)
+	DeletePartner(id string) (domain.Partner, error)
+}
+
 type Product interface {
 	CreateProduct(userID string, data *domain.ProductInput) (domain.Product, error)
 	GetProduct(id string) (domain.Product, error)
@@ -95,6 +103,22 @@ type Apps interface {
 	DeleteLanguage(id string) (domain.Language, error)
 }
 
+type Space interface {
+	CreateSpace(userID string, space *domain.SpaceInput) (*domain.Space, error)
+	GetSpace(id string) (domain.Space, error)
+	FindSpace(params domain.RequestParams) (domain.Response[domain.Space], error)
+	UpdateSpace(id string, data interface{}) (domain.Space, error)
+	DeleteSpace(id string) (domain.Space, error)
+}
+
+type Plugin interface {
+	CreatePlugin(userID string, plugin *domain.PluginInput) (*domain.Plugin, error)
+	GetPlugin(id string) (domain.Plugin, error)
+	FindPlugin(params domain.RequestParams) (domain.Response[domain.Plugin], error)
+	UpdatePlugin(id string, data interface{}) (domain.Plugin, error)
+	DeletePlugin(id string) (domain.Plugin, error)
+}
+
 type Repositories struct {
 	Authorization
 	Apps
@@ -103,8 +127,11 @@ type Repositories struct {
 	ComponentPreset
 	Image
 	Page
+	Partner
 	Product
+	Plugin
 	Shop
+	Space
 	User
 }
 
@@ -117,8 +144,11 @@ func NewRepositories(mongodb *mongo.Database, i18n config.I18nConfig) *Repositor
 		ComponentPreset: NewComponentPresetMongo(mongodb, i18n),
 		Image:           NewImageMongo(mongodb, i18n),
 		Page:            NewPageMongo(mongodb, i18n),
+		Partner:         NewPartnerMongo(mongodb, i18n),
 		Product:         NewProductMongo(mongodb, i18n),
+		Plugin:          NewPluginMongo(mongodb, i18n),
 		Shop:            NewShopMongo(mongodb, i18n),
+		Space:           NewSpaceMongo(mongodb, i18n),
 		User:            NewUserMongo(mongodb, i18n),
 	}
 }

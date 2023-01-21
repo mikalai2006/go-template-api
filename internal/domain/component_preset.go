@@ -8,6 +8,7 @@ import (
 
 type ComponentPreset struct {
 	ID          primitive.ObjectID     `json:"id" bson:"_id,omitempty" primitive:"true"`
+	SpaceID     primitive.ObjectID     `json:"spaceId" bson:"space_id" primitive:"true"`
 	UserID      primitive.ObjectID     `json:"userId" bson:"user_id" primitive:"true"`
 	ComponentID primitive.ObjectID     `json:"componentId" bson:"component_id" primitive:"true"`
 	Title       string                 `json:"title" bson:"title"`
@@ -20,6 +21,7 @@ type ComponentPreset struct {
 
 type ComponentPresetInput struct {
 	ComponentID primitive.ObjectID     `json:"componentId" bson:"component_id" form:"componentId" primitive:"true"`
+	SpaceID     primitive.ObjectID     `json:"spaceId" bson:"space_id" form:"spaceId" primitive:"true"`
 	Title       string                 `json:"title" bson:"title" form:"title"`
 	Description string                 `json:"description" bson:"description" form:"description"`
 	Data        map[string]interface{} `json:"data" bson:"data" form:"data"`
@@ -27,6 +29,7 @@ type ComponentPresetInput struct {
 }
 type ComponentPresetFind struct {
 	ComponentID string                 `json:"componentId" bson:"component_id" form:"componentId" primitive:"true"`
+	SpaceID     string                 `json:"spaceId" bson:"space_id" form:"spaceId" primitive:"true"`
 	Title       string                 `json:"title" bson:"title" form:"title"`
 	Description string                 `json:"description" bson:"description" form:"description"`
 	Data        map[string]interface{} `json:"data" bson:"data" form:"data"`

@@ -8,6 +8,7 @@ import (
 
 type ComponentGroup struct {
 	ID          primitive.ObjectID `json:"id" bson:"_id,omitempty" primitive:"true"`
+	SpaceID     primitive.ObjectID `json:"spaceId" bson:"space_id" primitive:"true"`
 	UserID      primitive.ObjectID `json:"userId" bson:"user_id" primitive:"true"`
 	Title       string             `json:"title" bson:"title"`
 	Description string             `json:"description" bson:"description"`
@@ -16,6 +17,7 @@ type ComponentGroup struct {
 }
 
 type ComponentGroupInput struct {
-	Title       string `json:"title" bson:"title"`
-	Description string `json:"description" bson:"description"`
+	SpaceID     primitive.ObjectID `json:"spaceId" bson:"space_id" form:"spaceId" primitive:"true"`
+	Title       string             `json:"title" bson:"title"`
+	Description string             `json:"description" bson:"description"`
 }

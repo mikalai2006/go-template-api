@@ -14,9 +14,9 @@ import (
 
 func (h *HandlerV1) RegisterProduct(router *gin.RouterGroup) {
 	product := router.Group("/product")
-	product.GET("/", h.findProduct)
+	product.GET("", h.findProduct)
+	product.POST("", middleware.SetUserIdentity, h.createProduct)
 	product.GET("/:id", h.getProduct)
-	product.POST("/", middleware.SetUserIdentity, h.createProduct)
 	product.PATCH("/:id", middleware.SetUserIdentity, h.updateProduct)
 	product.DELETE("/:id", middleware.SetUserIdentity, h.deleteProduct)
 }

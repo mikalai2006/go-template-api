@@ -73,6 +73,14 @@ type ComponentPreset interface {
 	DeleteComponentPreset(id string) (domain.ComponentPreset, error)
 }
 
+type Partner interface {
+	CreatePartner(userID string, data *domain.PartnerInput) (domain.Partner, error)
+	GetPartner(id string) (domain.Partner, error)
+	FindPartner(params domain.RequestParams) (domain.Response[domain.Partner], error)
+	UpdatePartner(id string, data interface{}) (domain.Partner, error)
+	DeletePartner(id string) (domain.Partner, error)
+}
+
 type Product interface {
 	CreateProduct(userID string, data *domain.ProductInput) (domain.Product, error)
 	GetProduct(id string) (domain.Product, error)
@@ -96,6 +104,22 @@ type Apps interface {
 	DeleteLanguage(id string) (domain.Language, error)
 }
 
+type Space interface {
+	CreateSpace(userID string, space *domain.SpaceInput) (*domain.Space, error)
+	GetSpace(id string) (domain.Space, error)
+	FindSpace(params domain.RequestParams) (domain.Response[domain.Space], error)
+	UpdateSpace(id string, data interface{}) (domain.Space, error)
+	DeleteSpace(id string) (domain.Space, error)
+}
+
+type Plugin interface {
+	CreatePlugin(userID string, plugin *domain.PluginInput) (*domain.Plugin, error)
+	GetPlugin(id string) (domain.Plugin, error)
+	FindPlugin(params domain.RequestParams) (domain.Response[domain.Plugin], error)
+	UpdatePlugin(id string, data interface{}) (domain.Plugin, error)
+	DeletePlugin(id string) (domain.Plugin, error)
+}
+
 type Services struct {
 	Authorization
 	Apps
@@ -104,8 +128,11 @@ type Services struct {
 	ComponentPreset
 	Image
 	Page
+	Partner
 	Product
+	Plugin
 	Shop
+	Space
 	User
 }
 
@@ -138,7 +165,10 @@ func NewServices(cfgService *ConfigServices) *Services {
 		ComponentPreset: NewComponentPresetService(cfgService.Repositories.ComponentPreset, cfgService.I18n),
 		Image:           NewImageService(cfgService.Repositories.Image),
 		Page:            NewPageService(cfgService.Repositories.Page, cfgService.I18n),
+		Partner:         NewPartnerService(cfgService.Repositories.Partner, cfgService.I18n),
 		Product:         NewProductService(cfgService.Repositories, cfgService.I18n),
+		Plugin:          NewPluginService(cfgService.Repositories.Plugin, cfgService.I18n),
+		Space:           NewSpaceService(cfgService.Repositories.Space, cfgService.I18n),
 		User:            NewUserService(cfgService.Repositories.User),
 	}
 }

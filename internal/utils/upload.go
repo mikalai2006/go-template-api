@@ -16,6 +16,7 @@ import (
 
 func UploadResizeMultipleFile(c *gin.Context, info *domain.ImageInput) ([]string, error) {
 	filePaths := []string{}
+	// fmt.Println("filePaths", filePaths)
 	// c.Request.Body = http.MaxBytesReader(c.Writer, c.Request.Body, int64(30<<20))
 	form, err := c.MultipartForm()
 	if err != nil {
@@ -31,10 +32,11 @@ func UploadResizeMultipleFile(c *gin.Context, info *domain.ImageInput) ([]string
 		}
 	}
 
-	files := form.File["images[]"]
+	files := form.File["images"]
+	// fmt.Println("files", files)
 	for _, file := range files {
 		fileExt := filepath.Ext(file.Filename)
-		fmt.Println("fileExt", file.Filename)
+		// fmt.Println("fileExt", file.Filename)
 		originalFileName := strings.TrimSuffix(filepath.Base(file.Filename), filepath.Ext(file.Filename))
 		now := time.Now()
 		filenameOriginal := strings.ReplaceAll(strings.ToLower(originalFileName), " ", "-") + "-" + fmt.Sprintf("%v", now.Unix()) + fileExt

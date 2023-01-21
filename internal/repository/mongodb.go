@@ -17,10 +17,14 @@ import (
 )
 
 const (
-	tblShops = "shops"
-	tblUsers = "users"
-	TblAuth  = "auths"
-	tblPage  = "pages"
+	tblShops  = "shops"
+	tblUsers  = "users"
+	TblAuth   = "auths"
+	tblPage   = "pages"
+	tblSpace  = "spaces"
+	tblPlugin = "plugins"
+
+	tblPartner = "partners"
 
 	tblComponent           = "components"
 	tblComponentData       = "component_datas"

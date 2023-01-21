@@ -49,10 +49,11 @@ type ComponentSchemaData struct {
 
 type Component struct {
 	ID      primitive.ObjectID `json:"id" bson:"_id,omitempty" primitive:"true"`
+	UserID  primitive.ObjectID `json:"userId" bson:"user_id"  primitive:"true"`
+	SpaceID primitive.ObjectID `json:"spaceId" bson:"space_id" primitive:"true"`
 	Name    string             `json:"name" bson:"name" `
 	Type    string             `json:"type" bson:"type" `
 	Title   string             `json:"title" bson:"title" `
-	UserID  primitive.ObjectID `json:"userId" bson:"user_id"  primitive:"true"`
 	Publish bool               `json:"publish" bson:"publish" `
 	Status  string             `json:"status" bson:"status" `
 	// IsPage    bool                   `json:"is_page" bson:"is_page" form:"is_page"`
@@ -71,10 +72,11 @@ type Component struct {
 }
 
 type ComponentInput struct {
+	SpaceID   primitive.ObjectID                `json:"spaceId" bson:"space_id" form:"spaceId" primitive:"true"`
+	UserID    primitive.ObjectID                `json:"userId" bson:"user_id" form:"userId" primitive:"true"`
 	Name      string                            `json:"name" bson:"name" form:"name"`
 	Type      string                            `json:"type" bson:"type" form:"type"`
 	Title     string                            `json:"title" bson:"title" form:"title"`
-	UserID    primitive.ObjectID                `json:"userId" bson:"user_id" form:"userId" primitive:"true"`
 	Publish   bool                              `json:"publish" bson:"publish" form:"publish"`
 	Status    string                            `json:"status" bson:"status" form:"status"`
 	Tpl       string                            `json:"tpl" bson:"tpl" form:"tpl"`
@@ -88,11 +90,12 @@ type ComponentInput struct {
 }
 
 type ComponentFind struct {
+	SpaceID   string                            `json:"spaceId" bson:"space_id" form:"spaceId" primitive:"true"`
+	UserID    primitive.ObjectID                `json:"userId" bson:"user_id" form:"userId" primitive:"true"`
 	ID        string                            `json:"id" bson:"_id" form:"id" primitive:"true"`
 	Name      string                            `json:"name" bson:"name" form:"name"`
 	Type      string                            `json:"type" bson:"type" form:"type"`
 	Title     string                            `json:"title" bson:"title" form:"title"`
-	UserID    primitive.ObjectID                `json:"userId" bson:"user_id" form:"userId" primitive:"true"`
 	Publish   bool                              `json:"publish" bson:"publish" form:"publish"`
 	Status    string                            `json:"status" bson:"status" form:"status"`
 	Tpl       string                            `json:"tpl" bson:"tpl" form:"tpl"`

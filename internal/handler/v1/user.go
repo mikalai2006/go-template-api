@@ -12,11 +12,11 @@ import (
 
 func (h *HandlerV1) RegisterUser(router *gin.RouterGroup) {
 	user := router.Group("/user")
-	user.POST("/", middleware.SetUserIdentity, h.CreateUser)
+	user.POST("", middleware.SetUserIdentity, h.CreateUser)
+	user.GET("", h.FindUser)
+	user.GET("/:id", h.GetUser)
 	user.DELETE("/:id", middleware.SetUserIdentity, h.DeleteUser)
 	user.PATCH("/:id", middleware.SetUserIdentity, h.UpdateUser)
-	user.GET("/:id", h.GetUser)
-	user.GET("/find", h.FindUser)
 }
 
 // @Summary Get user by Id

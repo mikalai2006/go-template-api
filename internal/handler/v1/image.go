@@ -30,9 +30,9 @@ import (
 
 func (h *HandlerV1) RegisterImage(router *gin.RouterGroup) {
 	route := router.Group("/image")
+	route.POST("", middleware.SetUserIdentity, h.createImage)
+	route.GET("", h.findImage)
 	route.GET("/:id", h.getImage)
-	route.GET("/find", h.findImage)
-	route.POST("/", middleware.SetUserIdentity, h.createImage)
 	route.DELETE("/:id", middleware.SetUserIdentity, h.deleteImage)
 }
 
@@ -90,13 +90,18 @@ func (h *HandlerV1) createImage(c *gin.Context) {
 	if err != nil {
 		appG.ResponseError(http.StatusInternalServerError, err, nil)
 	}
-	input.Path = paths[0]
-	image, err := h.services.Image.CreateImage(userID, input)
-	if err != nil {
-		appG.ResponseError(http.StatusBadRequest, err, nil)
-		return
+
+	var result []domain.Image
+	for i := range paths {
+		input.Path = paths[i]
+		image, err := h.services.Image.CreateImage(userID, input)
+		if err != nil {
+			appG.ResponseError(http.StatusBadRequest, err, nil)
+			return
+		}
+		result = append(result, image)
 	}
-	c.JSON(http.StatusOK, image)
+	c.JSON(http.StatusOK, result)
 }
 
 func (h *HandlerV1) deleteImage(c *gin.Context) {

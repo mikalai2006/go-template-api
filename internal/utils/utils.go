@@ -116,6 +116,7 @@ func GetParamsFromRequest[V any](c *gin.Context, filterStruct V, i18n *config.I1
 					sliceIn = bson.D{{"$in", valueParam}}
 					dataFilter[tagValue] = sliceIn
 				}
+				fmt.Println("key", tagJSONValue)
 			}
 		}
 	}

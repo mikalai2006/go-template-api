@@ -2,26 +2,26 @@ package v1
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/binding"
 	"github.com/mikalai2006/go-template-api/internal/domain"
 	"github.com/mikalai2006/go-template-api/internal/middleware"
 	"github.com/mikalai2006/go-template-api/internal/utils"
 	"github.com/mikalai2006/go-template-api/pkg/app"
 )
 
-func (h *HandlerV1) RegisterApp(router *gin.RouterGroup) {
-	lang := router.Group("/lang")
-	lang.POST("", middleware.SetUserIdentity, h.createLanguage)
-	lang.GET("", h.findLanguage)
-	lang.GET("/:id", h.getLanguage)
-	lang.PATCH("/:id", middleware.SetUserIdentity, h.updateLanguage)
-	lang.DELETE("/:id", middleware.SetUserIdentity, h.deleteLanguage)
+func (h *HandlerV1) RegisterPartner(router *gin.RouterGroup) {
+	Partner := router.Group("/partner")
+	Partner.GET("", h.findPartner)
+	Partner.POST("", middleware.SetUserIdentity, h.createPartner)
+	Partner.GET("/:id", h.getPartner)
+	Partner.PATCH("/:id", middleware.SetUserIdentity, h.updatePartner)
+	Partner.DELETE("/:id", middleware.SetUserIdentity, h.deletePartner)
 }
 
-func (h *HandlerV1) createLanguage(c *gin.Context) {
+func (h *HandlerV1) createPartner(c *gin.Context) {
 	appG := app.Gin{C: c}
 
 	userID, err := middleware.GetUserID(c)
@@ -30,13 +30,25 @@ func (h *HandlerV1) createLanguage(c *gin.Context) {
 		return
 	}
 
-	var input *domain.LanguageInput
-	if er := c.BindJSON(&input); er != nil {
+	var a map[string]interface{}
+	if er := c.ShouldBindBodyWith(&a, binding.JSON); er != nil {
 		appG.ResponseError(http.StatusBadRequest, er, nil)
 		return
 	}
 
-	document, err := h.services.Apps.CreateLanguage(userID, input)
+	data, er := utils.BindJSON[domain.PartnerInput](a)
+	if er != nil {
+		appG.ResponseError(http.StatusBadRequest, er, nil)
+		return
+	}
+
+	// var input *domain.PartnerInput
+	// if er := c.BindJSON(&input); er != nil {
+	// 	appG.Response(http.StatusBadRequest, er, nil)
+	// 	return
+	// }
+
+	document, err := h.services.Partner.CreatePartner(userID, &data)
 	if err != nil {
 		appG.ResponseError(http.StatusBadRequest, err, nil)
 		return
@@ -45,11 +57,11 @@ func (h *HandlerV1) createLanguage(c *gin.Context) {
 	c.JSON(http.StatusOK, document)
 }
 
-func (h *HandlerV1) getLanguage(c *gin.Context) {
+func (h *HandlerV1) getPartner(c *gin.Context) {
 	appG := app.Gin{C: c}
 	id := c.Param("id")
 
-	document, err := h.services.Apps.GetLanguage(id)
+	document, err := h.services.Partner.GetPartner(id)
 	if err != nil {
 		appG.ResponseError(http.StatusBadRequest, err, nil)
 		return
@@ -58,16 +70,16 @@ func (h *HandlerV1) getLanguage(c *gin.Context) {
 	c.JSON(http.StatusOK, document)
 }
 
-func (h *HandlerV1) findLanguage(c *gin.Context) {
+func (h *HandlerV1) findPartner(c *gin.Context) {
 	appG := app.Gin{C: c}
 
-	params, err := utils.GetParamsFromRequest(c, domain.LanguageInput{}, &h.i18n)
+	params, err := utils.GetParamsFromRequest(c, domain.PartnerInput{}, &h.i18n)
 	if err != nil {
 		appG.ResponseError(http.StatusBadRequest, err, nil)
 		return
 	}
 
-	documents, err := h.services.Apps.FindLanguage(params)
+	documents, err := h.services.Partner.FindPartner(params)
 	if err != nil {
 		appG.ResponseError(http.StatusBadRequest, err, nil)
 		return
@@ -76,20 +88,20 @@ func (h *HandlerV1) findLanguage(c *gin.Context) {
 	c.JSON(http.StatusOK, documents)
 }
 
-func (h *HandlerV1) updateLanguage(c *gin.Context) {
+func (h *HandlerV1) updatePartner(c *gin.Context) {
 	appG := app.Gin{C: c}
 
 	id := c.Param("id")
 
-	var input domain.LanguageInput
+	var input domain.PartnerInput
 	data, err := utils.BindAndValid(c, &input)
 	if err != nil {
 		appG.ResponseError(http.StatusBadRequest, err, nil)
 		return
 	}
-	fmt.Println(data)
+	// fmt.Println(data)
 
-	document, err := h.services.Apps.UpdateLanguage(id, &data)
+	document, err := h.services.Partner.UpdatePartner(id, &data)
 	if err != nil {
 		appG.ResponseError(http.StatusInternalServerError, err, nil)
 		return
@@ -98,7 +110,7 @@ func (h *HandlerV1) updateLanguage(c *gin.Context) {
 	c.JSON(http.StatusOK, document)
 }
 
-func (h *HandlerV1) deleteLanguage(c *gin.Context) {
+func (h *HandlerV1) deletePartner(c *gin.Context) {
 	appG := app.Gin{C: c}
 
 	id := c.Param("id")
@@ -113,7 +125,7 @@ func (h *HandlerV1) deleteLanguage(c *gin.Context) {
 	// 	return
 	// }
 
-	document, err := h.services.Apps.DeleteLanguage(id) // , input
+	document, err := h.services.Partner.DeletePartner(id) // , input
 	if err != nil {
 		appG.ResponseError(http.StatusBadRequest, err, nil)
 		return

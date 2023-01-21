@@ -37,9 +37,10 @@ func (r *PageMongo) CreatePage(userID string, page *domain.PageInputData) (*doma
 	}
 
 	newPage := domain.PageInputData{
+		UserID:      userIDPrimitive,
+		SpaceID:     page.SpaceID,
 		Name:        page.Name,
 		Title:       page.Title,
-		UserID:      userIDPrimitive,
 		Slug:        page.Slug,
 		SlugFull:    fmt.Sprintf("/%s", page.Slug),
 		ComponentID: page.ComponentID,

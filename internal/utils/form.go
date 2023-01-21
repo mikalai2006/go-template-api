@@ -77,6 +77,8 @@ func BindAndValid[V any](c *gin.Context, form V) (interface{}, error) {
 						// fmt.Println("default: ", tagValue, reflect.ValueOf(val).Kind())
 						result[tagValue] = id
 					}
+				} else {
+					result[tagValue] = val
 				}
 				// value := myDataReflect.Field(i)
 				// fmt.Println("   === default: tag=", tagValue, value)
@@ -309,7 +311,23 @@ func buildFlatDataFormTree(
 						// fmt.Println("default:", e, "=", t, reflect.TypeOf(t).Kind())
 						if reflect.TypeOf(t).Kind() == reflect.Slice {
 							// reflect.ValueOf(t)
+
 							s := reflect.ValueOf(t)
+							// keysFirstElement := s.Index(0)
+							// isNestedBloks := false
+							// fmt.Println("keysFirstElement=", keysFirstElement, keysFirstElement.Type(), reflect.TypeOf(keysFirstElement).Kind())
+							// if reflect.TypeOf(keysFirstElement).Kind() == reflect.Map {
+							// 	for _, keyProperty := range keysFirstElement.MapKeys() {
+							// 		keyProPertyAsString := keyProperty.Interface().(string)
+							// 		fmt.Println("keysFirstElement=", keysFirstElement.MapIndex(keyProperty).String(), " | key", key, " == ", keyProPertyAsString)
+							// 		if keyProPertyAsString == "_uid" {
+							// 			isNestedBloks = true
+							// 		}
+							// 	}
+							// }
+							// fmt.Println("isNestedBloks=", isNestedBloks, " key", key)
+							// if isNestedBloks {
+							// if slice - is nested bloks.
 							uids := []string{}
 
 							for i := 0; i < s.Len(); i++ {
@@ -322,31 +340,54 @@ func buildFlatDataFormTree(
 
 								// add UID node to slice.
 								valChild := s.Index(i).Elem()
-								for _, ee := range valChild.MapKeys() {
-									vChild := valChild.MapIndex(ee)
-									keyChild := ee.Interface().(string)
-									if keyChild == "_uid" {
-										valUID := vChild.Elem().String()
-										if valUID == pageID {
-											valUID = "page"
+								isBlok := false
+								// fmt.Println("type =>", valChild.Kind(), reflect.TypeOf(valChild).Kind())
+								if valChild.Kind() == reflect.Map {
+									for _, ee := range valChild.MapKeys() {
+										vChild := valChild.MapIndex(ee)
+										keyChild := ee.Interface().(string)
+										if keyChild == "_uid" {
+											valUID := vChild.Elem().String()
+											if valUID == pageID {
+												valUID = "page"
+											}
+											uids = append(uids, valUID)
+											isBlok = true
 										}
-										uids = append(uids, valUID)
 									}
+
 								}
-								stack = append(stack, StackNode{
-									Node:   s.Index(i).Elem().Interface(), // s.Index(i),
-									Parent: keyUID.Elem().String(),
-									// Global: global,
-								})
+
+								if isBlok == true {
+
+									stack = append(stack, StackNode{
+										Node:   s.Index(i).Elem().Interface(), // s.Index(i),
+										Parent: keyUID.Elem().String(),
+										// Global: global,
+									})
+								}
 								// fmt.Println("========================")
 								// fmt.Println(s.Index(i).Elem().Interface())
 								// fmt.Println("========================")
 							}
-							resData[key] = map[string]interface{}{
-								"uids": uids,
+							// fmt.Println("=========", key, "===============", uids)
+							if len(uids) > 0 {
+								// if exist key by uids, insert slice uid.
+								resData[key] = map[string]interface{}{
+									"uids": uids,
+								}
+							} else {
+								// if slice - is custom array.
+								resData[key] = t
 							}
+
+							// } else {
+							// 	// if slice - is custom array.
+							// 	resData[key] = t
+							// }
 						} else {
 							// fmt.Println(" custom object ===", key, t)
+							// if value - is custom object.
 							// write custom object as property.
 							resData[key] = t
 						}
