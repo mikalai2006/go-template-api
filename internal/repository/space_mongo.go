@@ -2,7 +2,6 @@ package repository
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/mikalai2006/go-template-api/internal/config"
@@ -93,7 +92,7 @@ func (r *SpaceMongo) FindSpace(params domain.RequestParams) (domain.Response[dom
 	}
 	// var pipe mongo.Pipeline
 	// pipe = append(pipe, bson.D{{"$match", params.PageFilter}})
-	fmt.Printf("params - %v", pipe)
+	// fmt.Printf("params - %v", pipe)
 
 	cursor, err := r.db.Collection(tblSpace).Aggregate(ctx, pipe) // Find(ctx, params.Filter, opts)
 	if err != nil {

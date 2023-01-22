@@ -18,7 +18,7 @@ func (h *HandlerV1) registerShop(router *gin.RouterGroup) {
 
 func (h *HandlerV1) CreateShop(c *gin.Context) {
 	appG := app.Gin{C: c}
-	userID, err := middleware.GetUserID(c)
+	userID, err := middleware.GetUID(c)
 	if err != nil {
 		// c.AbortWithError(http.StatusUnauthorized, err)
 		appG.ResponseError(http.StatusUnauthorized, err, gin.H{"hello": "world"})

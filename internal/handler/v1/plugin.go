@@ -33,7 +33,7 @@ func (h HandlerV1) RegisterPlugin(router *gin.RouterGroup) {
 func (h HandlerV1) createPlugin(c *gin.Context) {
 	appG := app.Gin{C: c}
 
-	userID, err := middleware.GetUserID(c)
+	userID, err := middleware.GetUID(c)
 	if err != nil {
 		appG.ResponseError(http.StatusUnauthorized, err, nil)
 		return

@@ -33,6 +33,7 @@ func (h *HandlerV1) RegisterImage(router *gin.RouterGroup) {
 	route.POST("", middleware.SetUserIdentity, h.createImage)
 	route.GET("", h.findImage)
 	route.GET("/:id", h.getImage)
+	route.GET("/:id/dir", middleware.SetUserIdentity, h.getImageDirs)
 	route.DELETE("/:id", middleware.SetUserIdentity, h.deleteImage)
 }
 
@@ -41,6 +42,19 @@ func (h *HandlerV1) getImage(c *gin.Context) {
 	id := c.Param("id")
 
 	image, err := h.services.Image.GetImage(id)
+	if err != nil {
+		appG.ResponseError(http.StatusBadRequest, err, nil)
+		return
+	}
+
+	c.JSON(http.StatusOK, image)
+}
+
+func (h *HandlerV1) getImageDirs(c *gin.Context) {
+	appG := app.Gin{C: c}
+	id := c.Param("id")
+
+	image, err := h.services.Image.GetImageDirs(id)
 	if err != nil {
 		appG.ResponseError(http.StatusBadRequest, err, nil)
 		return
@@ -71,7 +85,7 @@ func (h *HandlerV1) createImage(c *gin.Context) {
 	c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
 	appG := app.Gin{C: c}
 
-	userID, err := middleware.GetUserID(c)
+	userID, err := middleware.GetUID(c)
 	if err != nil {
 		appG.ResponseError(http.StatusUnauthorized, err, nil)
 		return

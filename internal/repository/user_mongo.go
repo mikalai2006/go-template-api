@@ -26,13 +26,12 @@ func (r *UserMongo) Iam(userID string) (domain.User, error) {
 	defer cancel()
 
 	var result domain.User
-
 	userIDPrimitive, err := primitive.ObjectIDFromHex(userID)
 	if err != nil {
 		return domain.User{}, err
 	}
 
-	filter := bson.M{"user_id": userIDPrimitive}
+	filter := bson.M{"_id": userIDPrimitive}
 
 	err = r.db.Collection(tblUsers).FindOne(ctx, filter).Decode(&result)
 	if err != nil {

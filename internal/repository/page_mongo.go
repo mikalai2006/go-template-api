@@ -360,7 +360,7 @@ func createContent(
 				for _, uID := range val.(primitive.A) {
 					if uID == "page" {
 						uID = pageID
-						fmt.Println("is page", allData[uID.(string)])
+						// fmt.Println("is page", allData[uID.(string)])
 					}
 					nested = append(nested, allData[uID.(string)])
 				}
@@ -556,7 +556,7 @@ func (r *PageMongo) FindPage(params domain.RequestParams) (domain.Response[domai
 	}
 	// var pipe mongo.Pipeline
 	// pipe = append(pipe, bson.D{{"$match", params.PageFilter}})
-	fmt.Printf("params - %v", pipe)
+	// fmt.Printf("params - %v", pipe)
 
 	cursor, err := r.db.Collection(tblPage).Aggregate(ctx, pipe) // Find(ctx, params.Filter, opts)
 	if err != nil {

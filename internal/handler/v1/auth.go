@@ -24,12 +24,11 @@ func (h *HandlerV1) registerAuth(router *gin.RouterGroup) {
 func (h *HandlerV1) getIam(c *gin.Context) {
 	appG := app.Gin{C: c}
 
-	userID, err := middleware.GetUserID(c)
+	userID, err := middleware.GetUID(c)
 	if err != nil {
 		appG.ResponseError(http.StatusUnauthorized, err, nil)
 		return
 	}
-
 	// TODO get token from body data.
 	// var input *domain.RefreshInput
 
@@ -210,6 +209,12 @@ func (h *HandlerV1) tokenRefresh(c *gin.Context) {
 		return
 	}
 
+	// userData, err := h.services.User.FindUser(domain.RequestParams{Filter: bson.D{{"user_id": res.}}})
+	// if err != nil {
+	// 	appG.ResponseError(http.StatusBadRequest, err, nil)
+	// 	return
+	// }
+
 	c.SetCookie("jwt-handmade", res.RefreshToken, h.oauth.TimeExpireCookie, "/", c.Request.URL.Hostname(), false, true)
 
 	c.JSON(http.StatusOK, domain.ResponseTokens{
@@ -239,7 +244,7 @@ func (h *HandlerV1) VerificationAuth(c *gin.Context) {
 		return
 	}
 
-	userID, err := middleware.GetUserID(c)
+	userID, err := middleware.GetUID(c)
 	if err != nil {
 		appG.ResponseError(http.StatusBadRequest, err, nil)
 		return

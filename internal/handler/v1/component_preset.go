@@ -42,7 +42,7 @@ func (h *HandlerV1) findComponentPreset(c *gin.Context) {
 func (h *HandlerV1) createComponentPreset(c *gin.Context) {
 	appG := app.Gin{C: c}
 
-	userID, err := middleware.GetUserID(c)
+	userID, err := middleware.GetUID(c)
 	if err != nil {
 		// c.AbortWithError(http.StatusUnauthorized, err)
 		appG.ResponseError(http.StatusUnauthorized, err, nil)

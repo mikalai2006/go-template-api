@@ -21,6 +21,9 @@ func (s *ImageService) GetImage(id string) (domain.Image, error) {
 	return s.repo.GetImage(id)
 }
 
+func (s *ImageService) GetImageDirs(id string) ([]interface{}, error) {
+	return s.repo.GetImageDirs(id)
+}
 func (s *ImageService) CreateImage(userID string, image *domain.ImageInput) (domain.Image, error) {
 	return s.repo.CreateImage(userID, image)
 }

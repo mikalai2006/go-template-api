@@ -116,6 +116,7 @@ func (s *AuthService) CreateSession(auth *domain.Auth) (domain.ResponseTokens, e
 	claims := domain.DataForClaims{
 		Roles:  auth.Roles,
 		UserID: auth.ID.Hex(),
+		UID:    auth.UserData.ID.Hex(),
 	}
 
 	res.AccessToken, err = s.tokenManager.NewJWT(claims, s.accessTokenTTL)

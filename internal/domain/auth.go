@@ -20,6 +20,7 @@ type Auth struct {
 	Verification Verification       `json:"verification" bson:"verification"`
 	Session      Session            `json:"session" bson:"session"`
 	Roles        []string           `json:"roles" bson:"roles"`
+	UserData     User               `json:"user_data" bson:"user_data"`
 	CreatedAt    time.Time          `json:"createdAt" bson:"created_at"`
 	UpdatedAt    time.Time          `json:"updatedAt" bson:"updated_at"`
 }
@@ -42,4 +43,5 @@ type SignInInput struct {
 type DataForClaims struct {
 	Roles  []string `json:"roles" bson:"roles"`
 	UserID string   `json:"user_id" bson:"user_id"`
+	UID    string   `json:"uid" bson:"uid"`
 }

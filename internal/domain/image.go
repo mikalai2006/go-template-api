@@ -13,6 +13,7 @@ type Image struct {
 	ServiceID   string             `json:"serviceId" bson:"service_id"`
 	Path        string             `json:"path" bson:"path"`
 	Title       string             `json:"title" bson:"title"`
+	Dir         string             `json:"dir" bson:"dir"`
 	Description string             `json:"description" bson:"description"`
 	CreatedAt   time.Time          `json:"createdAt" bson:"created_at"`
 	UpdatedAt   time.Time          `json:"updatedAt" bson:"updated_at"`
@@ -25,5 +26,6 @@ type ImageInput struct {
 	Path        string `json:"path" bson:"path"`
 	Description string `json:"description" bson:"description" form:"description"`
 	Title       string `json:"title" bson:"title" form:"title"`
+	Dir         string `json:"dir" bson:"dir" form:"dir"`
 	// Images      *multipart.FileHeader `bson:"image" form:"image"`
 }

@@ -15,6 +15,7 @@ const (
 	authorizationHeader = "Authorization"
 	userCtx             = "userId"
 	userRoles           = "roles"
+	uid                 = "uid"
 )
 
 func SetUserIdentity(c *gin.Context) {
@@ -63,6 +64,7 @@ func SetUserIdentity(c *gin.Context) {
 	}
 	c.Set(userCtx, claims.Subject)
 	c.Set(userRoles, claims.Roles)
+	c.Set(uid, claims.Uid)
 	// session := sessions.Default(c)
 	// user := session.Get(userkey)
 	// if user == nil {
@@ -95,4 +97,18 @@ func GetRoles(c *gin.Context) ([]string, error) {
 		return nil, errors.New("roles not found")
 	}
 	return roles.([]string), nil
+}
+
+func GetUID(c *gin.Context) (string, error) {
+	id, ok := c.Get(uid)
+	if !ok {
+		return "", errors.New("UID not found")
+	}
+
+	idInt, ok := id.(string)
+	if !ok {
+		return "", errors.New("UID not found2")
+	}
+
+	return idInt, nil
 }

@@ -40,6 +40,7 @@ func (r *ImageMongo) CreateImage(userID string, data *domain.ImageInput) (domain
 		ServiceID:   data.ServiceID,
 		Path:        data.Path,
 		Title:       data.Title,
+		Dir:         data.Dir,
 		Description: data.Description,
 		CreatedAt:   time.Now(),
 		UpdatedAt:   time.Now(),
@@ -82,6 +83,36 @@ func (r *ImageMongo) GetImage(id string) (domain.Image, error) {
 	err = r.db.Collection(tblImage).FindOne(ctx, filter).Decode(&result)
 	if err != nil {
 		return domain.Image{}, err
+	}
+
+	return result, nil
+}
+
+func (r *ImageMongo) GetImageDirs(id string) ([]interface{}, error) {
+	var result []interface{}
+
+	ctx, cancel := context.WithTimeout(context.Background(), MongoQueryTimeout)
+	defer cancel()
+
+	userIDPrimitive, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return result, err
+	}
+
+	filter := bson.M{"user_id": userIDPrimitive}
+	// pipe := mongo.Pipeline{}
+
+	// pipe = append(pipe, bson.D{{"$match", bson.M{"user_id": userIDPrimitive}}})
+	// pipe = append(pipe, bson.D{{Key: "$lookup", Value: bson.M{
+	// 	"from":         "component_presets",
+	// 	"as":           "presets",
+	// 	"localField":   "_id",
+	// 	"foreignField": "component_id",
+	// }}})
+
+	result, err = r.db.Collection(tblImage).Distinct(ctx, "dir", filter) //.Aggregate(ctx, pipe) // (ctx, filter).Decode(&result)
+	if err != nil {
+		return result, err
 	}
 
 	return result, nil

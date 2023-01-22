@@ -92,6 +92,7 @@ type Product interface {
 type Image interface {
 	CreateImage(userID string, data *domain.ImageInput) (domain.Image, error)
 	GetImage(id string) (domain.Image, error)
+	GetImageDirs(id string) ([]interface{}, error)
 	FindImage(params domain.RequestParams) (domain.Response[domain.Image], error)
 	DeleteImage(id string) (domain.Image, error)
 }

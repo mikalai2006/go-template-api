@@ -33,7 +33,7 @@ func (h *HandlerV1) findComponentGroup(c *gin.Context) {
 func (h *HandlerV1) createComponentGroup(c *gin.Context) {
 	appG := app.Gin{C: c}
 
-	userID, err := middleware.GetUserID(c)
+	userID, err := middleware.GetUID(c)
 	if err != nil {
 		// c.AbortWithError(http.StatusUnauthorized, err)
 		appG.ResponseError(http.StatusUnauthorized, err, nil)

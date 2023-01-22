@@ -124,7 +124,7 @@ func (r *ComponentMongo) FindComponent(params domain.RequestParams) (domain.Resp
 	if err != nil {
 		return response, err
 	}
-	fmt.Println("pipe: ", pipe)
+	// fmt.Println("pipe: ", pipe)
 
 	cursor, err := r.db.Collection(tblComponent).Aggregate(ctx, pipe) // Find(ctx, params.Filter, opts)
 	if err != nil {

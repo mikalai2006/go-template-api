@@ -100,9 +100,38 @@ func (r *AuthMongo) GetByCredentials(auth *domain.SignInInput) (domain.Auth, err
 
 	filter := chooseProvider(auth)
 
-	// fmt.Println("filter credit ", filter)
-	err := r.db.Collection(TblAuth).FindOne(ctx, filter).Decode(&user)
+	// pipe := mongo.Pipeline{}
+	// pipe = append(pipe, bson.D{{"$match", filter}})
+	// pipe = append(pipe, bson.D{{Key: "$lookup", Value: bson.M{
+	// 	"from":         "users",
+	// 	"as":           "user_data",
+	// 	"localField":   "_id",
+	// 	"foreignField": "user_id",
+	// }}})
+	// pipe = append(pipe, bson.D{{Key: "$unwind", Value: "$user_data"}})
 
+	err := r.db.Collection(TblAuth).FindOne(ctx, filter).Decode(&user) // .Aggregate(ctx, pipe) //
+	if err != nil {
+		return user, err
+	}
+
+	if err := r.db.Collection(tblUsers).FindOne(ctx, bson.M{
+		"user_id": user.ID,
+	}).Decode(&user.UserData); err != nil {
+		return user, err
+	}
+
+	// defer cursor.Close(ctx)
+
+	// for cursor.Next(context.TODO()) {
+	// 	if err := cursor.Decode(&user); err != nil {
+	// 		return user, err
+	// 	}
+	// 	// fmt.Printf("userData %+v\n", user.UserData)
+	// }
+	// if err := cursor.Err(); err != nil {
+	// 	return user, err
+	// }
 	return user, err
 }
 
@@ -148,10 +177,20 @@ func (r *AuthMongo) RefreshToken(refreshToken string) (domain.Auth, error) {
 
 	var result domain.Auth
 
+	pipe := mongo.Pipeline{}
+
+	pipe = append(pipe)
+
 	if err := r.db.Collection(TblAuth).FindOne(ctx, bson.M{
 		"session.refreshToken": refreshToken,
 		"session.expiresAt":    bson.M{"$gt": time.Now()},
 	}).Decode(&result); err != nil {
+		return result, err
+	}
+
+	if err := r.db.Collection(tblUsers).FindOne(ctx, bson.M{
+		"user_id": result.ID,
+	}).Decode(&result.UserData); err != nil {
 		return result, err
 	}
 
