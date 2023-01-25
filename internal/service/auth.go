@@ -56,7 +56,7 @@ func (s *AuthService) CreateAuth(auth *domain.SignInInput) (string, error) {
 
 	verificationCode := s.otpGenerator.RandomSecret(s.verificationCodeLength)
 
-	authData := &domain.Auth{
+	authData := &domain.SignInInput{
 		VkID:      auth.VkID,
 		GoogleID:  auth.GoogleID,
 		GithubID:  auth.GithubID,
@@ -157,4 +157,15 @@ func (s *AuthService) RefreshTokens(refreshToken string) (domain.ResponseTokens,
 	}
 
 	return s.CreateSession(&user)
+}
+
+func (s *AuthService) RemoveRefreshTokens(refreshToken string) (string, error) {
+	var result = ""
+
+	_, err := s.repository.RemoveRefreshToken(refreshToken)
+	if err != nil {
+		return result, err
+	}
+
+	return result, err
 }

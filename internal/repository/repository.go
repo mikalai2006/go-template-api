@@ -11,13 +11,14 @@ import (
 )
 
 type Authorization interface {
-	CreateAuth(auth *domain.Auth) (string, error)
+	CreateAuth(auth *domain.SignInInput) (string, error)
 	GetAuth(auth *domain.Auth) (domain.Auth, error)
 	CheckExistAuth(auth *domain.SignInInput) (domain.Auth, error)
 	GetByCredentials(auth *domain.SignInInput) (domain.Auth, error)
 	SetSession(authID primitive.ObjectID, session domain.Session) error
 	VerificationCode(userID string, code string) error
 	RefreshToken(refreshToken string) (domain.Auth, error)
+	RemoveRefreshToken(refreshToken string) (string, error)
 }
 
 type Shop interface {

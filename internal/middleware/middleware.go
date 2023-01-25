@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"os"
 	"strings"
@@ -22,6 +23,8 @@ func SetUserIdentity(c *gin.Context) {
 	appG := app.Gin{C: c}
 
 	header := c.GetHeader(authorizationHeader)
+	jwtCookie, _ := c.Cookie("jwt-handmade")
+	fmt.Println("jwtCookie=", jwtCookie)
 
 	if header == "" {
 		// c.AbortWithStatusJSON(http.StatusUnauthorized, errors.New("empty auth header"))
@@ -101,14 +104,14 @@ func GetRoles(c *gin.Context) ([]string, error) {
 
 func GetUID(c *gin.Context) (string, error) {
 	id, ok := c.Get(uid)
-	if !ok {
+	if !ok || id == "" {
 		return "", errors.New("UID not found")
 	}
 
-	idInt, ok := id.(string)
+	idString, ok := id.(string)
 	if !ok {
 		return "", errors.New("UID not found2")
 	}
 
-	return idInt, nil
+	return idString, nil
 }

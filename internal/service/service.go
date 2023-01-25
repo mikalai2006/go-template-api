@@ -18,6 +18,7 @@ type Authorization interface {
 	CreateSession(auth *domain.Auth) (domain.ResponseTokens, error)
 	VerificationCode(userID string, code string) error
 	RefreshTokens(refreshToken string) (domain.ResponseTokens, error)
+	RemoveRefreshTokens(refreshToken string) (string, error)
 }
 
 type Shop interface {

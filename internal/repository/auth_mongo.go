@@ -19,7 +19,7 @@ func NewAuthMongo(db *mongo.Database) *AuthMongo {
 	return &AuthMongo{db: db}
 }
 
-func (r *AuthMongo) CreateAuth(user *domain.Auth) (string, error) {
+func (r *AuthMongo) CreateAuth(user *domain.SignInInput) (string, error) {
 	var id string
 
 	collection := r.db.Collection(TblAuth)
@@ -115,9 +115,9 @@ func (r *AuthMongo) GetByCredentials(auth *domain.SignInInput) (domain.Auth, err
 		return user, err
 	}
 
-	if err := r.db.Collection(tblUsers).FindOne(ctx, bson.M{
+	if err := r.db.Collection(tblUsers).FindOneAndUpdate(ctx, bson.M{
 		"user_id": user.ID,
-	}).Decode(&user.UserData); err != nil {
+	}, bson.D{{"online", true}}).Decode(&user.UserData); err != nil {
 		return user, err
 	}
 
@@ -191,6 +191,29 @@ func (r *AuthMongo) RefreshToken(refreshToken string) (domain.Auth, error) {
 	if err := r.db.Collection(tblUsers).FindOne(ctx, bson.M{
 		"user_id": result.ID,
 	}).Decode(&result.UserData); err != nil {
+		return result, err
+	}
+
+	return result, nil
+}
+
+func (r *AuthMongo) RemoveRefreshToken(refreshToken string) (string, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), MongoQueryTimeout)
+	defer cancel()
+
+	var auth domain.Auth
+	var result = ""
+
+	if err := r.db.Collection(TblAuth).FindOneAndUpdate(ctx, bson.M{
+		"session.refreshToken": refreshToken,
+		"session.expiresAt":    bson.M{"$gt": time.Now()},
+	}, bson.D{{"session.refreshToken", ""}, {"session.expiresAt", time.Now()}}).Decode(&auth); err != nil {
+		return result, err
+	}
+
+	if err := r.db.Collection(tblUsers).FindOneAndUpdate(ctx, bson.M{
+		"user_id": auth.ID,
+	}, bson.D{{"online", false}}).Decode(&auth.UserData); err != nil {
 		return result, err
 	}
 

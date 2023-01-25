@@ -25,8 +25,11 @@ func NewHandler(services *service.Services, oauth *config.OauthConfig, i18n *con
 func (h *HandlerV1) Init(api *gin.RouterGroup) {
 	v1 := api.Group("/v1")
 	{
-		auth := v1.Group("/auth")
-		h.registerAuth(auth)
+
+		h.registerAuth(v1)
+		oauth := v1.Group("/oauth")
+		h.registerVkOAuth(oauth)
+		h.registerGoogleOAuth(oauth)
 
 		h.registerShop(v1)
 		h.RegisterUser(v1)
@@ -40,10 +43,6 @@ func (h *HandlerV1) Init(api *gin.RouterGroup) {
 		h.RegisterSpace(v1)
 		h.RegisterPlugin(v1)
 		h.RegisterPartner(v1)
-
-		oauth := v1.Group("/oauth")
-		h.registerVkOAuth(oauth)
-		h.registerGoogleOAuth(oauth)
 
 		v1.GET("/", func(c *gin.Context) {
 			c.JSON(http.StatusOK, gin.H{

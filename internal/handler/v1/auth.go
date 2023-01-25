@@ -12,13 +12,14 @@ import (
 )
 
 func (h *HandlerV1) registerAuth(router *gin.RouterGroup) {
-	router.POST("/sign-up", h.SignUp)
-	router.POST("/sign-in", h.SignIn)
-	router.POST("/logout", h.Logout)
-	router.POST("/refresh", h.tokenRefresh)
-	router.GET("/refresh", h.tokenRefresh)
-	router.GET("/verification/:code", middleware.SetUserIdentity, h.VerificationAuth)
-	router.GET("/iam", middleware.SetUserIdentity, h.getIam)
+	auth := router.Group("/auth")
+	auth.POST("/sign-up", h.SignUp)
+	auth.POST("/sign-in", h.SignIn)
+	auth.POST("/logout", h.Logout)
+	auth.POST("/refresh", h.tokenRefresh)
+	auth.GET("/refresh", h.tokenRefresh)
+	auth.GET("/verification/:code", middleware.SetUserIdentity, h.VerificationAuth)
+	auth.GET("/iam", middleware.SetUserIdentity, h.getIam)
 }
 
 func (h *HandlerV1) getIam(c *gin.Context) {
@@ -230,7 +231,31 @@ func (h *HandlerV1) Logout(c *gin.Context) {
 	// 	c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save session"})
 	// 	return
 	// }
+	appG := app.Gin{C: c}
 
+	var input domain.RefreshInput
+
+	jwtCookie, _ := c.Cookie("jwt-handmade")
+	if jwtCookie == "" {
+		if err := c.BindJSON(&input); err != nil {
+			appG.ResponseError(http.StatusBadRequest, err, nil)
+			return
+		}
+	} else {
+		input.Token = jwtCookie
+	}
+
+	if input.Token == "" && jwtCookie == "" {
+		c.JSON(http.StatusOK, gin.H{})
+		c.AbortWithStatus(http.StatusOK)
+		return
+	}
+
+	_, err := h.services.Authorization.RemoveRefreshTokens(input.Token)
+	if err != nil {
+		appG.ResponseError(http.StatusBadRequest, err, nil)
+		return
+	}
 	c.JSON(http.StatusOK, gin.H{
 		"message": "Successfully logged out",
 	})
