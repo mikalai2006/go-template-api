@@ -23,8 +23,8 @@ func (s *PageService) GetPage(id string) (domain.Page, error) {
 	return s.repo.GetPage(id)
 }
 
-func (s *PageService) GetFullPage(params domain.RequestParams) (domain.Response[domain.Page], error) {
-	return s.repo.GetFullPage(params)
+func (s *PageService) GetStory(params domain.RequestParams) (domain.Page, error) {
+	return s.repo.GetStory(params)
 }
 
 func (s *PageService) FindPage(params domain.RequestParams) (domain.Response[domain.Page], error) {

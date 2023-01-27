@@ -29,13 +29,18 @@ type Shop interface {
 
 type Page interface {
 	GetPageForRouters() (domain.Response[domain.PageRoutes], error)
-	GetFullPage(params domain.RequestParams) (domain.Response[domain.Page], error)
+	GetStory(params domain.RequestParams) (domain.Page, error)
 	FindPage(params domain.RequestParams) (domain.Response[domain.Page], error)
 	GetPage(id string) (domain.Page, error)
 	CreatePage(userID string, page *domain.PageInputData) (*domain.Page, error)
 	DeletePage(id string) (domain.Page, error)
 	UpdatePage(id string, data interface{}) (domain.Page, error)
 	UpdatePageWithContent(id string, data map[string]interface{}) (domain.Page, error)
+}
+
+type Story interface {
+	PublishStory(id string, data domain.StoryInputData) (domain.Story, error)
+	GetStory(params domain.RequestParams) (domain.Story, error)
 }
 
 type Component interface {
@@ -51,7 +56,7 @@ type Component interface {
 }
 
 type ComponentGroup interface {
-	FindComponentGroup() (domain.Response[domain.ComponentGroup], error)
+	FindComponentGroup(params domain.RequestParams) (domain.Response[domain.ComponentGroup], error)
 	CreateComponentGroup(userID string, componentGroup *domain.ComponentGroup) (*domain.ComponentGroup, error)
 	UpdateComponentGroup(id string, data interface{}) (domain.ComponentGroup, error)
 	DeleteComponentGroup(id string) (domain.ComponentGroup, error)
@@ -134,6 +139,7 @@ type Repositories struct {
 	Plugin
 	Shop
 	Space
+	Story
 	User
 }
 
@@ -151,6 +157,7 @@ func NewRepositories(mongodb *mongo.Database, i18n config.I18nConfig) *Repositor
 		Plugin:          NewPluginMongo(mongodb, i18n),
 		Shop:            NewShopMongo(mongodb, i18n),
 		Space:           NewSpaceMongo(mongodb, i18n),
+		Story:           NewStoryMongo(mongodb, i18n),
 		User:            NewUserMongo(mongodb, i18n),
 	}
 }

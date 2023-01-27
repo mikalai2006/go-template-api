@@ -40,12 +40,17 @@ type User interface {
 type Page interface {
 	GetPageForRouters() (domain.Response[domain.PageRoutes], error)
 	GetPage(id string) (domain.Page, error)
-	GetFullPage(params domain.RequestParams) (domain.Response[domain.Page], error)
+	GetStory(params domain.RequestParams) (domain.Page, error)
 	FindPage(params domain.RequestParams) (domain.Response[domain.Page], error)
 	CreatePage(userID string, page *domain.PageInputData) (*domain.Page, error)
 	DeletePage(id string) (domain.Page, error)
 	UpdatePage(id string, data interface{}) (domain.Page, error)
 	UpdatePageWithContent(id string, data map[string]interface{}) (domain.Page, error)
+}
+
+type Story interface {
+	PublishStory(id string, data domain.StoryInputData) (domain.Story, error)
+	GetStory(params domain.RequestParams) (domain.Story, error)
 }
 
 type Component interface {
@@ -61,7 +66,7 @@ type Component interface {
 }
 
 type ComponentGroup interface {
-	FindComponentGroup() (domain.Response[domain.ComponentGroup], error)
+	FindComponentGroup(params domain.RequestParams) (domain.Response[domain.ComponentGroup], error)
 	CreateComponentGroup(userID string, component *domain.ComponentGroup) (*domain.ComponentGroup, error)
 	UpdateComponentGroup(id string, data interface{}) (domain.ComponentGroup, error)
 	DeleteComponentGroup(id string) (domain.ComponentGroup, error)
@@ -135,6 +140,7 @@ type Services struct {
 	Plugin
 	Shop
 	Space
+	Story
 	User
 }
 
@@ -171,6 +177,7 @@ func NewServices(cfgService *ConfigServices) *Services {
 		Product:         NewProductService(cfgService.Repositories, cfgService.I18n),
 		Plugin:          NewPluginService(cfgService.Repositories.Plugin, cfgService.I18n),
 		Space:           NewSpaceService(cfgService.Repositories.Space, cfgService.I18n),
+		Story:           NewStoryService(cfgService.Repositories.Story, cfgService.I18n),
 		User:            NewUserService(cfgService.Repositories.User),
 	}
 }

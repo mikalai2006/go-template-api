@@ -7,13 +7,14 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/mikalai2006/go-template-api/internal/domain"
 	"github.com/mikalai2006/go-template-api/internal/middleware"
+	"github.com/mikalai2006/go-template-api/internal/utils"
 	"github.com/mikalai2006/go-template-api/pkg/app"
 )
 
 func (h *HandlerV1) RegisterComponentGroup(router *gin.RouterGroup) {
 	route := router.Group("/component_group")
-	route.GET("/", h.findComponentGroup)
-	route.POST("/", middleware.SetUserIdentity, h.createComponentGroup)
+	route.GET("", h.findComponentGroup)
+	route.POST("", middleware.SetUserIdentity, h.createComponentGroup)
 	route.PATCH("/:id", middleware.SetUserIdentity, h.updateComponentGroup)
 	route.DELETE("/:id", middleware.SetUserIdentity, h.deleteComponentGroup)
 }
@@ -21,7 +22,14 @@ func (h *HandlerV1) RegisterComponentGroup(router *gin.RouterGroup) {
 func (h *HandlerV1) findComponentGroup(c *gin.Context) {
 	appG := app.Gin{C: c}
 
-	groups, err := h.services.ComponentGroup.FindComponentGroup()
+	params, err := utils.GetParamsFromRequest(c, domain.ComponentGroupInput{}, &h.i18n)
+	if err != nil {
+		// c.AbortWithError(http.StatusBadRequest, err)
+		appG.ResponseError(http.StatusBadRequest, err, nil)
+		return
+	}
+
+	groups, err := h.services.ComponentGroup.FindComponentGroup(params)
 	if err != nil {
 		appG.ResponseError(http.StatusBadRequest, err, nil)
 		return

@@ -15,11 +15,11 @@ import (
 
 func (h *HandlerV1) RegisterComponent(router *gin.RouterGroup) {
 	route := router.Group("/component")
+	route.POST("", middleware.SetUserIdentity, h.createComponent)
+	route.GET("", h.findComponent)
 	route.GET("/:id", h.getComponent)
-	route.GET("/find", h.findComponent)
 	route.GET("/populate", h.findByPopulate)
 	route.GET("/group", h.findComponentByGroup)
-	route.POST("/", middleware.SetUserIdentity, h.createComponent)
 	route.DELETE("/:id", middleware.SetUserIdentity, h.deleteComponent)
 	route.PATCH("/:id", middleware.SetUserIdentity, h.updateComponent)
 	// route.PATCH("/:id/schema", middleware.SetUserIdentity, h.updateComponentWithSchema)

@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"reflect"
 	"time"
@@ -11,7 +12,6 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type PageMongo struct {
@@ -64,12 +64,12 @@ func (r *PageMongo) CreatePage(userID string, page *domain.PageInputData) (*doma
 	return result, nil
 }
 
-func (r *PageMongo) GetFullPage(params domain.RequestParams) (domain.Response[domain.Page], error) {
+func (r *PageMongo) GetStory(params domain.RequestParams) (domain.Page, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), MongoQueryTimeout)
 	defer cancel()
 
 	var results []domain.Page
-	var response domain.Response[domain.Page]
+	var response domain.Page
 	pipe, err := CreatePipeline(params, &r.i18n)
 
 	// Populate Parent field.
@@ -135,7 +135,7 @@ func (r *PageMongo) GetFullPage(params domain.RequestParams) (domain.Response[do
 	)
 
 	if err != nil {
-		return domain.Response[domain.Page]{}, err
+		return response, err
 	}
 	cursor, err := r.db.Collection(tblPage).Aggregate(ctx, pipe) // Find(ctx, params.Filter, opts)
 	if err != nil {
@@ -153,13 +153,13 @@ func (r *PageMongo) GetFullPage(params domain.RequestParams) (domain.Response[do
 	// }
 	copy(resultSlice, results)
 
-	var options options.CountOptions
-	// options.SetLimit(params.Limit)
-	options.SetSkip(params.Skip)
-	count, err := r.db.Collection(tblPage).CountDocuments(ctx, params.Filter, &options)
-	if err != nil {
-		return response, err
-	}
+	// var options options.CountOptions
+	// // options.SetLimit(params.Limit)
+	// options.SetSkip(params.Skip)
+	// count, err := r.db.Collection(tblPage).CountDocuments(ctx, params.Filter, &options)
+	// if err != nil {
+	// 	return response, err
+	// }
 
 	for keyPage := range resultSlice {
 		// mapP := relationMapX(resultSlice[keyPage].ComponentData, r.i18n)
@@ -265,12 +265,17 @@ func (r *PageMongo) GetFullPage(params domain.RequestParams) (domain.Response[do
 		// fmt.Println("pages", pages)
 	}
 
-	response = domain.Response[domain.Page]{
-		Total: int(count),
-		Skip:  int(params.Options.Skip),
-		Limit: int(params.Options.Limit),
-		Data:  resultSlice,
+	if len(resultSlice) > 0 {
+		response = resultSlice[0]
+	} else {
+		return response, errors.New("not found story")
 	}
+	// domain.Response[domain.Page]{
+	// 	Total: int(count),
+	// 	Skip:  int(params.Options.Skip),
+	// 	Limit: int(params.Options.Limit),
+	// 	Data:  resultSlice,
+	// }
 	return response, nil
 }
 func mytest(s domain.ComponentData) bool {

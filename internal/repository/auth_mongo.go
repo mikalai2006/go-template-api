@@ -117,7 +117,7 @@ func (r *AuthMongo) GetByCredentials(auth *domain.SignInInput) (domain.Auth, err
 
 	if err := r.db.Collection(tblUsers).FindOneAndUpdate(ctx, bson.M{
 		"user_id": user.ID,
-	}, bson.D{{"online", true}}).Decode(&user.UserData); err != nil {
+	}, bson.M{"$set": bson.M{"online": true}}).Decode(&user.UserData); err != nil {
 		return user, err
 	}
 
@@ -207,13 +207,13 @@ func (r *AuthMongo) RemoveRefreshToken(refreshToken string) (string, error) {
 	if err := r.db.Collection(TblAuth).FindOneAndUpdate(ctx, bson.M{
 		"session.refreshToken": refreshToken,
 		"session.expiresAt":    bson.M{"$gt": time.Now()},
-	}, bson.D{{"session.refreshToken", ""}, {"session.expiresAt", time.Now()}}).Decode(&auth); err != nil {
+	}, bson.M{"$set": bson.M{"session.refreshToken": "", "session.expiresAt": time.Now()}}).Decode(&auth); err != nil {
 		return result, err
 	}
 
 	if err := r.db.Collection(tblUsers).FindOneAndUpdate(ctx, bson.M{
 		"user_id": auth.ID,
-	}, bson.D{{"online", false}}).Decode(&auth.UserData); err != nil {
+	}, bson.M{"$set": bson.M{"online": false}}).Decode(&auth.UserData); err != nil {
 		return result, err
 	}
 

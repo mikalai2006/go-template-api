@@ -21,6 +21,7 @@ const (
 	tblUsers  = "users"
 	TblAuth   = "auths"
 	tblPage   = "pages"
+	tblStory  = "storys"
 	tblSpace  = "spaces"
 	tblPlugin = "plugins"
 

@@ -20,19 +20,19 @@ func NewComponentGroupMongo(db *mongo.Database, i18n config.I18nConfig) *Compone
 	return &ComponentGroupMongo{db: db, i18n: i18n}
 }
 
-func (r *ComponentGroupMongo) FindComponentGroup() (domain.Response[domain.ComponentGroup], error) {
+func (r *ComponentGroupMongo) FindComponentGroup(params domain.RequestParams) (domain.Response[domain.ComponentGroup], error) {
 	ctx, cancel := context.WithTimeout(context.Background(), MongoQueryTimeout)
 	defer cancel()
 
 	results := []domain.ComponentGroup{}
 	response := domain.Response[domain.ComponentGroup]{}
-	// pipe, err := CreatePipeline(params, &r.i18n)
+	pipe, err := CreatePipeline(params, &r.i18n)
 
-	// if err != nil {
-	// 	return response, err
-	// }
+	if err != nil {
+		return response, err
+	}
 
-	cursor, err := r.db.Collection(tblComponentGroup).Find(ctx, bson.M{})
+	cursor, err := r.db.Collection(tblComponentGroup).Aggregate(ctx, pipe) // .Find(ctx, params)
 	if err != nil {
 		return response, err
 	}
@@ -52,8 +52,8 @@ func (r *ComponentGroupMongo) FindComponentGroup() (domain.Response[domain.Compo
 
 	response = domain.Response[domain.ComponentGroup]{
 		Total: int(count),
-		Skip:  0,          // int(params.Options.Skip),
-		Limit: int(count), // int(params.Options.Limit),
+		Skip:  int(params.Options.Skip),
+		Limit: int(params.Options.Limit),
 		Data:  resultSlice,
 	}
 	return response, nil

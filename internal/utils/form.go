@@ -16,6 +16,9 @@ import (
 // BindAndValid binds and validates data.
 func BindAndValid[V any](c *gin.Context, form V) (interface{}, error) {
 	var body map[string]interface{}
+	if c.Request.Body == nil {
+		return nil, fmt.Errorf("not found data for patch")
+	}
 	if er := json.NewDecoder(c.Request.Body).Decode(&body); er != nil {
 		return nil, er
 	}

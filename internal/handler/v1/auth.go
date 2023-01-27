@@ -256,6 +256,9 @@ func (h *HandlerV1) Logout(c *gin.Context) {
 		appG.ResponseError(http.StatusBadRequest, err, nil)
 		return
 	}
+
+	c.SetCookie("jwt-handmade", "", -1, "/", c.Request.URL.Hostname(), false, true)
+
 	c.JSON(http.StatusOK, gin.H{
 		"message": "Successfully logged out",
 	})

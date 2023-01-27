@@ -66,7 +66,7 @@ func (h *HandlerV1) getImageDirs(c *gin.Context) {
 func (h *HandlerV1) findImage(c *gin.Context) {
 	appG := app.Gin{C: c}
 
-	params, err := utils.GetParamsFromRequest(c, domain.Image{}, &h.i18n)
+	params, err := utils.GetParamsFromRequest(c, domain.ImageInput{}, &h.i18n)
 	if err != nil {
 		appG.ResponseError(http.StatusBadRequest, err, nil)
 		return

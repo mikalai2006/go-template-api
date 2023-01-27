@@ -15,8 +15,8 @@ func NewComponentGroupService(repo repository.ComponentGroup, i18n config.I18nCo
 	return &ComponentGroupService{repo: repo, i18n: i18n}
 }
 
-func (s *ComponentGroupService) FindComponentGroup() (domain.Response[domain.ComponentGroup], error) {
-	return s.repo.FindComponentGroup()
+func (s *ComponentGroupService) FindComponentGroup(params domain.RequestParams) (domain.Response[domain.ComponentGroup], error) {
+	return s.repo.FindComponentGroup(params)
 }
 
 func (s *ComponentGroupService) CreateComponentGroup(

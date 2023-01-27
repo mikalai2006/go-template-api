@@ -20,9 +20,9 @@ type Image struct {
 }
 
 type ImageInput struct {
-	UserID      string `json:"userId" bson:"user_id"`
-	Service     string `json:"service" bson:"service" form:"service" binding:"required"`
-	ServiceID   string `json:"serviceId,omitempty" bson:"service_id" form:"serviceId"`
+	UserID      string `json:"userId" bson:"user_id" form:"userId" primitive:"true"`
+	Service     string `json:"service" bson:"service" form:"service"`
+	ServiceID   string `json:"serviceId" bson:"service_id" form:"serviceId" primitive:"true"`
 	Path        string `json:"path" bson:"path"`
 	Description string `json:"description" bson:"description" form:"description"`
 	Title       string `json:"title" bson:"title" form:"title"`

@@ -2,6 +2,7 @@ package v1
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -11,6 +12,7 @@ import (
 	"github.com/mikalai2006/go-template-api/internal/middleware"
 	"github.com/mikalai2006/go-template-api/internal/utils"
 	"github.com/mikalai2006/go-template-api/pkg/app"
+	"go.mongodb.org/mongo-driver/bson"
 )
 
 func init() {
@@ -24,14 +26,16 @@ func init() {
 
 func (h HandlerV1) RegisterPage(router *gin.RouterGroup) {
 	page := router.Group("/page")
-	page.POST("/", middleware.SetUserIdentity, h.createPage)
+	page.POST("", middleware.SetUserIdentity, h.createPage)
+	page.GET("", h.findPage)
 	page.DELETE("/:id", middleware.SetUserIdentity, h.deletePage)
 	page.PATCH("/:id", middleware.SetUserIdentity, h.updatePage)
 	page.PATCH("/:id/content", middleware.SetUserIdentity, h.updatePageWithContent)
-	page.GET("/:id", h.getPage)
-	page.GET("/get", h.getFullPage)
-	page.GET("/find", h.findPage)
+	// page.GET("/:id", h.getPage)
 	page.GET("/routers", h.getPageForRouters)
+
+	story := page.Group("/story")
+	story.GET("/*slug", h.getStoryPage)
 }
 
 // @Summary Get pages by routers
@@ -69,7 +73,7 @@ func (h HandlerV1) getPageForRouters(c *gin.Context) {
 // @Failure 500 {object} domain.ErrorResponse
 // @Failure default {object} domain.ErrorResponse
 // @Router /api/page/{slug} [get].
-func (h HandlerV1) getFullPage(c *gin.Context) {
+func (h HandlerV1) getStoryPage(c *gin.Context) {
 	appG := app.Gin{C: c}
 
 	params, err := utils.GetParamsFromRequest(c, domain.PageFilterData{}, &h.i18n)
@@ -78,7 +82,19 @@ func (h HandlerV1) getFullPage(c *gin.Context) {
 		return
 	}
 
-	document, err := h.services.Page.GetFullPage(params)
+	// add slug in params.
+	slug := c.Param("slug")
+	// spaceObjectId, err := primitive.ObjectIDFromHex(spaceId)
+	// if err != nil {
+	// 	appG.ResponseError(http.StatusBadRequest, err, nil)
+	// 	return
+	// }
+	if slug != "/" {
+		// slug = "/"
+		params.Filter.(bson.M)["slug_full"] = slug
+	}
+	fmt.Println("params", params.Filter)
+	document, err := h.services.Page.GetStory(params)
 	if err != nil {
 		appG.ResponseError(http.StatusBadRequest, err, nil)
 		return

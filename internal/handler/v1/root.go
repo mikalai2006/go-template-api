@@ -43,6 +43,7 @@ func (h *HandlerV1) Init(api *gin.RouterGroup) {
 		h.RegisterSpace(v1)
 		h.RegisterPlugin(v1)
 		h.RegisterPartner(v1)
+		h.RegisterStory(v1)
 
 		v1.GET("/", func(c *gin.Context) {
 			c.JSON(http.StatusOK, gin.H{

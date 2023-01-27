@@ -23,6 +23,8 @@ var TestLanuageData = domain.Language{
 	SortOrder: 1,
 }
 
+var langPath = "/api/v1/lang"
+
 func (s *TestSuite) TestCreateLangNotAuth() {
 	router := gin.New()
 	s.handler.Init(router.Group("/api"))
@@ -35,7 +37,7 @@ func (s *TestSuite) TestCreateLangNotAuth() {
 	req, err := http.NewRequestWithContext(
 		context.Background(),
 		http.MethodPost,
-		"/api/v1/lang/",
+		langPath,
 		bytes.NewBuffer(dataJSON),
 	)
 	req.Close = true
@@ -53,7 +55,7 @@ func (s *TestSuite) TestCreateLangNotAuth() {
 	req, err = http.NewRequestWithContext(
 		context.Background(),
 		http.MethodPost,
-		"/api/v1/lang/",
+		langPath,
 		bytes.NewBuffer(dataJSON),
 	)
 	req.Close = true
@@ -85,10 +87,30 @@ func (s *TestSuite) TestCreateLangAuth() {
 
 	dataJSON, err := json.Marshal(TestLanuageData)
 	s.NoError(err)
+
+	// test invalid auth token.
 	req, err := http.NewRequestWithContext(
 		context.Background(),
 		http.MethodPost,
-		"/api/v1/lang/",
+		langPath,
+		bytes.NewBuffer(dataJSON),
+	)
+	req.Close = true
+	req.Header.Set("Content-type", "application/json")
+	req.Header.Set("Authorization", "Bearer 12345")
+	req.Close = true
+	s.NoError(err)
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+	response := w.Result()
+	defer response.Body.Close()
+	r.Equal(http.StatusUnauthorized, response.StatusCode)
+
+	// create with auth user.
+	req, err = http.NewRequestWithContext(
+		context.Background(),
+		http.MethodPost,
+		langPath,
 		bytes.NewBuffer(dataJSON),
 	)
 	req.Close = true
@@ -96,10 +118,10 @@ func (s *TestSuite) TestCreateLangAuth() {
 	req.Header.Set("Authorization", "Bearer "+auth.AccessToken)
 	s.NoError(err)
 
-	w := httptest.NewRecorder()
+	w = httptest.NewRecorder()
 	router.ServeHTTP(w, req)
 
-	response := w.Result()
+	response = w.Result()
 	defer response.Body.Close()
 
 	var re domain.Language
@@ -123,7 +145,7 @@ func (s *TestSuite) TestFindLangByLimitOne() {
 	s.handler.Init(router.Group("/api"))
 	r := s.Require()
 
-	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, "/api/v1/lang/", nil)
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, langPath, nil)
 	q := req.URL.Query()
 	q.Add("$limit", fmt.Sprintf("%d", limit))
 	req.URL.RawQuery = q.Encode()
@@ -152,7 +174,7 @@ func (s *TestSuite) TestFindLangByLimitBig() {
 	s.handler.Init(router.Group("/api"))
 	r := s.Require()
 
-	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, "/api/v1/lang/", nil)
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, langPath, nil)
 	q := req.URL.Query()
 	q.Add("$limit", fmt.Sprintf("%d", limit))
 	req.URL.RawQuery = q.Encode()
@@ -182,7 +204,7 @@ func (s *TestSuite) TestFindLangBySkip() {
 	s.handler.Init(router.Group("/api"))
 	r := s.Require()
 
-	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, "/api/v1/lang/", nil)
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, langPath, nil)
 	q := req.URL.Query()
 	q.Add("$skip", fmt.Sprintf("%d", skip))
 	req.URL.RawQuery = q.Encode()
@@ -225,7 +247,7 @@ func (s *TestSuite) TestFindLangBySort() {
 	req, err := http.NewRequestWithContext(
 		context.Background(),
 		http.MethodPost,
-		"/api/v1/lang/",
+		langPath,
 		bytes.NewBuffer(dataJSON),
 	)
 	req.Close = true
@@ -245,7 +267,7 @@ func (s *TestSuite) TestFindLangBySort() {
 
 	r := s.Require()
 
-	req, err = http.NewRequestWithContext(context.Background(), http.MethodGet, "/api/v1/lang/", nil)
+	req, err = http.NewRequestWithContext(context.Background(), http.MethodGet, langPath, nil)
 	q := url.Values{}
 	q.Add("$sort[sort_order]", fmt.Sprintf("%v", sort))
 	req.URL.RawQuery = q.Encode()
@@ -263,6 +285,127 @@ func (s *TestSuite) TestFindLangBySort() {
 	s.NoError(err)
 
 	r.Equal(re.Data[0].SortOrder, testLanuageDataTwo.SortOrder)
+	// r.Equal(len(re.Data), re.Total)
+
+	r.Equal(http.StatusOK, response.StatusCode)
+}
+
+func (s *TestSuite) TestPatchLang() {
+	router := gin.New()
+	s.handler.Init(router.Group("/api"))
+
+	// create item.
+	auth, err := s.Auth(router)
+	s.NoError(err)
+
+	testData := domain.Language{
+		Name:      "For patch",
+		SortOrder: 2,
+		Publish:   true,
+	}
+	dataJSON, err := json.Marshal(testData)
+	patchData := domain.Language{
+		Name:      "For patch(patch)",
+		SortOrder: 3,
+		Publish:   false,
+	}
+	dataPatchJSON, err := json.Marshal(patchData)
+
+	s.NoError(err)
+	req, err := http.NewRequestWithContext(
+		context.Background(),
+		http.MethodPost,
+		langPath,
+		bytes.NewBuffer(dataJSON),
+	)
+	req.Close = true
+	req.Header.Set("Content-type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+auth.AccessToken)
+	s.NoError(err)
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+	response := w.Result()
+	defer response.Body.Close()
+	var twoItem domain.Language
+	err = json.NewDecoder(response.Body).Decode(&twoItem)
+	s.NoError(err)
+	s.Equal(http.StatusOK, response.StatusCode)
+	r := s.Require()
+
+	// test empty id.
+	req, err = http.NewRequestWithContext(
+		context.Background(),
+		http.MethodPatch,
+		fmt.Sprintf("%s/%s", langPath, ""),
+		nil,
+	)
+	req.Header.Set("Content-type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+auth.AccessToken)
+	req.Close = true
+	s.NoError(err)
+
+	w = httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	response = w.Result()
+	defer response.Body.Close()
+	r.Equal(http.StatusNotFound, response.StatusCode)
+
+	// test  empty patch data.
+	req, err = http.NewRequestWithContext(
+		context.Background(),
+		http.MethodPatch,
+		fmt.Sprintf("%s/%s", langPath, "12345"),
+		nil,
+	)
+	req.Header.Set("Content-type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+auth.AccessToken)
+	req.Close = true
+	s.NoError(err)
+	w = httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+	response = w.Result()
+	defer response.Body.Close()
+	r.Equal(http.StatusBadRequest, response.StatusCode)
+
+	// test not objectId as id.
+	req, err = http.NewRequestWithContext(
+		context.Background(),
+		http.MethodPatch,
+		fmt.Sprintf("%s/%s", langPath, "12345"),
+		bytes.NewBuffer(dataPatchJSON),
+	)
+	req.Header.Set("Content-type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+auth.AccessToken)
+	req.Close = true
+	s.NoError(err)
+	w = httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+	response = w.Result()
+	defer response.Body.Close()
+	r.Equal(http.StatusInternalServerError, response.StatusCode)
+
+	// test with id.
+	idForPatch := twoItem.ID.Hex()
+	req, err = http.NewRequestWithContext(
+		context.Background(),
+		http.MethodPatch,
+		fmt.Sprintf("%s/%s", langPath, idForPatch),
+		bytes.NewBuffer(dataPatchJSON),
+	)
+	req.Header.Set("Content-type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+auth.AccessToken)
+	req.Close = true
+	s.NoError(err)
+	w = httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+	response = w.Result()
+	defer response.Body.Close()
+	var re domain.Language
+	err = json.NewDecoder(response.Body).Decode(&re)
+	s.NoError(err)
+
+	r.Equal(re.ID.Hex(), twoItem.ID.Hex())
 	// r.Equal(len(re.Data), re.Total)
 
 	r.Equal(http.StatusOK, response.StatusCode)
@@ -286,7 +429,7 @@ func (s *TestSuite) TestDeleteLang() {
 	req, err := http.NewRequestWithContext(
 		context.Background(),
 		http.MethodPost,
-		"/api/v1/lang/",
+		langPath,
 		bytes.NewBuffer(dataJSON),
 	)
 	req.Close = true
@@ -311,7 +454,43 @@ func (s *TestSuite) TestDeleteLang() {
 	req, err = http.NewRequestWithContext(
 		context.Background(),
 		http.MethodDelete,
-		"/api/v1/lang/ ",
+		fmt.Sprintf("%s/%s", langPath, ""),
+		nil,
+	)
+	req.Header.Set("Content-type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+auth.AccessToken)
+	req.Close = true
+	s.NoError(err)
+
+	w = httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	response = w.Result()
+	defer response.Body.Close()
+	r.Equal(http.StatusNotFound, response.StatusCode)
+
+	// // test empty id.
+	// req, err = http.NewRequestWithContext(
+	// 	context.Background(),
+	// 	http.MethodDelete,
+	// 	fmt.Sprintf("%s/%s", langPath, ""),
+	// 	nil,
+	// )
+	// req.Header.Set("Content-type", "application/json")
+	// req.Header.Set("Authorization", "Bearer "+auth.AccessToken)
+	// req.Close = true
+	// s.NoError(err)
+	// w = httptest.NewRecorder()
+	// router.ServeHTTP(w, req)
+	// response = w.Result()
+	// defer response.Body.Close()
+	// r.Equal(http.StatusBadRequest, response.StatusCode)
+
+	// test not objectId as id.
+	req, err = http.NewRequestWithContext(
+		context.Background(),
+		http.MethodDelete,
+		fmt.Sprintf("%s/%s", langPath, "12345"),
 		nil,
 	)
 	req.Header.Set("Content-type", "application/json")
@@ -331,7 +510,7 @@ func (s *TestSuite) TestDeleteLang() {
 	req, err = http.NewRequestWithContext(
 		context.Background(),
 		http.MethodDelete,
-		fmt.Sprintf("/api/v1/lang/%s", idForRemove),
+		fmt.Sprintf("%s/%s", langPath, idForRemove),
 		nil,
 	)
 	req.Header.Set("Content-type", "application/json")

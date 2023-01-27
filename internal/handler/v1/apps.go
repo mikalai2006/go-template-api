@@ -2,7 +2,6 @@ package v1
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -87,7 +86,7 @@ func (h *HandlerV1) updateLanguage(c *gin.Context) {
 		appG.ResponseError(http.StatusBadRequest, err, nil)
 		return
 	}
-	fmt.Println(data)
+	// fmt.Println(data)
 
 	document, err := h.services.Apps.UpdateLanguage(id, &data)
 	if err != nil {

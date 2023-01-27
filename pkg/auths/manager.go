@@ -55,9 +55,10 @@ func (m *Manager) NewJWT(claims domain.DataForClaims, ttl time.Duration) (string
 }
 
 func (m *Manager) Parse(accessToken string) (*AuthClaims, error) {
+	claimsData := AuthClaims{}
 	token, err := jwt.ParseWithClaims(
 		accessToken,
-		&AuthClaims{},
+		&claimsData,
 		func(token *jwt.Token) (interface{}, error) {
 			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 				return nil, fmt.Errorf("unexcepted signing method: %v", token.Header["alg"])
@@ -65,6 +66,10 @@ func (m *Manager) Parse(accessToken string) (*AuthClaims, error) {
 			return []byte(m.signingKey), nil
 		},
 	)
+
+	if token == nil {
+		return nil, fmt.Errorf("invalid token body")
+	}
 
 	if claims, ok := token.Claims.(*AuthClaims); ok && token.Valid {
 		return claims, nil
