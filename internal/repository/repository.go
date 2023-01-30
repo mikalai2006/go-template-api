@@ -81,8 +81,8 @@ type User interface {
 type Partner interface {
 	CreatePartner(userID string, data *domain.PartnerInput) (domain.Partner, error)
 	GetPartner(id string) (domain.Partner, error)
-	FindPartner(params domain.RequestParams) (domain.Response[domain.Partner], error)
-	UpdatePartner(id string, data interface{}) (domain.Partner, error)
+	FindPartner(params domain.RequestParams) (domain.Response[domain.PartnerPopulate], error)
+	UpdatePartner(id string, data *domain.PartnerInput) (domain.Partner, error)
 	DeletePartner(id string) (domain.Partner, error)
 }
 

@@ -57,6 +57,10 @@ func (r *StoryMongo) PublishStory(id string, data domain.StoryInputData) (domain
 				"page_id":  pageID,
 				"space_id": spaceID,
 			},
+			// bson.M{
+			// 	"page_id":  pageID,
+			// 	"space_id": spaceID,
+			// },
 		},
 	}
 

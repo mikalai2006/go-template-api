@@ -42,7 +42,7 @@ func (r *PartnerMongo) CreatePartner(userID string, data *domain.PartnerInput) (
 	// make pretty urls from title.
 	prettyurl := utils.EncodeRus(data.Title) // fmt.Sprintf("%d-%s", count, utils.EncodeRus(data.Title[r.i18n.Default]))
 
-	newPage := domain.Partner{
+	newItem := domain.Partner{
 		UserID: userIDPrimitive,
 		SeoID:  count,
 
@@ -56,7 +56,7 @@ func (r *PartnerMongo) CreatePartner(userID string, data *domain.PartnerInput) (
 		UpdatedAt: time.Now(),
 	}
 
-	res, err := collection.InsertOne(ctx, newPage)
+	res, err := collection.InsertOne(ctx, newItem)
 	if err != nil {
 		return result, err
 	}
@@ -90,18 +90,36 @@ func (r *PartnerMongo) GetPartner(id string) (domain.Partner, error) {
 	return result, nil
 }
 
-func (r *PartnerMongo) FindPartner(params domain.RequestParams) (domain.Response[domain.Partner], error) {
+func (r *PartnerMongo) FindPartner(params domain.RequestParams) (domain.Response[domain.PartnerPopulate], error) {
+	collection := r.db.Collection(tblPartner)
+
 	ctx, cancel := context.WithTimeout(context.Background(), MongoQueryTimeout)
 	defer cancel()
 
-	var results []domain.Partner
-	var response domain.Response[domain.Partner]
+	var results []domain.PartnerPopulate
+	var response domain.Response[domain.PartnerPopulate]
 	pipe, err := CreatePipeline(params, &r.i18n)
 	if err != nil {
-		return domain.Response[domain.Partner]{}, err
+		return response, err
 	}
+
+	// add populate.
+	pipe = append(pipe, bson.D{{
+		Key: "$lookup",
+		Value: bson.M{
+			"from": tblImage,
+			"as":   "images",
+			// "localField":   "_id",
+			// "foreignField": "componentId",
+			"let": bson.D{{Key: "serviceId", Value: "$_id"}},
+			"pipeline": mongo.Pipeline{
+				bson.D{{Key: "$match", Value: bson.M{"$expr": bson.M{"$eq": [2]string{"$service_id", "$$serviceId"}}}}},
+			},
+		},
+	}})
+
 	// fmt.Println(pipe)
-	cursor, err := r.db.Collection(tblPartner).Aggregate(ctx, pipe) // Find(ctx, params.Filter, opts)
+	cursor, err := collection.Aggregate(ctx, pipe) // Find(ctx, params.Filter, opts)
 	if err != nil {
 		return response, err
 	}
@@ -111,7 +129,7 @@ func (r *PartnerMongo) FindPartner(params domain.RequestParams) (domain.Response
 		return response, er
 	}
 
-	resultSlice := make([]domain.Partner, len(results))
+	resultSlice := make([]domain.PartnerPopulate, len(results))
 	// for i, d := range results {
 	// 	resultSlice[i] = d
 	// }
@@ -120,12 +138,12 @@ func (r *PartnerMongo) FindPartner(params domain.RequestParams) (domain.Response
 	var options options.CountOptions
 	// options.SetLimit(params.Limit)
 	// options.SetSkip(params.Skip)
-	count, err := r.db.Collection(tblPartner).CountDocuments(ctx, params.Filter, &options)
+	count, err := collection.CountDocuments(ctx, params.Filter, &options)
 	if err != nil {
 		return response, err
 	}
 
-	response = domain.Response[domain.Partner]{
+	response = domain.Response[domain.PartnerPopulate]{
 		Total: int(count),
 		Skip:  int(params.Options.Skip),
 		Limit: int(params.Options.Limit),
@@ -134,7 +152,7 @@ func (r *PartnerMongo) FindPartner(params domain.RequestParams) (domain.Response
 	return response, nil
 }
 
-func (r *PartnerMongo) UpdatePartner(id string, data interface{}) (domain.Partner, error) {
+func (r *PartnerMongo) UpdatePartner(id string, data *domain.PartnerInput) (domain.Partner, error) {
 	var result domain.Partner
 	ctx, cancel := context.WithTimeout(context.Background(), MongoQueryTimeout)
 	defer cancel()
@@ -146,9 +164,30 @@ func (r *PartnerMongo) UpdatePartner(id string, data interface{}) (domain.Partne
 		return result, err
 	}
 
+	userIDPrimitive, err := primitive.ObjectIDFromHex(data.UserID)
+	if err != nil {
+		return result, err
+	}
 	filter := bson.M{"_id": idPrimitive}
 
-	_, err = collection.UpdateOne(ctx, filter, bson.M{"$set": data})
+	// make pretty urls from title.
+	prettyurl := utils.EncodeRus(data.Title) // fmt.Sprintf("%d-%s", count, utils.EncodeRus(data.Title[r.i18n.Default]))
+
+	newItem := domain.Partner{
+		UserID: userIDPrimitive,
+		SeoID:  data.SeoID,
+
+		Seo:         prettyurl,
+		Title:       data.Title,
+		Description: data.Description,
+
+		Locale: data.Locale,
+
+		CreatedAt: data.CreatedAt,
+		UpdatedAt: time.Now(),
+	}
+
+	_, err = collection.UpdateOne(ctx, filter, bson.M{"$set": newItem})
 	if err != nil {
 		return result, err
 	}

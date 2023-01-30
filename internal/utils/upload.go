@@ -14,7 +14,7 @@ import (
 	"github.com/mikalai2006/go-template-api/internal/domain"
 )
 
-func UploadResizeMultipleFile(c *gin.Context, info *domain.ImageInput) ([]string, error) {
+func UploadResizeMultipleFile(c *gin.Context, info *domain.ImageInput, nameField string) ([]string, error) {
 	filePaths := []string{}
 	// fmt.Println("filePaths", filePaths)
 	// c.Request.Body = http.MaxBytesReader(c.Writer, c.Request.Body, int64(30<<20))
@@ -24,6 +24,9 @@ func UploadResizeMultipleFile(c *gin.Context, info *domain.ImageInput) ([]string
 	}
 
 	pathDir := fmt.Sprintf("public/%s/%s", info.UserID, info.Service)
+	if info.ServiceID != "" {
+		pathDir = fmt.Sprintf("%s/%s", pathDir, info.ServiceID)
+	}
 	if _, err := os.Stat(pathDir); errors.Is(err, os.ErrNotExist) {
 		err := os.MkdirAll(pathDir, os.ModePerm)
 		if err != nil {
@@ -32,7 +35,7 @@ func UploadResizeMultipleFile(c *gin.Context, info *domain.ImageInput) ([]string
 		}
 	}
 
-	files := form.File["images"]
+	files := form.File[nameField]
 	// fmt.Println("files", files)
 	for _, file := range files {
 		fileExt := filepath.Ext(file.Filename)

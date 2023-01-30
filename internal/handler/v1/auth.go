@@ -2,6 +2,7 @@ package v1
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -182,9 +183,9 @@ func (h *HandlerV1) SignIn(c *gin.Context) {
 func (h *HandlerV1) tokenRefresh(c *gin.Context) {
 	appG := app.Gin{C: c}
 	jwtCookie, _ := c.Cookie("jwt-handmade")
-	// fmt.Println("jwt_handmade = ", jwtCookie)
-	// jwt_header := c.GetHeader("hello")
-	// fmt.Println("jwt_header = ", jwt_header)
+	fmt.Println("refresh jwt_handmade = ", jwtCookie)
+	cookie_header := c.GetHeader("cookie")
+	fmt.Println("cookie_header = ", cookie_header)
 	// fmt.Println("+++++++++++++")
 	// session := sessions.Default(c)
 	var input domain.RefreshInput

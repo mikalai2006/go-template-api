@@ -23,11 +23,11 @@ func (s *PartnerService) GetPartner(id string) (domain.Partner, error) {
 	return s.repo.GetPartner(id)
 }
 
-func (s *PartnerService) FindPartner(params domain.RequestParams) (domain.Response[domain.Partner], error) {
+func (s *PartnerService) FindPartner(params domain.RequestParams) (domain.Response[domain.PartnerPopulate], error) {
 	return s.repo.FindPartner(params)
 }
 
-func (s *PartnerService) UpdatePartner(id string, data interface{}) (domain.Partner, error) {
+func (s *PartnerService) UpdatePartner(id string, data *domain.PartnerInput) (domain.Partner, error) {
 	return s.repo.UpdatePartner(id, data)
 }
 func (s *PartnerService) DeletePartner(id string) (domain.Partner, error) {

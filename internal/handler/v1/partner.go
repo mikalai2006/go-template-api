@@ -2,10 +2,10 @@ package v1
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/gin-gonic/gin/binding"
 	"github.com/mikalai2006/go-template-api/internal/domain"
 	"github.com/mikalai2006/go-template-api/internal/middleware"
 	"github.com/mikalai2006/go-template-api/internal/utils"
@@ -22,6 +22,7 @@ func (h *HandlerV1) RegisterPartner(router *gin.RouterGroup) {
 }
 
 func (h *HandlerV1) createPartner(c *gin.Context) {
+	c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
 	appG := app.Gin{C: c}
 
 	userID, err := middleware.GetUID(c)
@@ -30,30 +31,42 @@ func (h *HandlerV1) createPartner(c *gin.Context) {
 		return
 	}
 
-	var a map[string]interface{}
-	if er := c.ShouldBindBodyWith(&a, binding.JSON); er != nil {
+	var input = &domain.PartnerInput{}
+	if er := c.Bind(input); er != nil {
 		appG.ResponseError(http.StatusBadRequest, er, nil)
 		return
 	}
 
-	data, er := utils.BindJSON[domain.PartnerInput](a)
-	if er != nil {
-		appG.ResponseError(http.StatusBadRequest, er, nil)
-		return
-	}
-
-	// var input *domain.PartnerInput
-	// if er := c.BindJSON(&input); er != nil {
-	// 	appG.Response(http.StatusBadRequest, er, nil)
-	// 	return
-	// }
-
-	document, err := h.services.Partner.CreatePartner(userID, &data)
+	document, err := h.services.Partner.CreatePartner(userID, input)
 	if err != nil {
 		appG.ResponseError(http.StatusBadRequest, err, nil)
 		return
 	}
+	// fmt.Println("input", input)
+	// input.UserID = userID
+	// // var image domain.Image
 
+	var imageInput = &domain.ImageInput{}
+	imageInput.Service = "partner"
+	imageInput.ServiceID = document.ID.Hex()
+	imageInput.UserID = userID
+	imageInput.Dir = "partner"
+
+	paths, err := utils.UploadResizeMultipleFile(c, imageInput, "upload")
+	if err != nil {
+		appG.ResponseError(http.StatusInternalServerError, err, nil)
+	}
+
+	var result []domain.Image
+	for i := range paths {
+		imageInput.Path = paths[i]
+		image, err := h.services.Image.CreateImage(userID, imageInput)
+		if err != nil {
+			appG.ResponseError(http.StatusBadRequest, err, nil)
+			return
+		}
+		result = append(result, image)
+	}
 	c.JSON(http.StatusOK, document)
 }
 
@@ -93,19 +106,60 @@ func (h *HandlerV1) updatePartner(c *gin.Context) {
 
 	id := c.Param("id")
 
-	var input domain.PartnerInput
-	data, err := utils.BindAndValid(c, &input)
+	userID, err := middleware.GetUID(c)
 	if err != nil {
+		appG.ResponseError(http.StatusUnauthorized, err, nil)
+		return
+	}
+
+	var input = &domain.PartnerInput{}
+	if er := c.Bind(input); er != nil {
 		appG.ResponseError(http.StatusBadRequest, err, nil)
 		return
 	}
-	// fmt.Println(data)
+	fmt.Println("data", input)
 
-	document, err := h.services.Partner.UpdatePartner(id, &data)
+	document, err := h.services.Partner.UpdatePartner(id, input)
 	if err != nil {
 		appG.ResponseError(http.StatusInternalServerError, err, nil)
 		return
 	}
+
+	var imageInput = &domain.ImageInput{}
+	imageInput.Service = "partner"
+	imageInput.ServiceID = document.ID.Hex()
+	imageInput.UserID = userID
+	imageInput.Dir = "partner"
+
+	paths, err := utils.UploadResizeMultipleFile(c, imageInput, "upload")
+	if err != nil {
+		appG.ResponseError(http.StatusInternalServerError, err, nil)
+	}
+
+	var result []domain.Image
+	for i := range paths {
+		imageInput.Path = paths[i]
+		image, err := h.services.Image.CreateImage(userID, imageInput)
+		if err != nil {
+			appG.ResponseError(http.StatusBadRequest, err, nil)
+			return
+		}
+		result = append(result, image)
+	}
+
+	// var input domain.PartnerInput
+	// data, err := utils.BindAndValid(c, &input)
+	// if err != nil {
+	// 	appG.ResponseError(http.StatusBadRequest, err, nil)
+	// 	return
+	// }
+	// // fmt.Println(data)
+
+	// document, err := h.services.Partner.UpdatePartner(id, &data)
+	// if err != nil {
+	// 	appG.ResponseError(http.StatusInternalServerError, err, nil)
+	// 	return
+	// }
 
 	c.JSON(http.StatusOK, document)
 }

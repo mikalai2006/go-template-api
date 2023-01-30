@@ -34,10 +34,15 @@ func (r *ImageMongo) CreateImage(userID string, data *domain.ImageInput) (domain
 		return result, err
 	}
 
+	ServiceID, err := primitive.ObjectIDFromHex(data.ServiceID)
+	if err != nil {
+		return result, err
+	}
+
 	newImage := domain.Image{
 		UserID:      userIDPrimitive,
 		Service:     data.Service,
-		ServiceID:   data.ServiceID,
+		ServiceID:   ServiceID,
 		Path:        data.Path,
 		Title:       data.Title,
 		Dir:         data.Dir,

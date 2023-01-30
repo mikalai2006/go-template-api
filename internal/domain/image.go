@@ -9,8 +9,8 @@ import (
 type Image struct {
 	ID          primitive.ObjectID `json:"id" bson:"_id,omitempty"`
 	UserID      primitive.ObjectID `json:"userId" bson:"user_id"`
+	ServiceID   primitive.ObjectID `json:"serviceId" bson:"service_id"`
 	Service     string             `json:"service" bson:"service"`
-	ServiceID   string             `json:"serviceId" bson:"service_id"`
 	Path        string             `json:"path" bson:"path"`
 	Title       string             `json:"title" bson:"title"`
 	Dir         string             `json:"dir" bson:"dir"`
@@ -21,8 +21,8 @@ type Image struct {
 
 type ImageInput struct {
 	UserID      string `json:"userId" bson:"user_id" form:"userId" primitive:"true"`
-	Service     string `json:"service" bson:"service" form:"service"`
 	ServiceID   string `json:"serviceId" bson:"service_id" form:"serviceId" primitive:"true"`
+	Service     string `json:"service" bson:"service" form:"service"`
 	Path        string `json:"path" bson:"path"`
 	Description string `json:"description" bson:"description" form:"description"`
 	Title       string `json:"title" bson:"title" form:"title"`
