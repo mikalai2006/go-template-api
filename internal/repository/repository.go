@@ -31,7 +31,7 @@ type Page interface {
 	GetPageForRouters() (domain.Response[domain.PageRoutes], error)
 	GetStory(params domain.RequestParams) (domain.Page, error)
 	FindPage(params domain.RequestParams) (domain.Response[domain.Page], error)
-	GetPage(id string) (domain.Page, error)
+	// GetPage(id string) (domain.Page, error)
 	CreatePage(userID string, page *domain.PageInputData) (*domain.Page, error)
 	DeletePage(id string) (domain.Page, error)
 	UpdatePage(id string, data interface{}) (domain.Page, error)

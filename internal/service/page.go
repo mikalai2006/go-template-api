@@ -19,9 +19,9 @@ func (s *PageService) GetPageForRouters() (domain.Response[domain.PageRoutes], e
 	return s.repo.GetPageForRouters()
 }
 
-func (s *PageService) GetPage(id string) (domain.Page, error) {
-	return s.repo.GetPage(id)
-}
+// func (s *PageService) GetPage(id string) (domain.Page, error) {
+// 	return s.repo.GetPage(id)
+// }
 
 func (s *PageService) GetStory(params domain.RequestParams) (domain.Page, error) {
 	return s.repo.GetStory(params)

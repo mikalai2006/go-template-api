@@ -39,6 +39,7 @@ func (r *PageMongo) CreatePage(userID string, page *domain.PageInputData) (*doma
 	newPage := domain.PageInputData{
 		UserID:      userIDPrimitive,
 		SpaceID:     page.SpaceID,
+		ParentID:    page.ParentID,
 		Name:        page.Name,
 		Title:       page.Title,
 		Slug:        page.Slug,
@@ -47,6 +48,7 @@ func (r *PageMongo) CreatePage(userID string, page *domain.PageInputData) (*doma
 		Publish:     page.Publish,
 		LayoutID:    page.LayoutID,
 		SortOrder:   page.SortOrder,
+		Type:        page.Type,
 		CreatedAt:   time.Now(),
 		UpdatedAt:   time.Now(),
 	}
@@ -104,8 +106,8 @@ func (r *PageMongo) GetStory(params domain.RequestParams) (domain.Page, error) {
 							Value: bson.A{
 								bson.M{"$expr": bson.M{"$eq": [2]string{"$page_id", "$$pageId"}}},
 								bson.D{{Key: "$and", Value: bson.A{
-									bson.M{"$expr": bson.M{"$eq": [2]string{"$layout_id", "$$layoutId"}}},
-									// bson.M{"$expr": bson.M{"$eq": [2]string{"$pageId", string(primitive.NilObjectID[0])}}},
+									// bson.M{"$expr": bson.M{"$eq": [2]string{"$layout_id", "$$layoutId"}}},
+									// // bson.M{"$expr": bson.M{"$eq": [2]string{"$pageId", string(primitive.NilObjectID[0])}}},
 									bson.M{"page_id": primitive.NilObjectID},
 								}},
 								},
@@ -118,20 +120,20 @@ func (r *PageMongo) GetStory(params domain.RequestParams) (domain.Page, error) {
 			},
 		}},
 		},
-		bson.D{
-			{
-				Key: "$lookup",
-				Value: bson.M{
-					"from": tblComponent,
-					"as":   "layout",
-					"let":  bson.D{{Key: "layoutId", Value: "$layout_id"}},
-					"pipeline": mongo.Pipeline{
-						bson.D{{Key: "$match", Value: bson.M{"$expr": bson.M{"$eq": [2]string{"$_id", "$$layoutId"}}}}},
-					},
-				},
-			},
-		},
-		bson.D{{Key: "$unwind", Value: "$layout"}},
+		// bson.D{
+		// 	{
+		// 		Key: "$lookup",
+		// 		Value: bson.M{
+		// 			"from": tblPage,
+		// 			"as":   "layout",
+		// 			"let":  bson.D{{Key: "layoutId", Value: "$layout_id"}},
+		// 			"pipeline": mongo.Pipeline{
+		// 				bson.D{{Key: "$match", Value: bson.M{"$expr": bson.M{"$eq": [2]string{"$_id", "$$layoutId"}}}}},
+		// 			},
+		// 		},
+		// 	},
+		// },
+		// bson.D{{Key: "$unwind", Value: "$layout"}},
 	)
 
 	if err != nil {
@@ -182,34 +184,63 @@ func (r *PageMongo) GetStory(params domain.RequestParams) (domain.Page, error) {
 		// })
 		mapAllData := map[string]domain.ComponentData{}
 		for i, _ := range resultSlice[keyPage].ComponentData {
-			if resultSlice[keyPage].ComponentData[i].Parent == "global" {
-				resultSlice[keyPage].ComponentData[i].Parent = resultSlice[keyPage].ID.Hex()
-			}
-			// if id component changed, edit component name to page.
-			if resultSlice[keyPage].ComponentData[i].Parent == "page" {
-				resultSlice[keyPage].ComponentData[i].Component = resultSlice[keyPage].Component.Name
-			}
+			// if resultSlice[keyPage].ComponentData[i].Parent == "global" {
+			// 	resultSlice[keyPage].ComponentData[i].Parent = resultSlice[keyPage].ID.Hex()
+			// }
+			// // if id component changed, edit component name to page.
+			// if resultSlice[keyPage].ComponentData[i].Parent == "page" {
+			// 	resultSlice[keyPage].ComponentData[i].Component = resultSlice[keyPage].Component.Name
+			// }
 			mapAllData[resultSlice[keyPage].ComponentData[i].UID] = resultSlice[keyPage].ComponentData[i]
 		}
 
 		// add default page node.
 		if _, ok := mapAllData[resultSlice[keyPage].ID.Hex()]; ok {
-			// fmt.Println("yes page data=")
+			fmt.Println("yes page data=")
+			// mapAllData["page"] = domain.ComponentData{
+			// 	Parent:    "page",
+			// 	Data:      map[string]interface{}{},
+			// 	Publish:   true,
+			// 	PageID:    resultSlice[keyPage].ID,
+			// 	LayoutID:  resultSlice[keyPage].LayoutID,
+			// 	UID:       resultSlice[keyPage].ID.Hex(),
+			// 	Component: resultSlice[keyPage].Component.Name,
+			// }
+			mapAllData["page"] = domain.ComponentData{
+				Parent:  "page",
+				Data:    map[string]interface{}{},
+				Publish: true,
+				PageID:  resultSlice[keyPage].ID,
+				// LayoutID:  resultSlice[keyPage].LayoutID,
+				UID:       "page", // resultSlice[keyPage].ID.Hex(),
+				Component: "page", // resultSlice[keyPage].Component.Name,
+			}
+			resultSlice[keyPage].ComponentData = append(resultSlice[keyPage].ComponentData, mapAllData["page"])
+			// resultSlice[keyPage].ComponentData = append(resultSlice[keyPage].ComponentData, mapAllData["page"])
 		} else {
-			// fmt.Println("no page data!")
+			fmt.Println("no page data!")
+			mapAllData["page"] = domain.ComponentData{
+				Parent:  "page",
+				Data:    map[string]interface{}{},
+				Publish: true,
+				PageID:  resultSlice[keyPage].ID,
+				// LayoutID:  resultSlice[keyPage].LayoutID,
+				UID:       "page", // resultSlice[keyPage].ID.Hex(),
+				Component: "page", // resultSlice[keyPage].Component.Name,
+			}
 			mapAllData[resultSlice[keyPage].ID.Hex()] = domain.ComponentData{
-				Parent: "page",
-				Data:   map[string]interface{}{
-					// "layout": map[string]interface{}{
-					// 	"uids": primitive.A{
-					// 		resultSlice[keyPage].LayoutID.Hex(),
-					// 	},
-					// 	"global": true,
-					// },
+				Parent: "root",
+				Data: map[string]interface{}{
+					"bloks": map[string]interface{}{
+						"uids": primitive.A{
+							"page", // resultSlice[keyPage].ID.Hex(), // resultSlice[keyPage].LayoutID.Hex(),
+						},
+						// "global": true,
+					},
 				},
-				Publish:   true,
-				PageID:    resultSlice[keyPage].ID,
-				LayoutID:  resultSlice[keyPage].LayoutID,
+				Publish: true,
+				PageID:  resultSlice[keyPage].ID,
+				// LayoutID:  resultSlice[keyPage].LayoutID,
 				UID:       resultSlice[keyPage].ID.Hex(),
 				Component: resultSlice[keyPage].Component.Name,
 			}
@@ -227,41 +258,48 @@ func (r *PageMongo) GetStory(params domain.RequestParams) (domain.Page, error) {
 			// }
 		}
 
-		// add default layout node.
-		if _, ok := mapAllData[resultSlice[keyPage].LayoutID.Hex()]; ok {
+		// // add default layout node.
+		// if _, ok := mapAllData[resultSlice[keyPage].LayoutID.Hex()]; ok {
+		// } else {
+		// 	mapAllData[resultSlice[keyPage].LayoutID.Hex()] = domain.ComponentData{
+		// 		Parent: "layout", //resultSlice[keyPage].Component.ID.Hex(),
+		// 		Data: map[string]interface{}{
+		// 			"global": true,
+		// 		},
+		// 		Publish:   true,
+		// 		PageID:    primitive.NilObjectID,
+		// 		LayoutID:  resultSlice[keyPage].LayoutID,
+		// 		UID:       resultSlice[keyPage].LayoutID.Hex(),
+		// 		Component: resultSlice[keyPage].Layout.Name,
+		// 	}
+		// 	resultSlice[keyPage].ComponentData = append(resultSlice[keyPage].ComponentData, mapAllData[resultSlice[keyPage].LayoutID.Hex()])
+		// }
+
+		// dataLayout := filterComponentData(resultSlice[keyPage].ComponentData, testLayout)
+		// mapLayout := createContent(mapAllData, dataLayout, resultSlice[keyPage].LayoutID.Hex(), resultSlice[keyPage].ID.Hex(), r.i18n)
+
+		dataPage := filterComponentData(resultSlice[keyPage].ComponentData, testPage)
+		mapPage := createContent(mapAllData, dataPage, resultSlice[keyPage].ID.Hex(), r.i18n)
+
+		// var content = map[string]interface{}{}
+
+		if len(mapPage) > 0 {
+			resultSlice[keyPage].Content = mapPage[0]
 		} else {
-			mapAllData[resultSlice[keyPage].LayoutID.Hex()] = domain.ComponentData{
-				Parent: "layout", //resultSlice[keyPage].Component.ID.Hex(),
-				Data: map[string]interface{}{
-					"global": true,
-				},
-				Publish:   true,
-				PageID:    primitive.NilObjectID,
-				LayoutID:  resultSlice[keyPage].LayoutID,
-				UID:       resultSlice[keyPage].LayoutID.Hex(),
-				Component: resultSlice[keyPage].Layout.Name,
-			}
-			resultSlice[keyPage].ComponentData = append(resultSlice[keyPage].ComponentData, mapAllData[resultSlice[keyPage].LayoutID.Hex()])
+			// resultSlice[keyPage].Content = bson.M{
+			// 	"component": resultSlice[keyPage].Component.Name,
+			// 	"_uid":      resultSlice[keyPage].ID,
+			// 	"layout": bson.A{
+			// 		bson.M{"component": resultSlice[keyPage].Layout.Name, "_uid": resultSlice[keyPage].LayoutID, "global": true},
+			// 	},
+			// }
+
 		}
-		datas := filterComponentData(resultSlice[keyPage].ComponentData, mytest)
-		mapP := createContent(mapAllData, datas, resultSlice[keyPage].LayoutID.Hex(), resultSlice[keyPage].ID.Hex(), r.i18n)
-		// fmt.Println("datas=", datas)
-		// fmt.Println("=========")
-		// fmt.Println("mapAllData=", mapAllData)
-		if len(mapP) > 0 {
-			// fmt.Println("yes content")
-			resultSlice[keyPage].Content = mapP[0]
-			// fmt.Printf("%#v\n", mapP[0])
-		} else {
-			// fmt.Println("no content! default")
-			resultSlice[keyPage].Content = bson.M{
-				"component": resultSlice[keyPage].Component.Name,
-				"_uid":      resultSlice[keyPage].ID,
-				"layout": bson.A{
-					bson.M{"component": resultSlice[keyPage].Layout.Name, "_uid": resultSlice[keyPage].LayoutID, "global": true},
-				},
-			}
-		}
+		// if len(mapPage) > 0 {
+		// 	content["page"] = mapPage[0]
+		// }
+
+		// resultSlice[keyPage].Content = content
 		// fmt.Println("pages", pages)
 	}
 
@@ -278,8 +316,11 @@ func (r *PageMongo) GetStory(params domain.RequestParams) (domain.Page, error) {
 	// }
 	return response, nil
 }
-func mytest(s domain.ComponentData) bool {
+func testLayout(s domain.ComponentData) bool {
 	return s.Parent == "layout"
+}
+func testPage(s domain.ComponentData) bool {
+	return s.Parent == "root"
 }
 
 func filterComponentData(
@@ -322,7 +363,7 @@ func mytestx(s domain.ComponentData, ids interface{}) bool {
 func createContent(
 	allData map[string]domain.ComponentData,
 	datasets []domain.ComponentData,
-	layoutID string,
+	// layoutID string,
 	pageID string,
 	// global bool,
 	i18n config.I18nConfig,
@@ -363,13 +404,13 @@ func createContent(
 				// nested := filterComponentData2(allData, val, mytestx)
 				nested := []domain.ComponentData{} // make(, len(val.(primitive.A)))
 				for _, uID := range val.(primitive.A) {
-					if uID == "page" {
-						uID = pageID
-						// fmt.Println("is page", allData[uID.(string)])
-					}
+					// if uID == "page" {
+					// 	uID = pageID
+					// 	// fmt.Println("is page", allData[uID.(string)])
+					// }
 					nested = append(nested, allData[uID.(string)])
 				}
-				newBlok[keyProperty] = createContent(allData, nested, pageID, layoutID, i18n)
+				newBlok[keyProperty] = createContent(allData, nested, pageID, i18n) // layoutID,
 			}
 			// if map i18n.
 			if _, ok := property.(map[string]interface{})[i18n.Default]; ok {
@@ -469,47 +510,47 @@ func createContent(
 // 	return tree
 // }
 
-func (r *PageMongo) GetPage(id string) (domain.Page, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), MongoQueryTimeout)
-	defer cancel()
+// func (r *PageMongo) GetPage(id string) (domain.Page, error) {
+// 	ctx, cancel := context.WithTimeout(context.Background(), MongoQueryTimeout)
+// 	defer cancel()
 
-	var result domain.Page
+// 	var result domain.Page
 
-	userIDPrimitive, err := primitive.ObjectIDFromHex(id)
-	if err != nil {
-		return domain.Page{}, err
-	}
+// 	userIDPrimitive, err := primitive.ObjectIDFromHex(id)
+// 	if err != nil {
+// 		return domain.Page{}, err
+// 	}
 
-	filter := bson.M{"_id": userIDPrimitive}
+// 	filter := bson.M{"_id": userIDPrimitive}
 
-	err = r.db.Collection(tblPage).FindOne(ctx, filter).Decode(&result)
-	if err != nil {
-		return domain.Page{}, err
-	}
+// 	err = r.db.Collection(tblPage).FindOne(ctx, filter).Decode(&result)
+// 	if err != nil {
+// 		return domain.Page{}, err
+// 	}
 
-	datas := filterComponentData(result.ComponentData, mytest)
-	mapAllData := map[string]domain.ComponentData{}
-	for i, _ := range result.ComponentData {
-		if result.ComponentData[i].Parent == "layout" {
-			result.ComponentData[i].Parent = result.Layout.ID.Hex()
-		}
-		mapAllData[result.ComponentData[i].UID] = result.ComponentData[i]
-	}
-	mapP := createContent(mapAllData, datas, result.Layout.ID.Hex(), result.ID.Hex(), r.i18n)
-	if len(mapP) > 0 {
-		result.Content = mapP[0]
-	} else {
-		result.Content = bson.M{
-			"component": result.Component.Name,
-			"_uid":      result.ID,
-			"layout": bson.A{
-				bson.M{"component": result.Layout.Name, "_uid": result.LayoutID, "global": true},
-			},
-		}
-	}
+// 	datas := filterComponentData(result.ComponentData, testLayout)
+// 	mapAllData := map[string]domain.ComponentData{}
+// 	for i, _ := range result.ComponentData {
+// 		if result.ComponentData[i].Parent == "layout" {
+// 			result.ComponentData[i].Parent = result.Layout.ID.Hex()
+// 		}
+// 		mapAllData[result.ComponentData[i].UID] = result.ComponentData[i]
+// 	}
+// 	mapP := createContent(mapAllData, datas, result.Layout.ID.Hex(), result.ID.Hex(), r.i18n)
+// 	if len(mapP) > 0 {
+// 		result.Content["layout"] = mapP[0]
+// 	} else {
+// 		result.Content = bson.M{
+// 			"component": result.Component.Name,
+// 			"_uid":      result.ID,
+// 			"layout": bson.A{
+// 				bson.M{"component": result.Layout.Name, "_uid": result.LayoutID, "global": true},
+// 			},
+// 		}
+// 	}
 
-	return result, nil
-}
+// 	return result, nil
+// }
 
 func (r *PageMongo) GetPageForRouters() (domain.Response[domain.PageRoutes], error) {
 	ctx, cancel := context.WithTimeout(context.Background(), MongoQueryTimeout)
@@ -657,24 +698,24 @@ func (r *PageMongo) UpdatePageWithContent(id string, data map[string]interface{}
 
 	collection := r.db.Collection(tblComponentData)
 
-	// disable old data.
-	var layoutID primitive.ObjectID
-	if LID, ok := data["layout_id"]; ok {
-		layoutID = LID.(primitive.ObjectID)
-		// fmt.Println("layout_id=", layoutID)
-	}
+	// // disable old data.
+	// var layoutID primitive.ObjectID
+	// if LID, ok := data["layout_id"]; ok {
+	// 	layoutID = LID.(primitive.ObjectID)
+	// 	// fmt.Println("layout_id=", layoutID)
+	// }
 	pageID, _ := primitive.ObjectIDFromHex(id)
 	// fmt.Println("page_id=", pageID)
 	filter := bson.M{
 		"$or": bson.A{
 			bson.M{
-				"page_id":   pageID,
-				"layout_id": layoutID,
+				"page_id": pageID,
+				// "layout_id": layoutID,
 			},
-			bson.M{
-				"page_id":   primitive.NilObjectID,
-				"layout_id": layoutID,
-			},
+			// bson.M{
+			// 	"page_id":   primitive.NilObjectID,
+			// 	"layout_id": layoutID,
+			// },
 		},
 	}
 	// bson.M{"$or": bson.A{

@@ -107,6 +107,10 @@ func BindPageWithContent[V any](c *gin.Context, form V) (map[string]interface{},
 		return nil, er
 	}
 	pageID := c.Param("id")
+	var typeContent string
+	if typeC, ok := body["type"]; ok {
+		typeContent = typeC.(string)
+	}
 	var layoutID string
 	if id, ok := body["layoutId"]; ok {
 		layoutID = id.(string)
@@ -171,7 +175,7 @@ func BindPageWithContent[V any](c *gin.Context, form V) (map[string]interface{},
 					}
 				}
 				if tagValue == "content" {
-					result[tagValue] = buildFlatDataFormTree(val.(map[string]interface{}), layoutID, pageID)
+					result[tagValue] = buildFlatDataFormTree(val.(map[string]interface{}), layoutID, pageID, typeContent)
 					// value := myDataReflect.Field(i)
 					// fmt.Println("   === default: tag=", tagValue, value)
 					// fmt.Println("   === default: value=", value)
@@ -196,6 +200,7 @@ func buildFlatDataFormTree(
 	tree interface{},
 	layoutID string,
 	pageID string,
+	typeContent string,
 	// relations map[string][]*domain.Field,
 	// level int,
 	// i18n config.I18nConfig,
@@ -205,11 +210,11 @@ func buildFlatDataFormTree(
 	var stack []StackNode
 	stack = append(stack, StackNode{
 		Node:   tree,
-		Parent: "page",
+		Parent: "root",
 		// Global: false,
 	})
 	PID, _ := primitive.ObjectIDFromHex(pageID)
-	LID, _ := primitive.ObjectIDFromHex(layoutID)
+	// LID, _ := primitive.ObjectIDFromHex(layoutID)
 
 	for len(stack) > 0 {
 		n := len(stack) - 1 // Top element
@@ -234,30 +239,35 @@ func buildFlatDataFormTree(
 		if val.Kind() == reflect.Map {
 
 			// create file css for page.
-			cssValue := val.MapIndex(reflect.ValueOf("___cssPage"))
-			if cssValue.IsValid() {
-				filePath := fmt.Sprintf("./public/css/p_%s.css", pageID)
-				f, err := os.Create(filePath)
-				if err != nil {
-					fmt.Println(err)
-				}
-				defer f.Close()
+			if typeContent == "page" {
+				cssValue := val.MapIndex(reflect.ValueOf("___cssPage"))
+				if cssValue.IsValid() {
+					filePath := fmt.Sprintf("./public/css/p_%s.css", pageID)
+					f, err := os.Create(filePath)
+					if err != nil {
+						fmt.Println(err)
+					}
+					defer f.Close()
 
-				f.Write([]byte(cssValue.Elem().String()))
+					f.Write([]byte(cssValue.Elem().String()))
+				}
 			}
 
 			// create file css for layout.
-			cssLayoutValue := val.MapIndex(reflect.ValueOf("___cssLayout"))
-			if cssLayoutValue.IsValid() {
-				filePath := fmt.Sprintf("./public/css/l_%s.css", layoutID)
-				f, err := os.Create(filePath)
-				if err != nil {
-					fmt.Println(err)
-				}
-				defer f.Close()
+			if typeContent == "layout" {
+				cssLayoutValue := val.MapIndex(reflect.ValueOf("___cssLayout"))
+				if cssLayoutValue.IsValid() {
+					filePath := fmt.Sprintf("./public/css/l_%s.css", pageID)
+					f, err := os.Create(filePath)
+					if err != nil {
+						fmt.Println(err)
+					}
+					defer f.Close()
 
-				f.Write([]byte(cssLayoutValue.Elem().String()))
+					f.Write([]byte(cssLayoutValue.Elem().String()))
+				}
 			}
+
 			globalValue := val.MapIndex(reflect.ValueOf("global"))
 			var PPID primitive.ObjectID
 			if globalValue.IsValid() {
@@ -271,16 +281,16 @@ func buildFlatDataFormTree(
 			if keyUID.Elem().String() == layoutID {
 				parent = "layout"
 			} else if keyUID.Elem().String() == pageID {
-				parent = "page"
+				parent = "root"
 			} else {
 				parent = currentNode.Parent
 			}
 
 			res := domain.ComponentData{
-				Parent:   parent,
-				UID:      keyUID.Elem().String(),
-				PageID:   PPID,
-				LayoutID: LID,
+				Parent: parent,
+				UID:    keyUID.Elem().String(),
+				PageID: PPID,
+				// LayoutID: LID,
 				// Component: "Component",
 				Publish:   true,
 				CreatedAt: time.Now(),

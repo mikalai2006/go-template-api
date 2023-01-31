@@ -20,12 +20,12 @@ type ComponentSchema struct {
 }
 
 type ComponentData struct {
-	ID        primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty" primitive:"true"`
-	Parent    string             `json:"parent" bson:"parent"`
-	UID       string             `json:"_uid" bson:"_uid"`
-	PageID    primitive.ObjectID `json:"pageId" bson:"page_id" primitive:"true"`
-	LayoutID  primitive.ObjectID `json:"layoutId" bson:"layout_id" primitive:"true"`
-	Component string             `json:"component" bson:"component"`
+	ID     primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty" primitive:"true"`
+	Parent string             `json:"parent" bson:"parent"`
+	UID    string             `json:"_uid" bson:"_uid"`
+	PageID primitive.ObjectID `json:"pageId" bson:"page_id" primitive:"true"`
+	// LayoutID  primitive.ObjectID `json:"layoutId" bson:"layout_id" primitive:"true"`
+	Component string `json:"component" bson:"component"`
 
 	Publish   bool                   `json:"publish" bson:"publish" form:"publish"`
 	Data      map[string]interface{} `json:"data" bson:"data" form:"data"`

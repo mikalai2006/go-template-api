@@ -115,18 +115,18 @@ func (h HandlerV1) getStoryPage(c *gin.Context) {
 // @Failure 500 {object} domain.ErrorResponse
 // @Failure default {object} domain.ErrorResponse
 // @Router /api/page/{id} [get].
-func (h HandlerV1) getPage(c *gin.Context) {
-	appG := app.Gin{C: c}
-	id := c.Param("id")
+// func (h HandlerV1) getPage(c *gin.Context) {
+// 	appG := app.Gin{C: c}
+// 	id := c.Param("id")
 
-	document, err := h.services.Page.GetPage(id)
-	if err != nil {
-		appG.ResponseError(http.StatusBadRequest, err, nil)
-		return
-	}
+// 	document, err := h.services.Page.GetPage(id)
+// 	if err != nil {
+// 		appG.ResponseError(http.StatusBadRequest, err, nil)
+// 		return
+// 	}
 
-	c.JSON(http.StatusOK, document)
-}
+// 	c.JSON(http.StatusOK, document)
+// }
 
 type InputPage struct {
 	domain.RequestParams

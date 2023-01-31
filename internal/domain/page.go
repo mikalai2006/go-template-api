@@ -12,7 +12,8 @@ type Page struct {
 
 	SpaceID     primitive.ObjectID `json:"spaceId" bson:"space_id" primitive:"true"`
 	ComponentID primitive.ObjectID `json:"componentId" bson:"component_id" primitive:"true"`
-	LayoutID    primitive.ObjectID `json:"layoutId" bson:"layout_id" primitive:"true"`
+	LayoutID    string             `json:"layoutId" bson:"layout_id"`
+	ParentID    primitive.ObjectID `json:"parentId" bson:"parent_id" primitive:"true"`
 	Slug        string             `json:"slug" bson:"slug" form:"slug"`
 	SlugFull    string             `json:"slugFull" bson:"slug_full"`
 	Title       string             `json:"title" bson:"title"`
@@ -21,10 +22,11 @@ type Page struct {
 	Publish     bool               `json:"publish" bson:"publish"`
 	SortOrder   int                `json:"sortOrder" bson:"sort_order"`
 	ContentType string             `json:"contentType" bson:"content_type"`
+	Type        string             `json:"type" bson:"type"`
 	Setting     interface{}        `json:"setting" bson:"setting"`
 
-	Component     Component       `json:"component" bson:"component"`
-	Layout        Component       `json:"layout" bson:"layout"`
+	Component Component `json:"component" bson:"component"`
+	// Layout        Component       `json:"layout" bson:"layout"`
 	XXX           any             `json:"-" bson:"xxx"`
 	Content       interface{}     `json:"content" bson:"content"`
 	ComponentData []ComponentData `json:"-" bson:"component_data"`
@@ -37,7 +39,8 @@ type PageWithContent struct {
 
 	SpaceID     primitive.ObjectID `json:"spaceId" bson:"space_id" primitive:"true"`
 	ComponentID primitive.ObjectID `json:"componentId" bson:"component_id" primitive:"true"`
-	LayoutID    primitive.ObjectID `json:"layoutId" bson:"layout_id" primitive:"true"`
+	LayoutID    string             `json:"layoutId" bson:"layout_id"`
+	ParentID    primitive.ObjectID `json:"parentId" bson:"parent_id" primitive:"true"`
 	Slug        string             `json:"slug" bson:"slug" form:"slug"`
 	SlugFull    string             `json:"slugFull" bson:"slug_full"`
 	Title       string             `json:"title" bson:"title"`
@@ -47,6 +50,7 @@ type PageWithContent struct {
 	SortOrder   int                `json:"sortOrder" bson:"sort_order"`
 	Setting     interface{}        `json:"setting" bson:"setting"`
 	ContentType string             `json:"contentType" bson:"content_type"`
+	Type        string             `json:"type" bson:"type"`
 
 	Content   any       `json:"content" bson:"content" form:"content"`
 	UpdatedAt time.Time `json:"updatedAt" bson:"updated_at"`
@@ -67,8 +71,10 @@ type PageInputData struct {
 	SortOrder   int                `json:"sortOrder" bson:"sort_order" form:"sort_order"`
 	Setting     interface{}        `json:"setting" bson:"setting" form:"setting"`
 	ComponentID primitive.ObjectID `json:"componentId" bson:"component_id" form:"componentId" primitive:"true"`
-	LayoutID    primitive.ObjectID `json:"layoutId" bson:"layout_id" form:"layoutId" primitive:"true"`
+	LayoutID    string             `json:"layoutId" bson:"layout_id" form:"layoutId"`
+	ParentID    primitive.ObjectID `json:"parentId" bson:"parent_id" form:"parentId" primitive:"true"`
 	ContentType string             `json:"contentType" bson:"content_type" form:"contentType"`
+	Type        string             `json:"type" bson:"type" form:"type"`
 
 	CreatedAt time.Time `json:"createdAt" bson:"created_at"`
 	UpdatedAt time.Time `json:"updatedAt" bson:"updated_at"`
@@ -87,8 +93,10 @@ type PageFilterData struct {
 	SortOrder   int         `json:"sortOrder" bson:"sort_order" form:"sort_order"`
 	Setting     interface{} `json:"setting" bson:"setting" form:"setting"`
 	ComponentID string      `json:"componentId" bson:"component_id" form:"componentId" primitive:"true"`
-	LayoutID    string      `json:"layoutId" bson:"layout_id" form:"layoutId" primitive:"true"`
+	LayoutID    string      `json:"layoutId" bson:"layout_id" form:"layoutId"`
 	ContentType string      `json:"contentType" bson:"content_type" form:"contentType"`
+	Type        string      `json:"type" bson:"type" form:"type"`
+	ParentID    string      `json:"parentId" bson:"parent_id" form:"parentId" primitive:"true"`
 
 	CreatedAt time.Time `json:"createdAt" bson:"created_at"`
 	UpdatedAt time.Time `json:"updatedAt" bson:"updated_at"`

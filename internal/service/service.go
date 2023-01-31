@@ -39,7 +39,7 @@ type User interface {
 
 type Page interface {
 	GetPageForRouters() (domain.Response[domain.PageRoutes], error)
-	GetPage(id string) (domain.Page, error)
+	// GetPage(id string) (domain.Page, error)
 	GetStory(params domain.RequestParams) (domain.Page, error)
 	FindPage(params domain.RequestParams) (domain.Response[domain.Page], error)
 	CreatePage(userID string, page *domain.PageInputData) (*domain.Page, error)
