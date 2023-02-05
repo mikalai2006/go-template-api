@@ -1,0 +1,47 @@
+name: go-template-api-test
+on: push
+jobs:
+  test:
+    name: Test deploy application
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags')
+    steps:
+      - uses: actions/checkout@v3
+      - name: Create .ENV
+        run: |
+          touch .env
+          echo HOST_DATA=${{ secrets.HOST_DATA }} >> .env
+          echo MONGODB_HOST=${{ secrets.MONGODB_HOST }} >> .env
+          echo MONGODB_PORT=${{ secrets.MONGODB_PORT }} >> .env
+          echo PORT=${{ secrets.PORT }} >> .env
+          echo MONGODB_USER=${{ secrets.MONGODB_USER }} >> .env
+          echo MONGODB_PASSWORD=${{ secrets.MONGODB_PASSWORD }} >> .env
+          echo VK_CLIENT_ID=${{ secrets.VK_CLIENT_ID }} >> .env
+          echo VK_CLIENT_SECRET=${{ secrets.VK_CLIENT_SECRET }} >> .env
+          echo GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }} >> .env
+          echo GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }} >> .env
+          echo SALT=${{ secrets.SALT }} >> .env
+          echo SIGNING_KEY=${{ secrets.SIGNING_KEY }} >> .env
+          cat .env
+      - name: Checkout code
+        uses: actions/setup-go@v3
+        with:
+          go-version: "^1.19.1"
+      - name: Test docker compose file
+        uses: isbang/compose-action@v1.4.1
+        with:
+          compose-file: "./docker-compose.yml"
+        env:
+          PORT: ${{ secrets.PORT }}
+          MONGODB_HOST: ${{ secrets.MONGODB_HOST }}
+          MONGODB_PORT: ${{ secrets.MONGODB_PORT }}
+          MONGODB_USER: ${{ secrets.MONGODB_USER }}
+          MONGODB_PASSWORD: ${{ secrets.MONGODB_PASSWORD }}
+          HOST_DATA: ${{ secrets.HOST_DATA }}
+        # run: docker run --rm -d -p ${{ env.MONGODB_PORT }}:${{ env.MONGODB_PORT }} -e MONGODB_DATABASE=api_test -e PUID=1000 -e PGID=1000 -e AUTH=yes -e MONGO_INITDB_ROOT_USERNAME=${{ env.MONGODB_USER }} -e MONGO_INITDB_ROOT_PASSWORD=${{ env.MONGODB_PASSWORD }} --name mongodb mongo:latest
+      # - name: Build the stack
+      #   run: docker-compose up -d
+      # - name: Run unit tests
+      #   run: go test --short ./...
+      # - name: Run Integration tests
+      #   run: make tests
