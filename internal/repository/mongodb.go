@@ -99,6 +99,10 @@ func CreatePipeline(params domain.RequestParams, i18n *config.I18nConfig) (mongo
 	// 	fmt.Println("params.Filter: ", elementsFilter.Field(i))
 	// }
 
+	if params.Lang == "" {
+		params.Lang = i18n.Default
+	}
+
 	pipe = append(pipe,
 		bson.D{{Key: "$match", Value: params.Filter}},
 		bson.D{{

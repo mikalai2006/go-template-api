@@ -1,8 +1,8 @@
 package v1
 
 import (
-	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/mikalai2006/go-template-api/internal/domain"
@@ -61,22 +61,28 @@ func (h HandlerV1) getStory(c *gin.Context) {
 
 	// add slug in params.
 	slug := c.Param("slug")
-	// spaceObjectId, err := primitive.ObjectIDFromHex(spaceId)
-	// if err != nil {
-	// 	appG.ResponseError(http.StatusBadRequest, err, nil)
-	// 	return
-	// }
-	if slug != "/" {
-		// slug = "/"
+	slug = strings.TrimPrefix(slug, "/")
+
+	if slug != "" {
 		params.Filter.(bson.M)["slug_full"] = slug
 	}
 
-	fmt.Println("params ", params)
+	// fmt.Println("params ", params)
+
 	document, err := h.services.Story.GetStory(params)
 	if err != nil {
 		appG.ResponseError(http.StatusBadRequest, err, nil)
 		return
 	}
+
+	// if document.PageID.Hex() != "" {
+	// 	filePath := fmt.Sprintf("./public/css/p_%v.css", document.PageID.Hex())
+	// 	f, err := ioutil.ReadFile(filePath)
+	// 	if err != nil {
+	// 		appG.ResponseError(http.StatusBadRequest, err, nil)
+	// 	}
+	// 	document.CSS = string(f)
+	// }
 
 	c.JSON(http.StatusOK, document)
 }

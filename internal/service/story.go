@@ -1,6 +1,8 @@
 package service
 
 import (
+	"crypto/rand"
+	"encoding/hex"
 	"fmt"
 	"reflect"
 
@@ -83,12 +85,19 @@ func buildStoryContent(
 				}
 			}
 			result[key] = nested
+		} else if key == "_uid" {
+			b := make([]byte, 4) //equals 8 characters
+			rand.Read(b)
+			s := hex.EncodeToString(b)
+
+			result["_uid"] = s
 		} else {
 			if (key != "parent" && key != "global" && key != "_uid") || (key == "parent" && cont[key] == "page") {
 				// fmt.Println("value=", key)
 				result[key] = cont[key]
 			}
 		}
+
 	}
 
 	// fmt.Println("============result======================")

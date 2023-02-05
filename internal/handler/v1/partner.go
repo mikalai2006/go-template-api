@@ -2,7 +2,6 @@ package v1
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -10,6 +9,7 @@ import (
 	"github.com/mikalai2006/go-template-api/internal/middleware"
 	"github.com/mikalai2006/go-template-api/internal/utils"
 	"github.com/mikalai2006/go-template-api/pkg/app"
+	"go.mongodb.org/mongo-driver/bson"
 )
 
 func (h *HandlerV1) RegisterPartner(router *gin.RouterGroup) {
@@ -52,14 +52,15 @@ func (h *HandlerV1) createPartner(c *gin.Context) {
 	imageInput.UserID = userID
 	imageInput.Dir = "partner"
 
-	paths, err := utils.UploadResizeMultipleFile(c, imageInput, "upload")
+	paths, err := utils.UploadResizeMultipleFile(c, imageInput, "upload", &h.imageConfig)
 	if err != nil {
 		appG.ResponseError(http.StatusInternalServerError, err, nil)
 	}
 
 	var result []domain.Image
 	for i := range paths {
-		imageInput.Path = paths[i]
+		imageInput.Path = paths[i].Path
+		imageInput.Ext = paths[i].Ext
 		image, err := h.services.Image.CreateImage(userID, imageInput)
 		if err != nil {
 			appG.ResponseError(http.StatusBadRequest, err, nil)
@@ -98,6 +99,25 @@ func (h *HandlerV1) findPartner(c *gin.Context) {
 		return
 	}
 
+	for i := range documents.Data {
+		params := domain.RequestParams{
+			Filter: bson.D{{"service", "partner"}, {"service_id", documents.Data[i].ID.Hex()}},
+		}
+		images, err := h.services.Image.FindImage(params)
+		if err != nil {
+			appG.ResponseError(http.StatusBadRequest, err, nil)
+			return
+		}
+		documents.Data[i].Images = images.Data
+
+		user, err := h.services.User.GetUser(documents.Data[i].UserID.Hex())
+		if err != nil {
+			appG.ResponseError(http.StatusBadRequest, err, nil)
+			return
+		}
+		documents.Data[i].User = user
+	}
+
 	c.JSON(http.StatusOK, documents)
 }
 
@@ -114,10 +134,10 @@ func (h *HandlerV1) updatePartner(c *gin.Context) {
 
 	var input = &domain.PartnerInput{}
 	if er := c.Bind(input); er != nil {
-		appG.ResponseError(http.StatusBadRequest, err, nil)
+		appG.ResponseError(http.StatusBadRequest, er, nil)
 		return
 	}
-	fmt.Println("data", input)
+	// fmt.Println("data", input)
 
 	document, err := h.services.Partner.UpdatePartner(id, input)
 	if err != nil {
@@ -131,14 +151,15 @@ func (h *HandlerV1) updatePartner(c *gin.Context) {
 	imageInput.UserID = userID
 	imageInput.Dir = "partner"
 
-	paths, err := utils.UploadResizeMultipleFile(c, imageInput, "upload")
+	paths, err := utils.UploadResizeMultipleFile(c, imageInput, "upload", &h.imageConfig)
 	if err != nil {
 		appG.ResponseError(http.StatusInternalServerError, err, nil)
 	}
 
 	var result []domain.Image
 	for i := range paths {
-		imageInput.Path = paths[i]
+		imageInput.Path = paths[i].Path
+		imageInput.Ext = paths[i].Ext
 		image, err := h.services.Image.CreateImage(userID, imageInput)
 		if err != nil {
 			appG.ResponseError(http.StatusBadRequest, err, nil)

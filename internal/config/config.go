@@ -21,6 +21,7 @@ type (
 		Auth        AuthConfig
 		Oauth       OauthConfig
 		I18n        I18nConfig
+		IImage      IImageConfig
 		// FileStorage FileStorageConfig
 		// Email       EmailConfig
 		// Payment     PaymentConfig
@@ -82,6 +83,15 @@ type (
 		Default string
 		Locale  string
 	}
+
+	IIModeImage struct {
+		Size    int
+		Prefix  string
+		Quality int
+	}
+	IImageConfig struct {
+		Sizes []IIModeImage
+	}
 )
 
 func Init(configsDir, envPath string) (*Config, error) {
@@ -132,6 +142,9 @@ func unmarshal(cfg *Config) error {
 		return err
 	}
 	if err := viper.UnmarshalKey("i18n", &cfg.I18n); err != nil {
+		return err
+	}
+	if err := viper.UnmarshalKey("images", &cfg.IImage); err != nil {
 		return err
 	}
 

@@ -155,14 +155,6 @@ func (r *PageMongo) GetStory(params domain.RequestParams) (domain.Page, error) {
 	// }
 	copy(resultSlice, results)
 
-	// var options options.CountOptions
-	// // options.SetLimit(params.Limit)
-	// options.SetSkip(params.Skip)
-	// count, err := r.db.Collection(tblPage).CountDocuments(ctx, params.Filter, &options)
-	// if err != nil {
-	// 	return response, err
-	// }
-
 	for keyPage := range resultSlice {
 		// mapP := relationMapX(resultSlice[keyPage].ComponentData, r.i18n)
 		// resultSlice[keyPage].XXX = mapP
@@ -197,28 +189,22 @@ func (r *PageMongo) GetStory(params domain.RequestParams) (domain.Page, error) {
 		// add default page node.
 		if _, ok := mapAllData[resultSlice[keyPage].ID.Hex()]; ok {
 			fmt.Println("yes page data=")
-			// mapAllData["page"] = domain.ComponentData{
-			// 	Parent:    "page",
-			// 	Data:      map[string]interface{}{},
-			// 	Publish:   true,
-			// 	PageID:    resultSlice[keyPage].ID,
-			// 	LayoutID:  resultSlice[keyPage].LayoutID,
-			// 	UID:       resultSlice[keyPage].ID.Hex(),
-			// 	Component: resultSlice[keyPage].Component.Name,
-			// }
+
+			// add placeholder for page blok.
 			mapAllData["page"] = domain.ComponentData{
-				Parent:  "page",
-				Data:    map[string]interface{}{},
-				Publish: true,
-				PageID:  resultSlice[keyPage].ID,
-				// LayoutID:  resultSlice[keyPage].LayoutID,
+				Parent:    "page",
+				Data:      map[string]interface{}{},
+				Publish:   true,
+				PageID:    resultSlice[keyPage].ID,
 				UID:       "page", // resultSlice[keyPage].ID.Hex(),
 				Component: "page", // resultSlice[keyPage].Component.Name,
 			}
 			resultSlice[keyPage].ComponentData = append(resultSlice[keyPage].ComponentData, mapAllData["page"])
-			// resultSlice[keyPage].ComponentData = append(resultSlice[keyPage].ComponentData, mapAllData["page"])
+
 		} else {
 			fmt.Println("no page data!")
+
+			// add default page data content.
 			mapAllData["page"] = domain.ComponentData{
 				Parent:  "page",
 				Data:    map[string]interface{}{},
@@ -380,6 +366,9 @@ func createContent(
 			"_uid":      datasets[keyData].UID,
 			"parent":    datasets[keyData].Parent,
 			"component": datasets[keyData].Component,
+			// "_b": map[string]interface{}{
+			// 	"pid": pageID,
+			// },
 			// "global":    global,
 		}
 
@@ -558,7 +547,7 @@ func (r *PageMongo) GetPageForRouters() (domain.Response[domain.PageRoutes], err
 
 	var results []domain.PageRoutes
 	var response domain.Response[domain.PageRoutes]
-	filter := bson.M{"publish": true}
+	filter := bson.M{"type": "page", "publish": true}
 	cursor, err := r.db.Collection(tblPage).Find(ctx, filter)
 	if err != nil {
 		return response, err

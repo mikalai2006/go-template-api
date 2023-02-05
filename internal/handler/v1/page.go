@@ -2,10 +2,10 @@ package v1
 
 import (
 	"errors"
-	"fmt"
 	"log"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/mikalai2006/go-template-api/internal/domain"
@@ -84,16 +84,14 @@ func (h HandlerV1) getStoryPage(c *gin.Context) {
 
 	// add slug in params.
 	slug := c.Param("slug")
-	// spaceObjectId, err := primitive.ObjectIDFromHex(spaceId)
-	// if err != nil {
-	// 	appG.ResponseError(http.StatusBadRequest, err, nil)
-	// 	return
-	// }
-	if slug != "/" {
-		// slug = "/"
+	slug = strings.TrimPrefix(slug, "/")
+
+	if slug != "" {
 		params.Filter.(bson.M)["slug_full"] = slug
 	}
-	fmt.Println("params", params.Filter)
+
+	// fmt.Println("SLUG=", slug)
+	// fmt.Println("params", params.Filter)
 	document, err := h.services.Page.GetStory(params)
 	if err != nil {
 		appG.ResponseError(http.StatusBadRequest, err, nil)

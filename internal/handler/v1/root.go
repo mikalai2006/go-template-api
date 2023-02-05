@@ -9,16 +9,18 @@ import (
 )
 
 type HandlerV1 struct {
-	services *service.Services
-	oauth    config.OauthConfig
-	i18n     config.I18nConfig
+	services    *service.Services
+	oauth       config.OauthConfig
+	i18n        config.I18nConfig
+	imageConfig config.IImageConfig
 }
 
-func NewHandler(services *service.Services, oauth *config.OauthConfig, i18n *config.I18nConfig) *HandlerV1 {
+func NewHandler(services *service.Services, oauth *config.OauthConfig, i18n *config.I18nConfig, imageConfig *config.IImageConfig) *HandlerV1 {
 	return &HandlerV1{
-		services: services,
-		oauth:    *oauth,
-		i18n:     *i18n,
+		services:    services,
+		oauth:       *oauth,
+		i18n:        *i18n,
+		imageConfig: *imageConfig,
 	}
 }
 

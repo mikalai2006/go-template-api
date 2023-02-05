@@ -100,14 +100,15 @@ func (h *HandlerV1) createImage(c *gin.Context) {
 	input.UserID = userID
 	// var image domain.Image
 
-	paths, err := utils.UploadResizeMultipleFile(c, input, "images")
+	paths, err := utils.UploadResizeMultipleFile(c, input, "images", &h.imageConfig)
 	if err != nil {
 		appG.ResponseError(http.StatusInternalServerError, err, nil)
 	}
 
 	var result []domain.Image
 	for i := range paths {
-		input.Path = paths[i]
+		input.Path = paths[i].Path
+		input.Ext = paths[i].Ext
 		image, err := h.services.Image.CreateImage(userID, input)
 		if err != nil {
 			appG.ResponseError(http.StatusBadRequest, err, nil)
@@ -136,28 +137,38 @@ func (h *HandlerV1) deleteImage(c *gin.Context) {
 		appG.ResponseError(http.StatusBadRequest, errors.New("not found item for remove"), nil)
 		return
 	} else {
-
 		pathOfRemove := fmt.Sprintf("public/%s/%s", imageForRemove.UserID.Hex(), imageForRemove.Service)
 
-		if imageForRemove.ServiceID.Hex() != "" {
-			pathOfRemove = fmt.Sprintf("%s/%s", pathOfRemove, imageForRemove.ServiceID.Hex())
+		if imageForRemove.ServiceID != "" {
+			pathOfRemove = fmt.Sprintf("%s/%s", pathOfRemove, imageForRemove.ServiceID)
 		}
 
-		pathRemove := fmt.Sprintf("%s/%s", pathOfRemove, imageForRemove.Path)
+		pathRemove := fmt.Sprintf("%s/%s%s", pathOfRemove, imageForRemove.Path, imageForRemove.Ext)
 		err := os.Remove(pathRemove)
 		if err != nil {
 			appG.ResponseError(http.StatusBadRequest, err, nil)
 		}
-		pathRemove = fmt.Sprintf("%s/xs-%s", pathOfRemove, imageForRemove.Path)
-		err = os.Remove(pathRemove)
-		if err != nil {
-			appG.ResponseError(http.StatusBadRequest, err, nil)
+
+		// remove srcset.
+		for i := range h.imageConfig.Sizes {
+			dataImg := h.imageConfig.Sizes[i]
+			pathRemove = fmt.Sprintf("%s/%v-%s%s", pathOfRemove, dataImg.Size, imageForRemove.Path, ".webp")
+			err = os.Remove(pathRemove)
+			if err != nil {
+				appG.ResponseError(http.StatusBadRequest, err, nil)
+			}
 		}
-		pathRemove = fmt.Sprintf("%s/lg-%s", pathOfRemove, imageForRemove.Path)
-		err = os.Remove(pathRemove)
-		if err != nil {
-			appG.ResponseError(http.StatusBadRequest, err, nil)
-		}
+
+		// pathRemove = fmt.Sprintf("%s/xs-%s", pathOfRemove, imageForRemove.Path)
+		// err = os.Remove(pathRemove)
+		// if err != nil {
+		// 	appG.ResponseError(http.StatusBadRequest, err, nil)
+		// }
+		// pathRemove = fmt.Sprintf("%s/lg-%s", pathOfRemove, imageForRemove.Path)
+		// err = os.Remove(pathRemove)
+		// if err != nil {
+		// 	appG.ResponseError(http.StatusBadRequest, err, nil)
+		// }
 	}
 
 	image, err := h.services.Image.DeleteImage(id)

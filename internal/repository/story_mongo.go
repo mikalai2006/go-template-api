@@ -46,10 +46,6 @@ func (r *StoryMongo) PublishStory(id string, data domain.StoryInputData) (domain
 	if err != nil {
 		return result, err
 	}
-	layoutID, err := primitive.ObjectIDFromHex(data.LayoutID)
-	if err != nil {
-		return result, err
-	}
 	// fmt.Println("Story_id=", StoryID)
 	filter := bson.M{
 		"$or": bson.A{
@@ -82,7 +78,7 @@ func (r *StoryMongo) PublishStory(id string, data domain.StoryInputData) (domain
 		UserID:    userID,
 		SpaceID:   spaceID,
 		PageID:    pageID,
-		LayoutID:  layoutID,
+		LayoutID:  data.LayoutID,
 		Name:      data.Name,
 		Title:     data.Title,
 		Slug:      data.Slug,

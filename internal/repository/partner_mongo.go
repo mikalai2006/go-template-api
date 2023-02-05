@@ -104,19 +104,29 @@ func (r *PartnerMongo) FindPartner(params domain.RequestParams) (domain.Response
 	}
 
 	// add populate.
-	pipe = append(pipe, bson.D{{
-		Key: "$lookup",
-		Value: bson.M{
-			"from": tblImage,
-			"as":   "images",
-			// "localField":   "_id",
-			// "foreignField": "componentId",
-			"let": bson.D{{Key: "serviceId", Value: "$_id"}},
-			"pipeline": mongo.Pipeline{
-				bson.D{{Key: "$match", Value: bson.M{"$expr": bson.M{"$eq": [2]string{"$service_id", "$$serviceId"}}}}},
-			},
-		},
-	}})
+	// pipe = append(pipe, bson.D{{
+	// 	Key: "$lookup",
+	// 	Value: bson.M{
+	// 		"from": tblImage,
+	// 		"as":   "images",
+	// 		// "localField":   "_id",
+	// 		// "foreignField": "componentId",
+	// 		"let": bson.D{{Key: "serviceId", Value: bson.D{{"$toString", "$_id"}}}},
+	// 		"pipeline": mongo.Pipeline{
+	// 			bson.D{{Key: "$match", Value: bson.M{"$expr": bson.M{"$eq": [2]string{"$service_id", "$$serviceId"}}}}},
+	// 		},
+	// 	},
+	// }})
+	// pipe = append(pipe, bson.D{{
+	// 	Key: "$lookup",
+	// 	Value: bson.M{
+	// 		"from":         tblUsers,
+	// 		"as":           "user",
+	// 		"localField":   "user_id",
+	// 		"foreignField": "_id",
+	// 	},
+	// }})
+	// pipe = append(pipe, bson.D{{Key: "$unwind", Value: "$user"}})
 
 	// fmt.Println(pipe)
 	cursor, err := collection.Aggregate(ctx, pipe) // Find(ctx, params.Filter, opts)

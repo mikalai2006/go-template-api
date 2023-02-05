@@ -6,7 +6,6 @@ import (
 
 	"github.com/mikalai2006/go-template-api/internal/config"
 	"github.com/mikalai2006/go-template-api/internal/domain"
-	"github.com/mikalai2006/go-template-api/internal/utils"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -31,11 +30,38 @@ func (r *UserMongo) Iam(userID string) (domain.User, error) {
 		return domain.User{}, err
 	}
 
-	filter := bson.M{"_id": userIDPrimitive}
-
-	err = r.db.Collection(tblUsers).FindOne(ctx, filter).Decode(&result)
+	params := domain.RequestParams{}
+	params.Filter = bson.M{"_id": userIDPrimitive}
+	pipe, err := CreatePipeline(params, &r.i18n) // mongo.Pipeline{bson.D{{"_id", userIDPrimitive}}} //
 	if err != nil {
-		return domain.User{}, err
+		return result, err
+	}
+
+	// add populate.
+	pipe = append(pipe, bson.D{{
+		Key: "$lookup",
+		Value: bson.M{
+			"from": tblImage,
+			"as":   "images",
+			// "localField":   "_id",
+			// "foreignField": "service_id",
+			"let": bson.D{{Key: "serviceId", Value: bson.D{{"$toString", "$_id"}}}},
+			"pipeline": mongo.Pipeline{
+				bson.D{{Key: "$match", Value: bson.M{"$expr": bson.M{"$eq": [2]string{"$service_id", "$$serviceId"}}}}},
+			},
+		},
+	}})
+
+	cursor, err := r.db.Collection(tblUsers).Aggregate(ctx, pipe) // .FindOne(ctx, filter).Decode(&result)
+	if err != nil {
+		return result, err
+	}
+	defer cursor.Close(ctx)
+
+	if cursor.Next(ctx) {
+		if er := cursor.Decode(&result); er != nil {
+			return result, er
+		}
 	}
 
 	return result, nil
@@ -54,9 +80,42 @@ func (r *UserMongo) GetUser(id string) (domain.User, error) {
 
 	filter := bson.M{"_id": userIDPrimitive}
 
-	err = r.db.Collection(tblUsers).FindOne(ctx, filter).Decode(&result)
+	// err = r.db.Collection(tblUsers).FindOne(ctx, filter).Decode(&result)
+	// if err != nil {
+	// 	return domain.User{}, err
+	// }
+	pipe, err := CreatePipeline(domain.RequestParams{
+		Filter: filter,
+	}, &r.i18n)
 	if err != nil {
-		return domain.User{}, err
+		return result, err
+	}
+
+	// add populate.
+	pipe = append(pipe, bson.D{{
+		Key: "$lookup",
+		Value: bson.M{
+			"from": tblImage,
+			"as":   "images",
+			// "localField":   "_id",
+			// "foreignField": "service_id",
+			"let": bson.D{{Key: "serviceId", Value: bson.D{{"$toString", "$_id"}}}},
+			"pipeline": mongo.Pipeline{
+				bson.D{{Key: "$match", Value: bson.M{"$expr": bson.M{"$eq": [2]string{"$service_id", "$$serviceId"}}}}},
+			},
+		},
+	}})
+
+	cursor, err := r.db.Collection(tblUsers).Aggregate(ctx, pipe) // Find(ctx, params.Filter, opts)
+	if err != nil {
+		return result, err
+	}
+	defer cursor.Close(ctx)
+
+	if cursor.Next(ctx) {
+		if er := cursor.Decode(&result); er != nil {
+			return result, er
+		}
 	}
 
 	return result, nil
@@ -72,7 +131,22 @@ func (r *UserMongo) FindUser(params domain.RequestParams) (domain.Response[domai
 	if err != nil {
 		return domain.Response[domain.User]{}, err
 	}
-	// fmt.Println("gogo", pipe)
+
+	// add populate.
+	pipe = append(pipe, bson.D{{
+		Key: "$lookup",
+		Value: bson.M{
+			"from": tblImage,
+			"as":   "images",
+			// "localField":   "_id",
+			// "foreignField": "service_id",
+			"let": bson.D{{Key: "serviceId", Value: bson.D{{"$toString", "$_id"}}}},
+			"pipeline": mongo.Pipeline{
+				bson.D{{Key: "$match", Value: bson.M{"$expr": bson.M{"$eq": [2]string{"$service_id", "$$serviceId"}}}}},
+			},
+		},
+	}})
+
 	cursor, err := r.db.Collection(tblUsers).Aggregate(ctx, pipe) // Find(ctx, params.Filter, opts)
 	if err != nil {
 		return response, err
@@ -174,10 +248,10 @@ func (r *UserMongo) UpdateUser(id string, user *domain.User) (domain.User, error
 
 	collection := r.db.Collection(tblUsers)
 
-	data, err := utils.GetBodyToData(user)
-	if err != nil {
-		return result, err
-	}
+	// data, err := utils.GetBodyToData(user)
+	// if err != nil {
+	// 	return result, err
+	// }
 
 	idPrimitive, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
@@ -186,8 +260,8 @@ func (r *UserMongo) UpdateUser(id string, user *domain.User) (domain.User, error
 
 	filter := bson.M{"_id": idPrimitive}
 
-	// fmt.Println("data=", data)
-	_, err = collection.UpdateOne(ctx, filter, bson.M{"$set": data})
+	// fmt.Println("data=", user)
+	_, err = collection.UpdateOne(ctx, filter, bson.M{"$set": user})
 	if err != nil {
 		return result, err
 	}

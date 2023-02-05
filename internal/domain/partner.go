@@ -43,6 +43,7 @@ type PartnerPopulate struct {
 	Seo         string                       `json:"seo" bson:"seo"`
 
 	Images []Image `json:"images" bson:"images"`
+	User   User    `json:"user" bson:"user"`
 
 	CreatedAt time.Time `json:"createdAt" bson:"created_at"`
 	UpdatedAt time.Time `json:"updatedAt" bson:"updated_at"`

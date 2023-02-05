@@ -2,7 +2,6 @@ package middleware
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 	"os"
 	"strings"
@@ -23,9 +22,9 @@ func SetUserIdentity(c *gin.Context) {
 	appG := app.Gin{C: c}
 
 	header := c.GetHeader(authorizationHeader)
-	jwtCookie, _ := c.Cookie("jwt-handmade")
-	fmt.Println("jwtCookie=", jwtCookie)
 	// fmt.Println("header=", header)
+	// jwtCookie, _ := c.Cookie("jwt-handmade")
+	// fmt.Println("jwtCookie=", jwtCookie)
 
 	if header == "" {
 		// c.AbortWithStatusJSON(http.StatusUnauthorized, errors.New("empty auth header"))

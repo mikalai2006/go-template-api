@@ -110,7 +110,7 @@ func (s *TestSuite) SetupSuite() {
 
 	s.repos = repos
 	s.services = services
-	s.handler = v1.NewHandler(services, &cfg.Oauth, &cfg.I18n)
+	s.handler = v1.NewHandler(services, &cfg.Oauth, &cfg.I18n, &cfg.IImage)
 	s.hasher = hasherP
 	s.tokenManager = tokenManager
 }

@@ -17,16 +17,18 @@ import (
 )
 
 type Handler struct {
-	services *service.Services
-	oauth    config.OauthConfig
-	i18n     config.I18nConfig
+	services    *service.Services
+	oauth       config.OauthConfig
+	i18n        config.I18nConfig
+	imageConfig config.IImageConfig
 }
 
-func NewHandler(services *service.Services, oauth *config.OauthConfig, i18n *config.I18nConfig) *Handler {
+func NewHandler(services *service.Services, oauth *config.OauthConfig, i18n *config.I18nConfig, imageConfig *config.IImageConfig) *Handler {
 	return &Handler{
-		services: services,
-		oauth:    *oauth,
-		i18n:     *i18n,
+		services:    services,
+		oauth:       *oauth,
+		i18n:        *i18n,
+		imageConfig: *imageConfig,
 	}
 }
 
@@ -74,7 +76,8 @@ func (h *Handler) InitRoutes(cfg *config.Config) *gin.Engine {
 }
 
 func (h *Handler) initAPI(router *gin.Engine) {
-	handlerV1 := v1.NewHandler(h.services, &h.oauth, &h.i18n)
+	fmt.Println("IImageConfig", &h.imageConfig)
+	handlerV1 := v1.NewHandler(h.services, &h.oauth, &h.i18n, &h.imageConfig)
 	api := router.Group("/api")
 	handlerV1.Init(api)
 }

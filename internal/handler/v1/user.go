@@ -158,16 +158,44 @@ func (h *HandlerV1) UpdateUser(c *gin.Context) {
 
 	id := c.Param("id")
 
-	var input *domain.User
-	if err := c.ShouldBindJSON(&input); err != nil {
+	userID, err := middleware.GetUID(c)
+	if err != nil {
+		appG.ResponseError(http.StatusUnauthorized, err, nil)
+		return
+	}
+	var input domain.User
+	if er := c.Bind(&input); er != nil {
+		appG.ResponseError(http.StatusBadRequest, er, nil)
+		return
+	}
+
+	user, err := h.services.User.UpdateUser(id, &input)
+	if err != nil {
 		appG.ResponseError(http.StatusBadRequest, err, nil)
 		return
 	}
 
-	user, err := h.services.User.UpdateUser(id, input)
+	var imageInput = &domain.ImageInput{}
+	imageInput.Service = "user"
+	imageInput.ServiceID = user.ID.Hex()
+	imageInput.UserID = userID
+	imageInput.Dir = "user"
+
+	paths, err := utils.UploadResizeMultipleFile(c, imageInput, "upload", &h.imageConfig)
 	if err != nil {
-		appG.ResponseError(http.StatusBadRequest, err, nil)
-		return
+		appG.ResponseError(http.StatusInternalServerError, err, nil)
+	}
+
+	var result []domain.Image
+	for i := range paths {
+		imageInput.Path = paths[i].Path
+		imageInput.Ext = paths[i].Ext
+		image, err := h.services.Image.CreateImage(userID, imageInput)
+		if err != nil {
+			appG.ResponseError(http.StatusBadRequest, err, nil)
+			return
+		}
+		result = append(result, image)
 	}
 
 	c.JSON(http.StatusOK, user)

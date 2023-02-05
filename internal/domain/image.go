@@ -9,9 +9,10 @@ import (
 type Image struct {
 	ID          primitive.ObjectID `json:"id" bson:"_id,omitempty"`
 	UserID      primitive.ObjectID `json:"userId" bson:"user_id"`
-	ServiceID   primitive.ObjectID `json:"serviceId" bson:"service_id"`
+	ServiceID   string             `json:"serviceId" bson:"service_id"`
 	Service     string             `json:"service" bson:"service"`
 	Path        string             `json:"path" bson:"path"`
+	Ext         string             `json:"ext" bson:"ext"`
 	Title       string             `json:"title" bson:"title"`
 	Dir         string             `json:"dir" bson:"dir"`
 	Description string             `json:"description" bson:"description"`
@@ -27,5 +28,11 @@ type ImageInput struct {
 	Description string `json:"description" bson:"description" form:"description"`
 	Title       string `json:"title" bson:"title" form:"title"`
 	Dir         string `json:"dir" bson:"dir" form:"dir"`
+	Ext         string `json:"ext" bson:"ext"`
 	// Images      *multipart.FileHeader `bson:"image" form:"image"`
+}
+
+type IImagePaths struct {
+	Ext  string
+	Path string
 }

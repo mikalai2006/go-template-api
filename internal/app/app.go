@@ -89,7 +89,7 @@ func Run(configPath string) {
 		VerificationCodeLength: cfg.Auth.VerificationCodeLength,
 		I18n:                   cfg.I18n,
 	})
-	handlers := handler.NewHandler(services, &cfg.Oauth, &cfg.I18n)
+	handlers := handler.NewHandler(services, &cfg.Oauth, &cfg.I18n, &cfg.IImage)
 
 	// initialize server
 	srv := server.NewServer(cfg, handlers.InitRoutes(cfg))
