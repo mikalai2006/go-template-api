@@ -23,10 +23,10 @@ jobs:
           echo SALT=${{ secrets.SALT }} >> .env
           echo SIGNING_KEY=${{ secrets.SIGNING_KEY }} >> .env
           cat .env
-      - name: Checkout code
-        uses: actions/setup-go@v3
-        with:
-          go-version: "^1.19.1"
+      # - name: Checkout code
+      #   uses: actions/setup-go@v3
+      #   with:
+      #     go-version: "^1.19.1"
       - name: Test docker compose file
         uses: isbang/compose-action@v1.4.1
         with:
