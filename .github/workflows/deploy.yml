@@ -1,12 +1,13 @@
-name: go-template-api-test
+name: "build and deploy"
 on: push
 jobs:
-  test:
-    name: Test deploy application
+  build:
+    name: "build & publish"
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags')
     steps:
-      - uses: actions/checkout@v3
+      - name: "Checkout repository"
+        uses: actions/checkout@v3
+
       - name: Create .ENV
         run: |
           touch .env
@@ -23,22 +24,49 @@ jobs:
           echo SALT=${{ secrets.SALT }} >> .env
           echo SIGNING_KEY=${{ secrets.SIGNING_KEY }} >> .env
           cat .env
+
+      - name: "Set up QEMU"
+        uses: docker/setup-qemu-action@v1
+
+      - name: "Set up Docker Buildx"
+        uses: docker/setup-buildx-action@v1
+
+      - name: "Login to GitHub Registry"
+        uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: "mikalai2006"
+          password: ${{ secrets.REGISTRY_TOKEN }}
+
+      - name: "build & deploy template-app"
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/prod-template-api:${{ github.event.release.tag_name }}
+            ghcr.io/${{ github.repository_owner }}/prod-template-api:latest
+          secrets: |
+            "ASPNETCORE_ENVIRONMENT=Release"
+          build-args: |
+            build_mode=Release
       # - name: Checkout code
       #   uses: actions/setup-go@v3
       #   with:
       #     go-version: "^1.19.1"
-      - name: Test docker compose file
-        uses: isbang/compose-action@v1.4.1
-        with:
-          compose-file: "./docker-compose.yml"
-        env:
-          PORT: ${{ secrets.PORT }}
-          MONGODB_HOST: ${{ secrets.MONGODB_HOST }}
-          MONGODB_PORT: ${{ secrets.MONGODB_PORT }}
-          MONGODB_USER: ${{ secrets.MONGODB_USER }}
-          MONGODB_PASSWORD: ${{ secrets.MONGODB_PASSWORD }}
-          HOST_DATA: ${{ secrets.HOST_DATA }}
-        # run: docker run --rm -d -p ${{ env.MONGODB_PORT }}:${{ env.MONGODB_PORT }} -e MONGODB_DATABASE=api_test -e PUID=1000 -e PGID=1000 -e AUTH=yes -e MONGO_INITDB_ROOT_USERNAME=${{ env.MONGODB_USER }} -e MONGO_INITDB_ROOT_PASSWORD=${{ env.MONGODB_PASSWORD }} --name mongodb mongo:latest
+      # - name: Test docker compose file
+      #   uses: isbang/compose-action@v1.4.1
+      #   with:
+      #     compose-file: "./docker-compose.yml"
+      #   env:
+      #     PORT: ${{ secrets.PORT }}
+      #     MONGODB_HOST: ${{ secrets.MONGODB_HOST }}
+      #     MONGODB_PORT: ${{ secrets.MONGODB_PORT }}
+      #     MONGODB_USER: ${{ secrets.MONGODB_USER }}
+      #     MONGODB_PASSWORD: ${{ secrets.MONGODB_PASSWORD }}
+      #     HOST_DATA: ${{ secrets.HOST_DATA }}
+      # run: docker run --rm -d -p ${{ env.MONGODB_PORT }}:${{ env.MONGODB_PORT }} -e MONGODB_DATABASE=api_test -e PUID=1000 -e PGID=1000 -e AUTH=yes -e MONGO_INITDB_ROOT_USERNAME=${{ env.MONGODB_USER }} -e MONGO_INITDB_ROOT_PASSWORD=${{ env.MONGODB_PASSWORD }} --name mongodb mongo:latest
       # - name: Build the stack
       #   run: docker-compose up -d
       # - name: Run unit tests

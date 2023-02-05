@@ -27,8 +27,8 @@ services:
     ports:
       - ${MONGODB_PORT}:${MONGODB_PORT}
     restart: always
-    # networks:
-    #   - my-network
+    networks:
+      - my-network
 
   app:
     # image: cosmtrek/air
@@ -58,7 +58,9 @@ services:
     #   - MONGO_PASSWORD=
     #   - MONGO_PORT=
     #   - MONGO_DATABASE=
-# networks:
-#   my-network:
+    networks:
+      - my-network
+networks:
+  my-network:
 # volumes:
 #   my-datavolume:
