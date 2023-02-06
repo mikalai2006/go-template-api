@@ -1,4 +1,4 @@
-FROM golang:1.19.1-alpine AS builder
+FROM golang:1.19.1 AS builder
 ARG VERSION=dev
 
 ENV APP_HOME /go/src/go-template-api
@@ -6,7 +6,11 @@ WORKDIR "$APP_HOME"
 
 COPY . .
 COPY ./.env .
-RUN go build -o main -ldflags=-X=main.version=${VERSION} cmd/main.go
+
+# RUN go mod download
+# RUN go mod verify
+
+RUN CGO_ENABLED=0 go build -o main -ldflags=-X=main.version=${VERSION} cmd/main.go
 
 FROM alpine:3.14
 LABEL org.opencontainers.image.source=https://github.com/mikalai2006/go-template-api
@@ -18,7 +22,7 @@ RUN mkdir -p "$APP_HOME"
 WORKDIR "$APP_HOME"
 
 COPY configs/ configs/
-COPY --from=builder "$APP_HOME"/.env .
+COPY --from=builder "$APP_HOME"/.env /go/bin/.env
 COPY --from=builder "$APP_HOME" /go/bin
 
 EXPOSE 8000

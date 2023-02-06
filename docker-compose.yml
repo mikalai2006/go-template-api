@@ -17,24 +17,28 @@ services:
     image: mongo
     container_name: mongodb
     environment:
-      - PUID=1000
-      - PGID=1000
-      - AUTH=yes
+      # - PUID=1000
+      # - PGID=1000
+      # - AUTH=yes
       - MONGO_INITDB_ROOT_USERNAME=${MONGODB_USER}
       - MONGO_INITDB_ROOT_PASSWORD=${MONGODB_PASSWORD}
+      # - MONGO_INITDB_DATABASE=api_prod_db
     volumes:
-      - ${HOST_DATA}/mongodata:/data/db
+      - dbdata:/data/db
+      # - ${HOST_DATA}/mongodata:/data/db
     ports:
       - ${MONGODB_PORT}:${MONGODB_PORT}
     restart: always
     networks:
       - my-network
+    env_file:
+      - .env
 
   app:
     # image: cosmtrek/air
     container_name: go-template-api
     # working_dir value has to be the same of mapped volume
-    # working_dir: /app
+    working_dir: /go/bin
     build:
       dockerfile: Dockerfile
       context: .
@@ -42,7 +46,9 @@ services:
     ports:
       - ${PORT}:${PORT}
     volumes:
-      - ./:/app
+      - appdata:/go/bin/public
+      - dbdata:/data/db
+      # ${HOST_DATA}/assets/public:/go/bin/public
     links:
       - mongodb
     depends_on:
@@ -62,5 +68,6 @@ services:
       - my-network
 networks:
   my-network:
-# volumes:
-#   my-datavolume:
+volumes:
+  appdata:
+  dbdata:

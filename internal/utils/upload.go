@@ -9,7 +9,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/chai2010/webp"
 	"github.com/disintegration/imaging"
 	"github.com/gin-gonic/gin"
 	"github.com/mikalai2006/go-template-api/internal/config"
@@ -116,35 +115,35 @@ func UploadResizeMultipleFile(c *gin.Context, info *domain.ImageInput, nameField
 		}
 
 		// encode images to webp.
-		for i := range objImages.Images {
-			dataImg := objImages.Images[i]
-			// encode webp if not original image.
-			if dataImg.Resize {
-				imagePath := fmt.Sprintf("%s/%v%v", pathDir, dataImg.Name, dataImg.Ext)
-				imgWebp, err := imaging.Open(imagePath, imaging.AutoOrientation(true))
-				if err != nil {
-					return filePaths, err
-				}
-				fileWebp, err := os.Create(fmt.Sprintf("%s/%v%v", pathDir, dataImg.Name, ".webp"))
-				if err != nil {
-					return filePaths, err
-				}
-				if err := webp.Encode(fileWebp, imgWebp, &webp.Options{
-					Lossless: false,
-					Quality:  float32(dataImg.Quality),
-					Exact:    true,
-				}); err != nil {
-					return filePaths, err
-				}
-				if err := fileWebp.Close(); err != nil {
-					return filePaths, err
-				}
-				err = os.Remove(imagePath)
-				if err != nil {
-					return filePaths, err
-				}
-			}
-		}
+		// for i := range objImages.Images {
+		// 	dataImg := objImages.Images[i]
+		// 	// encode webp if not original image.
+		// 	if dataImg.Resize {
+		// 		imagePath := fmt.Sprintf("%s/%v%v", pathDir, dataImg.Name, dataImg.Ext)
+		// 		imgWebp, err := imaging.Open(imagePath, imaging.AutoOrientation(true))
+		// 		if err != nil {
+		// 			return filePaths, err
+		// 		}
+		// 		fileWebp, err := os.Create(fmt.Sprintf("%s/%v%v", pathDir, dataImg.Name, ".webp"))
+		// 		if err != nil {
+		// 			return filePaths, err
+		// 		}
+		// 		if err := webp.Encode(fileWebp, imgWebp, &webp.Options{
+		// 			Lossless: false,
+		// 			Quality:  float32(dataImg.Quality),
+		// 			Exact:    true,
+		// 		}); err != nil {
+		// 			return filePaths, err
+		// 		}
+		// 		if err := fileWebp.Close(); err != nil {
+		// 			return filePaths, err
+		// 		}
+		// 		err = os.Remove(imagePath)
+		// 		if err != nil {
+		// 			return filePaths, err
+		// 		}
+		// 	}
+		// }
 
 		// err = imaging.Save(imageFile, fmt.Sprintf("%s/%v", pathDir, filenameOriginal), imaging.JPEGQuality(100))
 		// if err != nil {
