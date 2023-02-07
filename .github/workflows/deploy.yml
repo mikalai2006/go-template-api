@@ -69,8 +69,5 @@ jobs:
           password: ${{ secrets.SSH_SITE_PASSWORD }}
           port: ${{ secrets.SSH_SITE_PORT }}
           script: |
-            whoami
-            ls -al
-            cd ./mikalai2006
             sudo docker-compose -f docker-compose.yml -p prod pull
             sudo docker-compose -f docker-compose.yml -p prod up -d
