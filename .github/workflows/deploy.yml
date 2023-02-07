@@ -25,41 +25,41 @@ jobs:
           echo SIGNING_KEY=${{ secrets.SIGNING_KEY }} >> .env
           cat .env
 
-      # - name: "Set up QEMU"
-      #   uses: docker/setup-qemu-action@v1
+      - name: "Set up QEMU"
+        uses: docker/setup-qemu-action@v1
 
-      # - name: "Set up Docker Buildx"
-      #   uses: docker/setup-buildx-action@v1
+      - name: "Set up Docker Buildx"
+        uses: docker/setup-buildx-action@v1
 
-      # - name: "Login to GitHub Registry"
-      #   uses: docker/login-action@v1
-      #   with:
-      #     registry: ghcr.io
-      #     username: ${{ github.actor }}
-      #     password: ${{ secrets.REGISTRY_TOKEN }}
-
-      # - name: "build & deploy template-app"
-      #   uses: docker/build-push-action@v2
-      #   with:
-      #     context: .
-      #     file: ./Dockerfile
-      #     push: true
-      #     tags: |
-      #       ghcr.io/${{ github.repository_owner }}/${{ github.repository }}
-      #       ghcr.io/${{ github.repository_owner }}/${{ github.repository }}:latest
-      #     # secrets: |
-      #     #   "ASPNETCORE_ENVIRONMENT=Release"
-      #     # build-args: |
-      #     #   build_mode=Release
-      - name: copy file .env on server
-        uses: garygrossgarten/github-action-scp@release
+      - name: "Login to GitHub Registry"
+        uses: docker/login-action@v1
         with:
-          host: ${{ secrets.SSH_SITE_HOST }}
-          username: ${{ secrets.SSH_SITE_USERNAME }}
-          password: ${{ secrets.SSH_SITE_PASSWORD }}
-          port: ${{ secrets.SSH_SITE_PORT }}
-          local: .env
-          remote: .env_
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.REGISTRY_TOKEN }}
+
+      - name: "build & deploy template-app"
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/${{ github.repository }}
+            ghcr.io/${{ github.repository_owner }}/${{ github.repository }}:latest
+          # secrets: |
+          #   "MODE=Release"
+          # build-args: |
+          #   build_mode=Release
+      # - name: copy file .env on server
+      #   uses: garygrossgarten/github-action-scp@release
+      #   with:
+      #     host: ${{ secrets.SSH_SITE_HOST }}
+      #     username: ${{ secrets.SSH_SITE_USERNAME }}
+      #     password: ${{ secrets.SSH_SITE_PASSWORD }}
+      #     port: ${{ secrets.SSH_SITE_PORT }}
+      #     local: .env
+      #     remote: mikalai2006/.env_
       - name: "Run deploy on server"
         uses: appleboy/ssh-action@master
         with:
@@ -69,30 +69,6 @@ jobs:
           password: ${{ secrets.SSH_SITE_PASSWORD }}
           port: ${{ secrets.SSH_SITE_PORT }}
           script: |
+            cd mikalai2006
             docker-compose -f docker-compose.yml -p prod pull
             docker-compose -f docker-compose.yml -p prod up -d
-          # script: |
-          #   sudo docker-compose -f docker-compose.prod-ci.yml -p prod pull
-          #   sudo docker-compose -f docker-compose.prod-ci.yml -p prod up -d
-      # - name: Checkout code
-      #   uses: actions/setup-go@v3
-      #   with:
-      #     go-version: "^1.19.1"
-      # - name: Test docker compose file
-      #   uses: isbang/compose-action@v1.4.1
-      #   with:
-      #     compose-file: "./docker-compose.yml"
-      #   env:
-      #     PORT: ${{ secrets.PORT }}
-      #     MONGODB_HOST: ${{ secrets.MONGODB_HOST }}
-      #     MONGODB_PORT: ${{ secrets.MONGODB_PORT }}
-      #     MONGODB_USER: ${{ secrets.MONGODB_USER }}
-      #     MONGODB_PASSWORD: ${{ secrets.MONGODB_PASSWORD }}
-      #     HOST_DATA: ${{ secrets.HOST_DATA }}
-      # run: docker run --rm -d -p ${{ env.MONGODB_PORT }}:${{ env.MONGODB_PORT }} -e MONGODB_DATABASE=api_test -e PUID=1000 -e PGID=1000 -e AUTH=yes -e MONGO_INITDB_ROOT_USERNAME=${{ env.MONGODB_USER }} -e MONGO_INITDB_ROOT_PASSWORD=${{ env.MONGODB_PASSWORD }} --name mongodb mongo:latest
-      # - name: Build the stack
-      #   run: docker-compose up -d
-      # - name: Run unit tests
-      #   run: go test --short ./...
-      # - name: Run Integration tests
-      #   run: make tests
