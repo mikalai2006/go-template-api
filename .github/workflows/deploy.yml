@@ -45,8 +45,8 @@ jobs:
           file: ./Dockerfile
           push: true
           tags: |
-            ghcr.io/${{ github.repository_owner }}/prod-template-api
-            ghcr.io/${{ github.repository_owner }}/prod-template-api:latest
+            ghcr.io/${{ github.repository }}/prod-template-api
+            ghcr.io/${{ github.repository }}/prod-template-api:latest
           # secrets: |
           #   "ASPNETCORE_ENVIRONMENT=Release"
           # build-args: |
