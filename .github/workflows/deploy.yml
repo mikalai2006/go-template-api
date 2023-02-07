@@ -58,8 +58,8 @@ jobs:
           username: ${{ secrets.SSH_SITE_USERNAME }}
           key: ${{ secrets.SSH_SITE_TOKEN }}
           port: ${{ secrets.SSH_SITE_PORT }}
-          run: |
-            touch .test
+          script: |
+            sudo touch .test
           # script: |
           #   sudo docker-compose -f docker-compose.prod-ci.yml -p prod pull
           #   sudo docker-compose -f docker-compose.prod-ci.yml -p prod up -d
