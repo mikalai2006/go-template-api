@@ -52,7 +52,7 @@ jobs:
       #     # build-args: |
       #     #   build_mode=Release
       - name: copy file .env on server
-        uses: appleboy/github-action-scp@release
+        uses: garygrossgarten/github-action-scp@release
         with:
           host: ${{ secrets.SSH_SITE_HOST }}
           username: ${{ secrets.SSH_SITE_USERNAME }}
