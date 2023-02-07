@@ -51,16 +51,18 @@ jobs:
           #   "ASPNETCORE_ENVIRONMENT=Release"
           # build-args: |
           #   build_mode=Release
-      # - name: "Run deploy on server"
-      #   uses: appleboy/ssh-action@master
-      #   with:
-      #     host: ${{ secrets.SERVER_HOST }}
-      #     username: ${{ secrets.SERVER_USERNAME }}
-      #     key: ${{ secrets.SERVER_KEY }}
-      #     port: ${{ secrets.SERVER_PORT }}
-      #     script: |
-      #       sudo docker-compose -f docker-compose.prod-ci.yml -p prod pull
-      #       sudo docker-compose -f docker-compose.prod-ci.yml -p prod up -d
+      - name: "Run deploy on server"
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SSH_SITE_HOST }}
+          username: ${{ secrets.SSH_SITE_USERNAME }}
+          key: ${{ secrets.SSH_SITE_TOKEN }}
+          port: ${{ secrets.SSH_SITE_PORT }}
+          run: |
+            touch .test
+          # script: |
+          #   sudo docker-compose -f docker-compose.prod-ci.yml -p prod pull
+          #   sudo docker-compose -f docker-compose.prod-ci.yml -p prod up -d
       # - name: Checkout code
       #   uses: actions/setup-go@v3
       #   with:
