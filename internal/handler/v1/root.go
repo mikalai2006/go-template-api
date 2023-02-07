@@ -49,7 +49,7 @@ func (h *HandlerV1) Init(api *gin.RouterGroup) {
 
 		v1.GET("/", func(c *gin.Context) {
 			c.JSON(http.StatusOK, gin.H{
-				"message": "v1",
+				"version": "v1",
 			})
 		})
 	}
