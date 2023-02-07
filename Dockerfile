@@ -1,4 +1,4 @@
-FROM golang:1.19.1 AS builder
+FROM golang:1.19.1-alpine AS builder
 ARG VERSION=dev
 
 ENV APP_HOME /go/src/go-template-api
